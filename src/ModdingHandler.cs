@@ -97,7 +97,10 @@ namespace MonqueModder
         public async Task startModdingProcess()
         {
             window.log("Creating temporary directory . . .");
-            Directory.Delete(TEMP_DIRECTORY, true); // Delete the temporary directory, since stuff from last time we modded will get in the way
+            if(Directory.Exists(TEMP_DIRECTORY)) {
+                window.log("Removing existing temporary directory . . .");
+                Directory.Delete(TEMP_DIRECTORY, true); // Delete the temporary directory, since stuff from last time we modded will get in the way
+            }
             Directory.CreateDirectory(TEMP_DIRECTORY);
 
             await downloadFiles();
