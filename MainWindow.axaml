@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" Width="600" Height="400"
+        x:Class="MonqueModder.MainWindow"
+        Title="MonqueModder">
+  <StackPanel Orientation="Vertical">
+    <TextBlock HorizontalAlignment="Center" Padding="13">Welcome to MonqueModder</TextBlock>
+    <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Left" Padding="13" Foreground="Red" IsVisible="false">You must install Gorilla tag on your Quest before modding!
+        Download it here: https://sidequestvr.com/app/2157/gorilla-tag</TextBlock>
+    <TextBlock Name="appInstalledText" HorizontalAlignment="Center" Padding="6" Foreground="Green" IsVisible="false">Gorilla tag is installed</TextBlock>
+    <Button Name="startModding" Margin="13" HorizontalAlignment="Center">Patch GorillaTag!</Button>
+
+    <StackPanel Name="patchingPanel" Orientation="Vertical">
+      <TextBlock Padding="13" TextDecorations="underline" HorizontalAlignment="Center">Modding Log</TextBlock>
+       <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible"
+                Padding="13" Margin="10" TextWrapping="Wrap" Height="200" IsReadOnly="True">
+         </TextBox>
+    </StackPanel>
+  </StackPanel>
+</Window>
