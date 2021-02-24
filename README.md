@@ -12,3 +12,4 @@ Currently it isn't released, as several more things still need to be added:
 - Make it game-agnostic.
 - Add support for uninstalling mods.
 - Improve GUI perhaps
+- Come up with a better name
