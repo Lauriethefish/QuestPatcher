@@ -6,7 +6,7 @@ using Avalonia.Markup.Xaml;
 using System;
 using System.Threading.Tasks;
 
-namespace MonqueModder
+namespace QuestPatcher
 {
     public class MainWindow : Window
     {

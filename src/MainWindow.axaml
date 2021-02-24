@@ -3,10 +3,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" Width="600" Height="400"
-        x:Class="MonqueModder.MainWindow"
-        Title="MonqueModder">
+        x:Class="QuestPatcher.MainWindow"
+        Title="QuestPatcher">
   <StackPanel Orientation="Vertical">
-    <TextBlock HorizontalAlignment="Center" Padding="13">Welcome to MonqueModder</TextBlock>
+    <TextBlock HorizontalAlignment="Center" Padding="13">Welcome to QuestPatcher</TextBlock>
     <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Left" Padding="13" Foreground="Red" IsVisible="false">You must install Gorilla tag on your Quest before modding!
         Download it here: https://sidequestvr.com/app/2157/gorilla-tag</TextBlock>
     <TextBlock Name="appInstalledText" HorizontalAlignment="Center" Padding="6" Foreground="Green" IsVisible="false">Gorilla tag is installed</TextBlock>

@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using System;
 
-namespace MonqueModder
+namespace QuestPatcher
 {
     class Program
     {

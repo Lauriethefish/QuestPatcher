@@ -5,7 +5,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace MonqueModder
+namespace QuestPatcher
 {
     public class DebugBridge
     {

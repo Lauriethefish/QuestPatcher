@@ -8,7 +8,7 @@ using System.Threading;
 using System.Net;
 using System.Diagnostics;
 
-namespace MonqueModder
+namespace QuestPatcher
 {
     class ModdingHandler
     {

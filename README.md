@@ -1,6 +1,6 @@
-# MonqueModder
+# QuestPatcher
 
-MonqueModder is a WIP GUI based mod installer for GorillaTag on the Oculus Quest.
+QuestPatcher is a WIP GUI based mod installer for GorillaTag on the Oculus Quest.
 It should support Windows, Mac and Linux.
 
 
