@@ -1,6 +1,6 @@
 # MonqueModder
 
-MonqueModder is a WIP GUI based mod installer for MonkeyTag on the Oculus Quest.
+MonqueModder is a WIP GUI based mod installer for GorillaTag on the Oculus Quest.
 It should support Windows, Mac and Linux.
 
 
