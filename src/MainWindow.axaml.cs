@@ -10,6 +10,7 @@ namespace QuestPatcher
 {
     public class MainWindow : Window
     {
+        private TextBlock welcomeText;
         private TextBlock appNotInstalledText;
         private TextBlock appInstalledText;
         private TextBox loggingBox;
@@ -38,6 +39,8 @@ namespace QuestPatcher
         {
             AvaloniaXamlLoader.Load(this);
             findComponents();
+
+            welcomeText.Text += (" " + DebugBridge.APP_ID);
 
             bool appIsInstalled = DebugBridge.runCommand("shell pm list packages {app-id}") != "";
             if(appIsInstalled)
@@ -74,6 +77,7 @@ namespace QuestPatcher
             appInstalledText = this.FindControl<TextBlock>("appInstalledText");
             loggingBox = this.FindControl<TextBox>("loggingBox");
             startModding = this.FindControl<Button>("startModding");
+            welcomeText = this.FindControl<TextBlock>("welcomeText");
         }
     }
 }

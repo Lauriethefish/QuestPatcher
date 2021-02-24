@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace QuestPatcher
 {
     public class DebugBridge
     {
-        private const string APP_ID = "com.AnotherAxiom.GorillaTag";
+        public string APP_ID { get; } = File.ReadAllText("appId.txt");
 
         private string handlePlaceholders(string command)
         {
