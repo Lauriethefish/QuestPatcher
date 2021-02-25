@@ -92,11 +92,33 @@ namespace QuestPatcher {
 
         private async Task uninstallMod(ModManifest manifest)
         {
-            foreach (string modFilePath in manifest.ModFiles) {
-                await debugBridge.runCommandAsync("shell rm -f sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
-            }
-            await debugBridge.runCommandAsync("shell rm -f " + INSTALLED_MODS_PATH + manifest.Id + ".json");
             InstalledMods.Remove(manifest.Id);
+
+            foreach (string modFilePath in manifest.ModFiles) {
+                await debugBridge.runCommandAsync("shell rm -f sdcard/Android/data/{app-id}/files/mods/" + modFilePath); // Remove each mod file
+            }
+
+            
+            foreach (string libraryPath in manifest.LibraryFiles)
+            {
+                // Only remove libraries if they aren't used by another mod
+                bool isUsedElsewhere = false;
+                foreach(ModManifest otherManifest in InstalledMods.Values)
+                {
+                    if(otherManifest.LibraryFiles.Contains(libraryPath))
+                    {
+                        isUsedElsewhere = true;
+                        break;
+                    }
+                }
+
+                if(!isUsedElsewhere)
+                {
+                    await debugBridge.runCommandAsync("shell rm -f sdcard/Android/data/{app-id}/files/libs/" + libraryPath);
+                }
+            }
+
+            await debugBridge.runCommandAsync("shell rm -f " + INSTALLED_MODS_PATH + manifest.Id + ".json"); // Remove the mod manifest
         }
 
         // Kind of janky, but there isn't another good way to do this unless I set up MVVM which will take ages
@@ -127,6 +149,7 @@ namespace QuestPatcher {
             {
                 try
                 {
+                    // Uninstall the mod from the Quest
                     await uninstallMod(manifest);
                     window.InstalledModsPanel.Children.Remove(border);
                 }
