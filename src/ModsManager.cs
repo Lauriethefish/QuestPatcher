@@ -70,6 +70,10 @@ namespace QuestPatcher {
                 throw new Exception("Manifest was null"); // Be quiet IDE
             }
 
+            if(manifest.GameId != debugBridge.APP_ID) {
+                throw new Exception("This mod is not for your app!");
+            }
+
             if(InstalledMods.ContainsKey(manifest.Id))
             {
                 throw new Exception("Attempted to install a mod when it was already installed");
