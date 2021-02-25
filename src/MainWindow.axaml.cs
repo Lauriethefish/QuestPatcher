@@ -59,6 +59,7 @@ namespace QuestPatcher
             {
                 appNotInstalledText.IsVisible = true;
                 startModding.IsVisible = false; // Remove the "mod the game" button
+                alreadyModded.IsVisible = false;
             }
 
             startModding.Click += onStartModdingClick;
