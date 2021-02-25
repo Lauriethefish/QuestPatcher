@@ -9,5 +9,7 @@ It uses Sc2ad's [QuestLoader](https://github.com/sc2ad/QuestLoader/) for loading
 
 Currently it isn't released, as several more things still need to be added:
 
+See `MOD_FORMAT.md` for instructions about making a mod that is loadable by this patcher.
+
 ## TODO
 - Improve GUI perhaps
