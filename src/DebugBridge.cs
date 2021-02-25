@@ -36,7 +36,7 @@ namespace QuestPatcher
             string output = process.StandardOutput.ReadToEnd();
             await process.WaitForExitAsync();
 
-            if(output.Contains("error"))
+            if(output.Contains("error") || output.Contains("failed"))
             {
                 throw new Exception(output);
             }
