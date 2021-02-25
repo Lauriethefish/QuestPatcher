@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace QuestPatcher
 {
@@ -15,9 +16,17 @@ namespace QuestPatcher
         private TextBlock appInstalledText;
         private TextBox loggingBox;
         private Button startModding;
+        private Button alreadyModded;
+        public TextBlock ModInstallErrorText { get; private set; }
+
+        private Button browseModsButton;
+        private Panel patchingPanel;
+        public StackPanel InstalledModsPanel { get; private set; }
 
         public DebugBridge DebugBridge { get; } = new DebugBridge();
         private ModdingHandler moddingHandler;
+
+        private ModsManager modsManager;
 
         public MainWindow()
         {
@@ -26,6 +35,7 @@ namespace QuestPatcher
             this.AttachDevTools();
 #endif      
             this.moddingHandler = new ModdingHandler(this);
+            this.modsManager = new ModsManager(this);
         }
 
         // Writes a new line to the "modding log" section
@@ -54,11 +64,23 @@ namespace QuestPatcher
             }
 
             startModding.Click += onStartModdingClick;
+            alreadyModded.Click += onAlreadyModdedClick;
+            browseModsButton.Click += onBrowseForModsClick;
+        }
+
+        private async Task switchToModMenu() {
+            patchingPanel.IsVisible = false;
+            startModding.IsVisible = false;
+            alreadyModded.IsVisible = false;
+            InstalledModsPanel.IsVisible = true;
+            
+            await modsManager.LoadModsFromQuest();
         }
 
         private async void onStartModdingClick(object sender, RoutedEventArgs args)
         {
             startModding.IsVisible = false;
+            alreadyModded.IsVisible = false;
             loggingBox.Height += 60;
 
             try
@@ -68,6 +90,35 @@ namespace QuestPatcher
             {
                 log("An error occurred while attempting to patch the game");
                 log(ex.Message);
+                return;
+            }
+
+            await switchToModMenu();
+        }
+
+        private async void onAlreadyModdedClick(object sender, RoutedEventArgs args) {
+            await switchToModMenu();
+        }
+
+        private async void onBrowseForModsClick(object sender, RoutedEventArgs args) {
+            // Show a browse dialogue to enter the path of the mod file
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.AllowMultiple = false;
+
+            FileDialogFilter filter = new FileDialogFilter();
+            filter.Extensions.Add("qmod");
+            filter.Name = "Quest Mods";
+
+            fileDialog.Filters.Add(filter);
+            string[] files = await fileDialog.ShowAsync(this);
+
+            // Install the mod with that path
+            try
+            {
+                await modsManager.InstallMod(files[0]);
+            }   catch(Exception ex)
+            {
+                ModInstallErrorText.Text = "Error while installing mod: " + ex.Message;
             }
         }
 
@@ -77,7 +128,12 @@ namespace QuestPatcher
             appInstalledText = this.FindControl<TextBlock>("appInstalledText");
             loggingBox = this.FindControl<TextBox>("loggingBox");
             startModding = this.FindControl<Button>("startModding");
+            alreadyModded = this.FindControl<Button>("alreadyModded");
             welcomeText = this.FindControl<TextBlock>("welcomeText");
+            patchingPanel = this.FindControl<Panel>("patchingPanel");
+            InstalledModsPanel = this.FindControl<StackPanel>("installedMods");
+            browseModsButton = this.FindControl<Button>("browseModsButton");
+            ModInstallErrorText = this.FindControl<TextBlock>("modInstallErrorText");
         }
     }
 }

@@ -9,13 +9,24 @@
     <TextBlock HorizontalAlignment="Center" Padding="13" Name="welcomeText">Welcome to QuestPatcher. You are modding</TextBlock>
     <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="false">App with specified ID could not be found</TextBlock>
     <TextBlock Name="appInstalledText" HorizontalAlignment="Center" Padding="6" Foreground="Green" IsVisible="false">Your app is installed</TextBlock>
-    <Button Name="startModding" Margin="13" HorizontalAlignment="Center">Patch your app!</Button>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+      <Button Name="startModding" Margin="13">Patch my app!</Button>
+      <Button Name="alreadyModded" Margin="13">I've already modded my game</Button>
+    </StackPanel>
 
     <StackPanel Name="patchingPanel" Orientation="Vertical">
       <TextBlock Padding="13" TextDecorations="underline" HorizontalAlignment="Center">Modding Log</TextBlock>
-       <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible"
+        <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible"
                 Padding="13" Margin="10" TextWrapping="Wrap" Height="200" IsReadOnly="True">
-         </TextBox>
+        </TextBox>
     </StackPanel>
+
+    <ScrollViewer VerticalScrollBarVisibility="Visible" Height="305">
+      <StackPanel Name="installedMods" IsVisible="False" Margin="10" Orientation="Vertical" Background="LightGray">
+        <Button Name="browseModsButton" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="600">Browse for Mods</Button>
+        <TextBlock Name="modInstallErrorText" HorizontalAlignment="Center" Foreground="Red"/>
+      </StackPanel>
+    </ScrollViewer>
+
   </StackPanel>
 </Window>
