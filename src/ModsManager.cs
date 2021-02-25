@@ -68,12 +68,14 @@ namespace QuestPatcher {
             string manifestText = await File.ReadAllTextAsync(TEMP_EXTRACT_PATH + "mod.json");
             ModManifest manifest = ModManifest.Load(manifestText);
 
+            if(manifest.GameId != debugBridge.APP_ID) {
+                throw new Exception("This mod is not indended for the selected game!");
+            }
+
             if(InstalledMods.ContainsKey(manifest.Id))
             {
                 throw new Exception("Attempted to install a mod when it was already installed");
             }
-
-            if(manifest == null) {throw new Exception("Manifest was null!");} // Be quiet editor
 
             // Copy all of the SO files
             foreach(string libraryPath in manifest.LibraryFiles) {
