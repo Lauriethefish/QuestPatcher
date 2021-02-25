@@ -114,8 +114,8 @@ namespace QuestPatcher
             // Install the mod with that path
             try
             {
-                await modsManager.InstallMod(files[0]);
                 ModInstallErrorText.IsVisible = false;
+                await modsManager.InstallMod(files[0]);
             }   catch(Exception ex)
             {
                 ModInstallErrorText.IsVisible = true;
