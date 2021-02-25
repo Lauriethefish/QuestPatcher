@@ -1,0 +1,31 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        runtime: ['ubuntu-x64', 'win-x64', 'osx-x64']
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build ${{ matrix.runtime }}
+      run: dotnet publish -r ${{ matrix.runtime }} -c Release
+    - name: Artifact Upload ${{ matrix.runtime }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.runtime }}
+        path: bin/Release/netcoreapp3.1/${{ matrix.runtime }}/publish/
