@@ -77,7 +77,7 @@ namespace QuestPatcher
             await modsManager.LoadModsFromQuest();
         }
 
-        private async void onStartModdingClick(object sender, RoutedEventArgs args)
+        private async void onStartModdingClick(object? sender, RoutedEventArgs args)
         {
             startModding.IsVisible = false;
             alreadyModded.IsVisible = false;
@@ -96,11 +96,11 @@ namespace QuestPatcher
             await switchToModMenu();
         }
 
-        private async void onAlreadyModdedClick(object sender, RoutedEventArgs args) {
+        private async void onAlreadyModdedClick(object? sender, RoutedEventArgs args) {
             await switchToModMenu();
         }
 
-        private async void onBrowseForModsClick(object sender, RoutedEventArgs args) {
+        private async void onBrowseForModsClick(object? sender, RoutedEventArgs args) {
             // Show a browse dialogue to enter the path of the mod file
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.AllowMultiple = false;

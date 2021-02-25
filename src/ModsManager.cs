@@ -66,6 +66,10 @@ namespace QuestPatcher {
             // Read the manifest
             string manifestText = await File.ReadAllTextAsync(TEMP_EXTRACT_PATH + "mod.json");
             ModManifest? manifest = JsonSerializer.Deserialize<ModManifest>(manifestText);
+            if(manifest == null) {
+                throw new Exception("Manifest was null"); // Be quiet IDE
+            }
+
             if(InstalledMods.ContainsKey(manifest.Id))
             {
                 throw new Exception("Attempted to install a mod when it was already installed");
