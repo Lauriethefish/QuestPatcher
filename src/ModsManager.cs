@@ -30,6 +30,8 @@ namespace QuestPatcher {
         public async Task LoadModsFromQuest() {
 
             await debugBridge.runCommandAsync("shell mkdir -p " + INSTALLED_MODS_PATH);
+            await debugBridge.runCommandAsync("shell mkdir -p sdcard/Android/data/{app-id}/files/mods");
+            await debugBridge.runCommandAsync("shell mkdir -p sdcard/Android/data/{app-id}/files/libs");
 
             // List the manifests in the installed mods directory for this app
             string modsNonSplit = await debugBridge.runCommandAsync("shell ls -R " + INSTALLED_MODS_PATH);
@@ -160,10 +162,13 @@ namespace QuestPatcher {
                     // Uninstall the mod from the Quest
                     await uninstallMod(manifest);
                     window.InstalledModsPanel.Children.Remove(border);
+
+                    window.ModInstallErrorText.IsVisible = false;
                 }
                 catch (Exception ex)
                 {
-                    window.ModInstallErrorText.Text = "Error: " + ex.Message;
+                    window.ModInstallErrorText.IsVisible = true;
+                    window.ModInstallErrorText.Text = "Error while uninstalling mod: " + ex.Message;
                 }
             };
 
