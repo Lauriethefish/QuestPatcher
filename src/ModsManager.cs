@@ -14,7 +14,7 @@ namespace QuestPatcher {
     {
         // Temporarily extract the ZIP file here so that we can use ADB push
         private const string TEMP_EXTRACT_PATH = "./extractedMod/";
-        private string INSTALLED_MODS_PATH = "sdcard/QuestAppPatcher/{app-id}/installedMods/";
+        private string INSTALLED_MODS_PATH = "sdcard/QuestPatcher/{app-id}/installedMods/";
 
         private MainWindow window;
         private DebugBridge debugBridge;
