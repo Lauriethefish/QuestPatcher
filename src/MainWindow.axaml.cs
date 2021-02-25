@@ -114,8 +114,10 @@ namespace QuestPatcher
             try
             {
                 await modsManager.InstallMod(files[0]);
+                ModInstallErrorText.IsVisible = false;
             }   catch(Exception ex)
             {
+                ModInstallErrorText.IsVisible = true;
                 ModInstallErrorText.Text = "Error while installing mod: " + ex.Message;
             }
         }

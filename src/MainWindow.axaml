@@ -24,7 +24,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Visible" Height="305">
       <StackPanel Name="installedMods" IsVisible="False" Margin="10" Orientation="Vertical" Background="LightGray">
         <Button Name="browseModsButton" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="600">Browse for Mods</Button>
-        <TextBlock Name="modInstallErrorText" HorizontalAlignment="Center" Foreground="Red"/>
+        <TextBlock Name="modInstallErrorText" IsVisible="False" HorizontalAlignment="Center" Foreground="Red"/>
       </StackPanel>
     </ScrollViewer>
 
