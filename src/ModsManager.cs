@@ -48,8 +48,7 @@ namespace QuestPatcher {
             foreach(string path in parsedPaths) {
                 string contents = await debugBridge.runCommandAsync("shell cat " + path);
 
-                ModManifest? manifest = JsonSerializer.Deserialize<ModManifest>(contents);
-                if(manifest == null) {throw new Exception("Manifest was null!");} // Be quiet editor
+                ModManifest manifest = ModManifest.Load(contents);
 
                 addManifest(manifest);
             }
@@ -67,14 +66,7 @@ namespace QuestPatcher {
 
             // Read the manifest
             string manifestText = await File.ReadAllTextAsync(TEMP_EXTRACT_PATH + "mod.json");
-            ModManifest? manifest = JsonSerializer.Deserialize<ModManifest>(manifestText);
-            if(manifest == null) {
-                throw new Exception("Manifest was null"); // Be quiet IDE
-            }
-
-            if(manifest.GameId != debugBridge.APP_ID) {
-                throw new Exception("This mod is not for your app!");
-            }
+            ModManifest manifest = ModManifest.Load(manifestText);
 
             if(InstalledMods.ContainsKey(manifest.Id))
             {

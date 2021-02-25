@@ -1,5 +1,6 @@
 
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace QuestPatcher {
     public class ModManifest {
@@ -16,7 +17,15 @@ namespace QuestPatcher {
 
         public string Type { get; set; }
 
-        public List<string> ModFiles { get; set; }
-        public List<string> LibraryFiles { get; set; }
+        public List<string> ModFiles { get; set; } = new List<string>();
+        public List<string> LibraryFiles { get; set; } = new List<string>();
+
+        public static ModManifest Load(string str) {
+            JsonSerializerOptions options = new JsonSerializerOptions {
+                PropertyNameCaseInsensitive = true
+            };
+
+            return JsonSerializer.Deserialize<ModManifest>(str);
+        }
     }
 }
