@@ -13,7 +13,6 @@ namespace QuestPatcher {
     public class ModsManager
     {
         // Temporarily extract the ZIP file here so that we can use ADB push
-        private const string TEMP_EXTRACT_PATH = "./extractedMod/";
         private string INSTALLED_MODS_PATH = "sdcard/QuestPatcher/{app-id}/installedMods/";
 
         private MainWindow window;
@@ -55,49 +54,54 @@ namespace QuestPatcher {
         }
 
         public async Task InstallMod(string path) {
-            // Extract the mod archive temporarily so that we can push the files using adb
-            if(Directory.Exists(TEMP_EXTRACT_PATH))
+            string extractPath = "./" + Path.GetFileNameWithoutExtension(path) + "_temp/";
+
+            try
             {
-                Directory.Delete(TEMP_EXTRACT_PATH, true);
+                window.log("Extracting mod . . .");
+                Directory.CreateDirectory(extractPath);
+                ZipFile.ExtractToDirectory(path, extractPath);
+
+                // Read the manifest
+                window.log("Loading manifest . . .");
+                string manifestText = await File.ReadAllTextAsync(extractPath + "mod.json");
+                ModManifest manifest = ModManifest.Load(manifestText);
+
+                if (manifest.GameId != debugBridge.APP_ID)
+                {
+                    throw new Exception("This mod is not indended for the selected game!");
+                }
+
+                if (InstalledMods.ContainsKey(manifest.Id))
+                {
+                    throw new Exception("Attempted to install a mod when it was already installed");
+                }
+
+                // Copy all of the SO files
+                foreach (string libraryPath in manifest.LibraryFiles)
+                {
+                    window.log("Copying mod file " + libraryPath);
+                    string result = await debugBridge.runCommandAsync("push " + extractPath + libraryPath + " sdcard/Android/data/{app-id}/files/libs/" + libraryPath);
+                }
+
+                foreach (string modFilePath in manifest.ModFiles)
+                {
+                    window.log("Copying library file " + modFilePath);
+                    string result = await debugBridge.runCommandAsync("push " + extractPath + modFilePath + " sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
+                }
+
+                // Store that the mod was successfully installed
+                window.log("Copying manifest . . .");
+                debugBridge.runCommand("push " + extractPath + "mod.json " + INSTALLED_MODS_PATH + manifest.Id + ".json");
+
+                addManifest(manifest);
+                window.log("Done!");
             }
-
-            window.log("Extracting mod . . .");
-            Directory.CreateDirectory(TEMP_EXTRACT_PATH);
-            ZipFile.ExtractToDirectory(path, TEMP_EXTRACT_PATH);
-
-            // Read the manifest
-            window.log("Loading manifest . . .");
-            string manifestText = await File.ReadAllTextAsync(TEMP_EXTRACT_PATH + "mod.json");
-            ModManifest manifest = ModManifest.Load(manifestText);
-
-            if(manifest.GameId != debugBridge.APP_ID) {
-                throw new Exception("This mod is not indended for the selected game!");
-            }
-
-            if(InstalledMods.ContainsKey(manifest.Id))
+            finally
             {
-                throw new Exception("Attempted to install a mod when it was already installed");
+
+                Directory.Delete(extractPath, true);
             }
-
-            // Copy all of the SO files
-            foreach(string libraryPath in manifest.LibraryFiles) {
-                window.log("Copying mod file " + libraryPath);
-                string result = await debugBridge.runCommandAsync("push " + TEMP_EXTRACT_PATH + libraryPath + " sdcard/Android/data/{app-id}/files/libs/" + libraryPath);
-            }
-
-            foreach(string modFilePath in manifest.ModFiles) {
-                window.log("Copying library file " + modFilePath);
-                string result = await debugBridge.runCommandAsync("push " + TEMP_EXTRACT_PATH + modFilePath + " sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
-            }
-
-            // Store that the mod was successfully installed
-            window.log("Copying manifest . . .");
-            debugBridge.runCommand("push " + TEMP_EXTRACT_PATH + "mod.json " + INSTALLED_MODS_PATH + manifest.Id + ".json");
-
-            Directory.Delete(TEMP_EXTRACT_PATH, true);
-
-            addManifest(manifest);
-            window.log("Done!");
         }
 
         private async Task uninstallMod(ModManifest manifest)
