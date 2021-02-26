@@ -61,10 +61,12 @@ namespace QuestPatcher {
                 Directory.Delete(TEMP_EXTRACT_PATH, true);
             }
 
+            window.log("Extracting mod . . .");
             Directory.CreateDirectory(TEMP_EXTRACT_PATH);
             ZipFile.ExtractToDirectory(path, TEMP_EXTRACT_PATH);
 
             // Read the manifest
+            window.log("Loading manifest . . .");
             string manifestText = await File.ReadAllTextAsync(TEMP_EXTRACT_PATH + "mod.json");
             ModManifest manifest = ModManifest.Load(manifestText);
 
@@ -79,26 +81,32 @@ namespace QuestPatcher {
 
             // Copy all of the SO files
             foreach(string libraryPath in manifest.LibraryFiles) {
+                window.log("Copying mod file " + libraryPath);
                 string result = await debugBridge.runCommandAsync("push " + TEMP_EXTRACT_PATH + libraryPath + " sdcard/Android/data/{app-id}/files/libs/" + libraryPath);
             }
 
             foreach(string modFilePath in manifest.ModFiles) {
+                window.log("Copying library file " + modFilePath);
                 string result = await debugBridge.runCommandAsync("push " + TEMP_EXTRACT_PATH + modFilePath + " sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
             }
 
             // Store that the mod was successfully installed
+            window.log("Copying manifest . . .");
             debugBridge.runCommand("push " + TEMP_EXTRACT_PATH + "mod.json " + INSTALLED_MODS_PATH + manifest.Id + ".json");
 
             Directory.Delete(TEMP_EXTRACT_PATH, true);
 
             addManifest(manifest);
+            window.log("Done!");
         }
 
         private async Task uninstallMod(ModManifest manifest)
         {
+            window.log("Uninstalling mod with ID " + manifest.Id + " . . .");
             InstalledMods.Remove(manifest.Id);
 
             foreach (string modFilePath in manifest.ModFiles) {
+                window.log("Removing mod file " + modFilePath);
                 await debugBridge.runCommandAsync("shell rm -f sdcard/Android/data/{app-id}/files/mods/" + modFilePath); // Remove each mod file
             }
 
@@ -111,6 +119,7 @@ namespace QuestPatcher {
                 {
                     if(otherManifest.LibraryFiles.Contains(libraryPath))
                     {
+                        window.log("Other mod " + otherManifest.Id + " still needs library " + libraryPath + ", not removing");
                         isUsedElsewhere = true;
                         break;
                     }
@@ -118,11 +127,15 @@ namespace QuestPatcher {
 
                 if(!isUsedElsewhere)
                 {
+                    window.log("Removing library file " + libraryPath);
                     await debugBridge.runCommandAsync("shell rm -f sdcard/Android/data/{app-id}/files/libs/" + libraryPath);
                 }
             }
 
+            window.log("Removing mod manifest . . .");
             await debugBridge.runCommandAsync("shell rm -f " + INSTALLED_MODS_PATH + manifest.Id + ".json"); // Remove the mod manifest
+
+            window.log("Done!");
         }
 
         // Kind of janky, but there isn't another good way to do this unless I set up MVVM which will take ages

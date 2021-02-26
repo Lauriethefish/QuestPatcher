@@ -14,19 +14,18 @@
       <Button Name="alreadyModded" Margin="13">I've already modded my game</Button>
     </StackPanel>
 
-    <StackPanel Name="patchingPanel" Orientation="Vertical">
-      <TextBlock Padding="13" TextDecorations="underline" HorizontalAlignment="Center">Modding Log</TextBlock>
-        <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible"
-                Padding="13" Margin="10" TextWrapping="Wrap" Height="200" IsReadOnly="True">
-        </TextBox>
-    </StackPanel>
+    <Border Padding="13">
+      <ScrollViewer VerticalScrollBarVisibility="Visible" IsVisible="False" Name="installedMods" Height="305">
+        <StackPanel Orientation="Vertical" Name="installedModsPanel" Background="LightGray">
+          <Button Name="browseModsButton" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="600">Browse for Mods</Button>
+          <TextBlock Name="modInstallErrorText" IsVisible="False" HorizontalAlignment="Center" Foreground="Red"/>
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
 
-    <ScrollViewer VerticalScrollBarVisibility="Visible" Height="305">
-      <StackPanel Name="installedMods" IsVisible="False" Margin="10" Orientation="Vertical" Background="LightGray">
-        <Button Name="browseModsButton" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="600">Browse for Mods</Button>
-        <TextBlock Name="modInstallErrorText" IsVisible="False" HorizontalAlignment="Center" Foreground="Red"/>
-      </StackPanel>
-    </ScrollViewer>
-
+    <TextBlock Padding="6" TextDecorations="underline" HorizontalAlignment="Center">Modding Log</TextBlock>
+    <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Auto"
+            Padding="13" Margin="10" TextWrapping="Wrap" Height="195" IsReadOnly="True">
+    </TextBox>
   </StackPanel>
 </Window>

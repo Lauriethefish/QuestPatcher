@@ -18,7 +18,7 @@ namespace QuestPatcher
         public TextBlock ModInstallErrorText { get; private set; }
 
         private Button browseModsButton;
-        private Panel patchingPanel;
+        public ScrollViewer InstalledMods { get; private set; }
         public StackPanel InstalledModsPanel { get; private set; }
 
         public DebugBridge DebugBridge { get; } = new DebugBridge();
@@ -68,10 +68,13 @@ namespace QuestPatcher
         }
 
         private async Task switchToModMenu() {
-            patchingPanel.IsVisible = false;
+            this.MaxHeight += 200;
+            this.MinHeight += 200;
+            this.loggingBox.Height -= 50;
+
             startModding.IsVisible = false;
             alreadyModded.IsVisible = false;
-            InstalledModsPanel.IsVisible = true;
+            InstalledMods.IsVisible = true;
             
             await modsManager.LoadModsFromQuest();
         }
@@ -131,8 +134,8 @@ namespace QuestPatcher
             startModding = this.FindControl<Button>("startModding");
             alreadyModded = this.FindControl<Button>("alreadyModded");
             welcomeText = this.FindControl<TextBlock>("welcomeText");
-            patchingPanel = this.FindControl<Panel>("patchingPanel");
-            InstalledModsPanel = this.FindControl<StackPanel>("installedMods");
+            InstalledModsPanel = this.FindControl<StackPanel>("installedModsPanel");
+            InstalledMods = this.FindControl<ScrollViewer>("installedMods");
             browseModsButton = this.FindControl<Button>("browseModsButton");
             ModInstallErrorText = this.FindControl<TextBlock>("modInstallErrorText");
         }
