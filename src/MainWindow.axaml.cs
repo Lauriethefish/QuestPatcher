@@ -114,6 +114,9 @@ namespace QuestPatcher
 
             fileDialog.Filters.Add(filter);
             string[] files = await fileDialog.ShowAsync(this);
+            if(files.Length == 0) {
+                return;
+            }
 
             // Install the mod with that path
             try
