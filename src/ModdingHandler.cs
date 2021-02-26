@@ -41,7 +41,7 @@ namespace QuestPatcher
         private async Task<string> invokeJavaAsync(string jarName, string args)
         {
             Process process = new Process();
-            process.StartInfo.FileName = "java.exe";
+            process.StartInfo.FileName = OperatingSystem.IsWindows() ? "java.exe" : "java";
             process.StartInfo.Arguments = "-Xmx1024m -jar " + TEMP_DIRECTORY + "/" + jarName + " " + args;
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
