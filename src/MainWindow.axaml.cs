@@ -92,6 +92,7 @@ namespace QuestPatcher
             {
                 log("An error occurred while attempting to patch the game");
                 log(ex.Message);
+                Console.Error.WriteLine(ex.Message + ": " + ex.StackTrace);
                 return;
             }
 
@@ -123,6 +124,7 @@ namespace QuestPatcher
             {
                 ModInstallErrorText.IsVisible = true;
                 ModInstallErrorText.Text = "Error while installing mod: " + ex.Message;
+                Console.Error.WriteLine(ex.Message + ": " + ex.StackTrace);
             }
         }
 
