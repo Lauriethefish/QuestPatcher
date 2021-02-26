@@ -23,7 +23,7 @@ namespace QuestPatcher
         public async Task<string> runCommandAsync(string command)
         {
             Process process = new Process();
-            process.StartInfo.FileName = "adb.exe";
+            process.StartInfo.FileName = OperatingSystem.IsWindows() ? "adb.exe" : "adb";
             process.StartInfo.Arguments = handlePlaceholders(command);
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
