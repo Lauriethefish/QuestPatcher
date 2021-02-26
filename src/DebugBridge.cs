@@ -2,11 +2,14 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.IO;
+using System.Globalization;
 
 namespace QuestPatcher
 {
     public class DebugBridge
     {
+        private static readonly CompareInfo compareInfo = new CultureInfo((int) CultureTypes.AllCultures).CompareInfo;
+
         public string APP_ID { get; } = File.ReadAllText("appId.txt");
 
         private string handlePlaceholders(string command)
@@ -20,6 +23,11 @@ namespace QuestPatcher
             return runCommandAsync(command).Result;
         }
 
+        private bool containsIgnoreCase(string str, string lookingFor)
+        {
+            return compareInfo.IndexOf(str, lookingFor, CompareOptions.IgnoreCase) >= 0;
+        }
+
         public async Task<string> runCommandAsync(string command)
         {
             Process process = new Process();
@@ -30,10 +38,11 @@ namespace QuestPatcher
             process.StartInfo.CreateNoWindow = true;
 
             process.Start();
+
             string output = process.StandardOutput.ReadToEnd();
             await process.WaitForExitAsync();
 
-            if(output.Contains("error") || output.Contains("failed"))
+            if (containsIgnoreCase(output, "error") || containsIgnoreCase(output, "failed"))
             {
                 throw new Exception(output);
             }
