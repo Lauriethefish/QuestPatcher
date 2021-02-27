@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 using System;
 using System.Threading.Tasks;
 
-namespace QuestPatcher
+namespace Quatcher
 {
     public class MainWindow : Window
     {
