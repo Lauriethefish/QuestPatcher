@@ -69,8 +69,12 @@ namespace QuestPatcher {
                 WebClient webClient = new WebClient();
 
                 window.log("Downloading dependency " + dependency.Id);
-                await webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, dependency.Id + ".qmod");
-                await InstallMod(dependency.Id + ".qmod");
+
+                string downloadedPath = dependency.Id + ".qmod";
+                await webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, downloadedPath);
+                await InstallMod(downloadedPath);
+
+                File.Delete(downloadedPath); // Remove the temporarily downloaded mod
 
                 ModManifest dependencyManifest = InstalledMods[dependency.Id];
                 
