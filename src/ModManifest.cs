@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 
-namespace QuestPatcher {
+namespace Quatcher {
     public class DependencyInfo {
         public string Id { get; set; }
 
