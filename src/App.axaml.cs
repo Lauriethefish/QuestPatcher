@@ -1,11 +1,14 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using System;
 
 namespace QuestPatcher
 {
     public class App : Application
     {
+        private IClassicDesktopStyleApplicationLifetime desktop;
+        private MainWindow mainWindow;
 
         public override void Initialize()
         {
@@ -14,10 +17,10 @@ namespace QuestPatcher
 
         public override void OnFrameworkInitializationCompleted()
         {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.MainWindow = new MainWindow();
-            }
+            desktop = (IClassicDesktopStyleApplicationLifetime) ApplicationLifetime;
+
+            mainWindow = new MainWindow();
+            desktop.MainWindow = mainWindow;
 
             base.OnFrameworkInitializationCompleted();
         }

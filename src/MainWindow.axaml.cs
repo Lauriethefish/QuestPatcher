@@ -15,30 +15,38 @@ namespace QuestPatcher
         private TextBox loggingBox;
         private Button startModding;
         private Button alreadyModded;
+        private Panel patchingPanel;
         public TextBlock ModInstallErrorText { get; private set; }
 
         private Button browseModsButton;
         public ScrollViewer InstalledMods { get; private set; }
         public StackPanel InstalledModsPanel { get; private set; }
 
-        public DebugBridge DebugBridge { get; } = new DebugBridge();
+        public DebugBridge DebugBridge { get; private set; }
         private ModdingHandler moddingHandler;
 
         private ModsManager modsManager;
 
+        private bool firstActivation = true;
+
         public MainWindow()
         {
+            this.DebugBridge = new DebugBridge(this);
+            this.moddingHandler = new ModdingHandler(this);
+            this.modsManager = new ModsManager(this);
+
+            this.Activated += onLoad;
             InitializeComponent();
+
 #if DEBUG
             this.AttachDevTools();
 #endif      
-            this.moddingHandler = new ModdingHandler(this);
-            this.modsManager = new ModsManager(this);
         }
 
         // Writes a new line to the "modding log" section
         public void log(string str)
         {
+            Console.WriteLine(str);
             loggingBox.Text += (str + "\n");
             loggingBox.CaretIndex = int.MaxValue; // Scroll to the bottom
         }
@@ -47,11 +55,34 @@ namespace QuestPatcher
         {
             AvaloniaXamlLoader.Load(this);
             findComponents();
+        }
+
+        private async void onLoad(object? sender, EventArgs args)
+        {
+            if(!firstActivation)
+            {
+                return;
+            }
+            firstActivation = false;
 
             welcomeText.Text += (" " + DebugBridge.APP_ID);
 
+            // First install the debug bridge if it is missing
+            try
+            {
+                await DebugBridge.InstallIfMissing();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message + ": " + ex.StackTrace);
+                return;
+            }
+
+            // Then we can check if the app is installed
+            patchingPanel.IsVisible = true;
+
             bool appIsInstalled = DebugBridge.runCommand("shell pm list packages {app-id}") != "";
-            if(appIsInstalled)
+            if (appIsInstalled)
             {
                 appInstalledText.IsVisible = true;
             }
@@ -143,6 +174,7 @@ namespace QuestPatcher
             InstalledMods = this.FindControl<ScrollViewer>("installedMods");
             browseModsButton = this.FindControl<Button>("browseModsButton");
             ModInstallErrorText = this.FindControl<TextBlock>("modInstallErrorText");
+            patchingPanel = this.FindControl<Panel>("patchingPanel");
         }
     }
 }

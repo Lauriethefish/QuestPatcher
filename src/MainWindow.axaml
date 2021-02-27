@@ -7,11 +7,14 @@
         Title="QuestPatcher">
   <StackPanel Orientation="Vertical">
     <TextBlock HorizontalAlignment="Center" Padding="13" Name="welcomeText">Welcome to QuestPatcher. You are modding</TextBlock>
-    <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="false">App with specified ID could not be found</TextBlock>
-    <TextBlock Name="appInstalledText" HorizontalAlignment="Center" Padding="6" Foreground="Green" IsVisible="false">Your app is installed</TextBlock>
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-      <Button Name="startModding" Margin="13">Patch my app!</Button>
-      <Button Name="alreadyModded" Margin="13">I've already modded my game</Button>
+    
+    <StackPanel Orientation="Vertical" IsVisible="False" Name="patchingPanel">
+      <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="false">App with specified ID could not be found</TextBlock>
+      <TextBlock Name="appInstalledText" HorizontalAlignment="Center" Padding="6" Foreground="Green" IsVisible="false">Your app is installed</TextBlock>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+        <Button Name="startModding" Margin="13">Patch my app!</Button>
+        <Button Name="alreadyModded" Margin="13">I've already modded my game</Button>
+      </StackPanel>
     </StackPanel>
 
     <Border Padding="13">
