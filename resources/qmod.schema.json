@@ -1,5 +1,5 @@
 {
-    "$id": "http://example.com/example.json",
+    "$id": "https://raw.githubusercontent.com/sc2ad/QuestPatcher/main/resources/qmod.schema.json",
     "$schema": "http://json-schema.org/draft-07/schema",
     "default": {},
     "description": "A mod of the format described by QuestPatcher.",
@@ -74,7 +74,7 @@
                 "example-mod-2"
             ],
             "title": "ID",
-            "pattern": "^[^\\s-]$",
+            "pattern": "^[^\\s]$",
             "type": "string"
         },
         "author": {
@@ -226,7 +226,7 @@
                         "title": "ID",
                         "description": "The ID of the dependency.",
                         "default": "",
-                        "pattern": "^[^\\s-]$",
+                        "pattern": "^[^\\s]$",
                         "examples": [
                             "my-dependency"
                         ]
