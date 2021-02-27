@@ -32,9 +32,12 @@ An example `mod.json` is below:
 }
 ```
 
-The `version` must be semvar, i.e. three version numbers like `0.6.8`. Versions like `0.84` or `0.1.0.0` are *not* allowed.
+The `version` must be semver, i.e. three version numbers like `0.6.8`. Versions like `0.84` or `0.1.0.0` are *not* allowed. Semver documentation can be found [here](https://semver.org/).
+
 The `gameVersion` is shown to the user, but can\'t be easily checked when the mod is installed.
+
 The `type` can be anything you want.
+
 The mod will not install on an app other than `gameId` (the installer will throw an error)
 
 Mod files (optional) should be in the ZIP file, and are copied to `sdcard/Android/data/<game-id>/files/mods`
@@ -66,6 +69,7 @@ Dependency format:
 - It can be `^` followed by the minimum version of the dependency. e.g. `^0.9.2` matches any version that it at least `0.9.2`.
 - It can be a single supported version, e.g. `0.9.0`.
 - It can be a wildcard, e.g. `0.9.*`.
+- Or anything else supported by a semver range.
 
 `downloadIfMissing` is optional, and is where QuestPatcher will attempt to download the mod if it isn't installed. If this isn't present, attempting to install the mod with the dependency will fail.
 
