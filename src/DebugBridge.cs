@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Net;
 using System.ComponentModel;
 
-namespace QuestPatcher
+namespace Quatcher
 {
     public class DebugBridge
     {
