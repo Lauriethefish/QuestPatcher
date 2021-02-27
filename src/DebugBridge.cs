@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Globalization;
 using System.Net;
+using System.ComponentModel;
 
 namespace QuestPatcher
 {
@@ -15,6 +16,7 @@ namespace QuestPatcher
         public string APP_ID { get; } = File.ReadAllText("appId.txt");
 
         private MainWindow window;
+        private bool adbOnPath = false;
 
         public DebugBridge(MainWindow window)
         {
@@ -40,7 +42,7 @@ namespace QuestPatcher
         public async Task<string> runCommandAsync(string command)
         {
             Process process = new Process();
-            process.StartInfo.FileName = "./platform-tools/" + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
+            process.StartInfo.FileName = (adbOnPath ? "" : "./platform-tools/") + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
             process.StartInfo.Arguments = handlePlaceholders(command);
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
@@ -59,9 +61,29 @@ namespace QuestPatcher
             return output;
         }
 
+        private async Task checkIfAdbOnPath()
+        {
+            adbOnPath = true;
+
+            try
+            {
+                await runCommandAsync("version");
+            }   catch (Win32Exception) // Thrown if the file doesn't exist
+            {
+                adbOnPath = false;
+            }
+        }
+
         // Downloads the Android platform-tools if they aren't present
         public async Task InstallIfMissing()
         {
+            await checkIfAdbOnPath();
+            if(adbOnPath)
+            {
+                window.log("Located ADB installation on PATH");
+                return;
+            }
+
             if(Directory.Exists("./platform-tools"))
             {
                 window.log("Platform-tools already installed");
