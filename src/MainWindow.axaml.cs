@@ -28,15 +28,13 @@ namespace QuestPatcher
 
         private ModsManager modsManager;
 
-        private bool firstActivation = true;
-
         public MainWindow()
         {
             this.DebugBridge = new DebugBridge(this);
             this.moddingHandler = new ModdingHandler(this);
             this.modsManager = new ModsManager(this);
 
-            this.Activated += onLoad;
+            this.Opened += onLoad;
             this.Closed += onClose;
             InitializeComponent();
 
@@ -61,12 +59,6 @@ namespace QuestPatcher
 
         private async void onLoad(object? sender, EventArgs args)
         {
-            if(!firstActivation)
-            {
-                return;
-            }
-            firstActivation = false;
-
             welcomeText.Text += (" " + DebugBridge.APP_ID);
 
             // First install the debug bridge if it is missing
