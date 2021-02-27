@@ -79,17 +79,19 @@ namespace QuestPatcher {
                 ModManifest dependencyManifest = InstalledMods[dependency.Id];
                 
                 // Sanity checks that the download link actually pointed to the right mod
-                if(!VersionUtil.isVersionWithinRange(dependencyManifest.Version, dependency.Version))
+                if(!dependency.ParsedVersion.IsSatisfied(dependencyManifest.ParsedVersion))
                 {
+                    await UninstallMod(dependencyManifest);
                     throw new Exception("Downloaded dependency " + dependency.Id + " was not within the version stated in the mod's manifest");
                 }
 
                 if(dependency.Id != dependencyManifest.Id)
                 {
+                    await UninstallMod(dependencyManifest);
                     throw new Exception("Downloaded dependency had ID " + dependencyManifest.Id + ", whereas the dependency stated ID " + dependency.Id);
                 }
             }   else    {
-                if(!VersionUtil.isVersionWithinRange(existing.Version, dependency.Version))
+                if(!dependency.ParsedVersion.IsSatisfied(existing.ParsedVersion))
                 {
                     throw new Exception("Dependency " + dependency.Id + " is installed, but the installed version is not within the given version range");
                 }
