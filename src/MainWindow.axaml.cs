@@ -14,13 +14,14 @@ namespace QuestPatcher
         private TextBlock appInstalledText;
         private TextBox loggingBox;
         private Button startModding;
-        private Button alreadyModded;
         private Panel patchingPanel;
         public TextBlock ModInstallErrorText { get; private set; }
 
         private Button browseModsButton;
         public ScrollViewer InstalledMods { get; private set; }
         public StackPanel InstalledModsPanel { get; private set; }
+
+        public AppInfo AppInfo { get; private set; }
 
         public DebugBridge DebugBridge { get; private set; }
         private ModdingHandler moddingHandler;
@@ -89,22 +90,30 @@ namespace QuestPatcher
             else
             {
                 appNotInstalledText.IsVisible = true;
-                startModding.IsVisible = false; // Remove the "mod the game" button
-                alreadyModded.IsVisible = false;
+            }
+
+            await moddingHandler.CheckInstallStatus();
+
+            if (moddingHandler.AppInfo.IsModded)
+            {
+                await switchToModMenu();
+            }
+            else
+            {
+                loggingBox.Height = 195;
+                startModding.IsVisible = true;
             }
 
             startModding.Click += onStartModdingClick;
-            alreadyModded.Click += onAlreadyModdedClick;
             browseModsButton.Click += onBrowseForModsClick;
         }
 
         private async Task switchToModMenu() {
             this.MaxHeight += 200;
             this.MinHeight += 200;
-            this.loggingBox.Height -= 50;
+            this.loggingBox.Height = 145;
 
             startModding.IsVisible = false;
-            alreadyModded.IsVisible = false;
             InstalledMods.IsVisible = true;
             
             await modsManager.LoadModsFromQuest();
@@ -113,8 +122,7 @@ namespace QuestPatcher
         private async void onStartModdingClick(object? sender, RoutedEventArgs args)
         {
             startModding.IsVisible = false;
-            alreadyModded.IsVisible = false;
-            loggingBox.Height += 60;
+            loggingBox.Height = 255;
 
             try
             {
@@ -127,10 +135,6 @@ namespace QuestPatcher
                 return;
             }
 
-            await switchToModMenu();
-        }
-
-        private async void onAlreadyModdedClick(object? sender, RoutedEventArgs args) {
             await switchToModMenu();
         }
 
@@ -168,7 +172,6 @@ namespace QuestPatcher
             appInstalledText = this.FindControl<TextBlock>("appInstalledText");
             loggingBox = this.FindControl<TextBox>("loggingBox");
             startModding = this.FindControl<Button>("startModding");
-            alreadyModded = this.FindControl<Button>("alreadyModded");
             welcomeText = this.FindControl<TextBlock>("welcomeText");
             InstalledModsPanel = this.FindControl<StackPanel>("installedModsPanel");
             InstalledMods = this.FindControl<ScrollViewer>("installedMods");

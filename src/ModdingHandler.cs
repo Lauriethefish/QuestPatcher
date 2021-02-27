@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Diagnostics;
 
@@ -10,6 +11,8 @@ namespace QuestPatcher
     {
         private const string TEMP_DIRECTORY = "./temp/";
         private const string LIB_PATH = "lib/arm64-v8a/";
+
+        public AppInfo AppInfo { get; private set; }
 
         private MainWindow window;
         private DebugBridge debugBridge;
@@ -29,9 +32,6 @@ namespace QuestPatcher
 
             window.log("Downloading libmain.so . . .");
             await webClient.DownloadFileTaskAsync("https://github.com/RedBrumbler/QuestAppPatcher/blob/master/extraFiles/libmain.so?raw=true", TEMP_DIRECTORY + "libmain.so");
-
-            window.log("Downloading apktool . . .");
-            await webClient.DownloadFileTaskAsync("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", TEMP_DIRECTORY + "apktool.jar");
 
             window.log("Downloading uber-signer . . .");
             await webClient.DownloadFileTaskAsync("https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar", TEMP_DIRECTORY + "uber-apk-signer.jar");
@@ -90,26 +90,43 @@ namespace QuestPatcher
             File.Copy(TEMP_DIRECTORY + name, destPath, true);
         }
 
-        public async Task startModdingProcess()
+        public async Task CheckInstallStatus()
         {
-            if(Directory.Exists(TEMP_DIRECTORY)) {
+            if (Directory.Exists(TEMP_DIRECTORY))
+            {
                 window.log("Removing existing temporary directory . . .");
-                Directory.Delete(TEMP_DIRECTORY, true); // Delete the temporary directory, since stuff from last time we modded will get in the way
+                Directory.Delete(TEMP_DIRECTORY, true);
             }
             window.log("Creating temporary directory . . .");
             Directory.CreateDirectory(TEMP_DIRECTORY);
 
-            await downloadFiles();
 
-            window.log("Downloading APK from the Quest . . .");
+            window.log("Pulling APK from Quest to check if modded . . .");
             string appPath = await debugBridge.runCommandAsync("shell pm path {app-id}");
-            appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the package: from the start and the new line from the end
-            await debugBridge.runCommandAsync("pull " + appPath + " " + TEMP_DIRECTORY + "unmodded.apk");
+            appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the "package:" from the start and the new line from the end
+            await debugBridge.runCommandAsync("pull " + appPath + " "+ TEMP_DIRECTORY + "/unmodded.apk");
 
-            // Decompile the APK using apktool
+            if(!File.Exists(TEMP_DIRECTORY + "apktool.jar"))
+            {
+                window.log("Downloading apktool . . .");
+                await new WebClient().DownloadFileTaskAsync("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", TEMP_DIRECTORY + "apktool.jar");
+            }
+
+            // Decompile the APK using apktool. We have to do this to read the manifest since it's AXML, which is nasty
             window.log("Decompiling APK . . .");
             string cmd = "d -f -o \"" + TEMP_DIRECTORY + "app\" \"" + TEMP_DIRECTORY + "unmodded.apk\"";
             await invokeJavaAsync("apktool.jar", cmd);
+
+            window.log("Decompiled APK");
+            AppInfo = new AppInfo(TEMP_DIRECTORY + "unmodded.apk", TEMP_DIRECTORY + "app/");
+
+            window.log(AppInfo.IsModded ? "APK is modded" : "App is not modded");
+        }
+
+        public async Task startModdingProcess()
+        {
+
+            await downloadFiles();
 
             // Add permissions to access (read/write) external files.
             window.log("Modding manifest . . .");
@@ -120,12 +137,18 @@ namespace QuestPatcher
             // Add the modloader, and the modified libmain.so that loads it.
             window.log("Adding library files . . .");
             copyLibraryFile("libmain.so", false);
-            copyLibraryFile("libmodloader.so", true);
+            copyLibraryFile("libmodloader.so", false);
+
 
             // Recompile the modified APK using apktool
             window.log("Compiling modded APK . . .");
-            cmd = "b -f -o \"" + TEMP_DIRECTORY + "modded.apk\" \"" + TEMP_DIRECTORY + "app\"";
+            string cmd = "b -f -o \"" + TEMP_DIRECTORY + "modded.apk\" \"" + TEMP_DIRECTORY + "app\"";
             await invokeJavaAsync("apktool.jar", cmd);
+
+            window.log("Adding tag . . .");
+            ZipArchive apkArchive = ZipFile.Open(TEMP_DIRECTORY + "modded.apk", ZipArchiveMode.Update);
+            apkArchive.CreateEntry("modded");
+            apkArchive.Dispose();
 
             // Sign it so that Android will install it
             window.log("Signing the modded APK . . .");

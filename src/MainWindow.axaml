@@ -12,8 +12,7 @@
       <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="false">App with specified ID could not be found</TextBlock>
       <TextBlock Name="appInstalledText" HorizontalAlignment="Center" Padding="6" Foreground="Green" IsVisible="false">Your app is installed</TextBlock>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-        <Button Name="startModding" Margin="13">Patch my app!</Button>
-        <Button Name="alreadyModded" Margin="13">I've already modded my game</Button>
+        <Button Name="startModding" Margin="13" IsVisible="False">Patch my app!</Button>
       </StackPanel>
     </StackPanel>
 
@@ -28,7 +27,7 @@
 
     <TextBlock Padding="6" TextDecorations="underline" HorizontalAlignment="Center">Modding Log</TextBlock>
     <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-            Padding="13" Margin="10" TextWrapping="Wrap" Height="195" IsReadOnly="True">
+            Padding="13" Margin="10" TextWrapping="Wrap" Height="250" IsReadOnly="True">
     </TextBox>
   </StackPanel>
 </Window>
