@@ -3,7 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using System;
 
-namespace QuestPatcher
+namespace Quatcher
 {
     public class App : Application
     {
