@@ -4,3 +4,4 @@ temp/
 ExampleMod/
 *.qmod
 mod.json
+.vs/
