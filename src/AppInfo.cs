@@ -7,7 +7,7 @@ using System.IO.Compression;
 using System.IO;
 using System.Xml;
 
-namespace QuestPatcher
+namespace Quatcher
 {
     public class AppInfo
     {
