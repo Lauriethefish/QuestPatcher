@@ -10,6 +10,7 @@ namespace QuestPatcher
     class ModdingHandler
     {
         private const string TEMP_DIRECTORY = "./temp/";
+        private const string TOOLS_DIRECTORY = "./tools/"; // Stores downloaded JARs used for modding
         private const string LIB_PATH = "lib/arm64-v8a/";
 
         public AppInfo AppInfo { get; private set; }
@@ -26,15 +27,20 @@ namespace QuestPatcher
         // We need some files for installation that we can't just distrubute with this
         private async Task downloadFiles()
         {
-            window.log("Downloading libmodloader.so . . .");
-            WebClient webClient = new WebClient();
-            await webClient.DownloadFileTaskAsync("https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader.so", TEMP_DIRECTORY + "libmodloader.so");
+            await downloadIfNotExists("https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader.so", "libmodloader.so");
+            await downloadIfNotExists("https://github.com/RedBrumbler/QuestAppPatcher/blob/master/extraFiles/libmain.so?raw=true", "libmain.so");
+            await downloadIfNotExists("https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar", "uber-apk-signer.jar");
+        }
 
-            window.log("Downloading libmain.so . . .");
-            await webClient.DownloadFileTaskAsync("https://github.com/RedBrumbler/QuestAppPatcher/blob/master/extraFiles/libmain.so?raw=true", TEMP_DIRECTORY + "libmain.so");
+        private async Task downloadIfNotExists(string downloadLink, string savePath)
+        {
+            if(File.Exists(savePath))
+            {
+                return;
+            }
 
-            window.log("Downloading uber-signer . . .");
-            await webClient.DownloadFileTaskAsync("https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar", TEMP_DIRECTORY + "uber-apk-signer.jar");
+            window.log("Downloading " + savePath);
+            await new WebClient().DownloadFileTaskAsync(downloadLink, TOOLS_DIRECTORY + savePath);
         }
 
         // Invokes a JAR file in the temporary directory with name jarName, passing it args
@@ -42,7 +48,7 @@ namespace QuestPatcher
         {
             Process process = new Process();
             process.StartInfo.FileName = OperatingSystem.IsWindows() ? "java.exe" : "java";
-            process.StartInfo.Arguments = "-Xmx1024m -jar " + TEMP_DIRECTORY + "/" + jarName + " " + args;
+            process.StartInfo.Arguments = "-Xmx1024m -jar " + TOOLS_DIRECTORY + "/" + jarName + " " + args;
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
@@ -87,7 +93,12 @@ namespace QuestPatcher
                 throw new Exception("Your game is already modded!");
             }
 
-            File.Copy(TEMP_DIRECTORY + name, destPath, true);
+            File.Copy(TOOLS_DIRECTORY + name, destPath, true);
+        }
+
+        public void RemoveTemporaryDirectory()
+        {
+            Directory.Delete(TEMP_DIRECTORY, true);
         }
 
         public async Task CheckInstallStatus()
@@ -99,6 +110,7 @@ namespace QuestPatcher
             }
             window.log("Creating temporary directory . . .");
             Directory.CreateDirectory(TEMP_DIRECTORY);
+            Directory.CreateDirectory(TOOLS_DIRECTORY);
 
 
             window.log("Pulling APK from Quest to check if modded . . .");
@@ -106,11 +118,7 @@ namespace QuestPatcher
             appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the "package:" from the start and the new line from the end
             await debugBridge.runCommandAsync("pull " + appPath + " "+ TEMP_DIRECTORY + "/unmodded.apk");
 
-            if(!File.Exists(TEMP_DIRECTORY + "apktool.jar"))
-            {
-                window.log("Downloading apktool . . .");
-                await new WebClient().DownloadFileTaskAsync("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", TEMP_DIRECTORY + "apktool.jar");
-            }
+            await downloadIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
 
             // Decompile the APK using apktool. We have to do this to read the manifest since it's AXML, which is nasty
             window.log("Decompiling APK . . .");
@@ -125,7 +133,6 @@ namespace QuestPatcher
 
         public async Task startModdingProcess()
         {
-
             await downloadFiles();
 
             // Add permissions to access (read/write) external files.
@@ -137,7 +144,7 @@ namespace QuestPatcher
             // Add the modloader, and the modified libmain.so that loads it.
             window.log("Adding library files . . .");
             copyLibraryFile("libmain.so", false);
-            copyLibraryFile("libmodloader.so", false);
+            copyLibraryFile("libmodloader.so", true);
 
 
             // Recompile the modified APK using apktool

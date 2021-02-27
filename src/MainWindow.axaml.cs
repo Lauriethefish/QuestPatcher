@@ -37,6 +37,7 @@ namespace QuestPatcher
             this.modsManager = new ModsManager(this);
 
             this.Activated += onLoad;
+            this.Closed += onClose;
             InitializeComponent();
 
 #if DEBUG
@@ -136,6 +137,11 @@ namespace QuestPatcher
             }
 
             await switchToModMenu();
+        }
+
+        private void onClose(object? sender, EventArgs args)
+        {
+            moddingHandler.RemoveTemporaryDirectory();
         }
 
         private async void onBrowseForModsClick(object? sender, RoutedEventArgs args) {
