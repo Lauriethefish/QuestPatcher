@@ -9,11 +9,11 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Interactivity;
 
-namespace QuestPatcher {
+namespace Quatcher {
     public class ModsManager
     {
         // Temporarily extract the ZIP file here so that we can use ADB push
-        private string INSTALLED_MODS_PATH = "sdcard/QuestPatcher/{app-id}/installedMods/";
+        private string INSTALLED_MODS_PATH = "sdcard/Quatcher/{app-id}/installedMods/";
 
         private MainWindow window;
         private DebugBridge debugBridge;
