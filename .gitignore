@@ -1,3 +1,6 @@
 bin/
 obj/
 temp/
+ExampleMod/
+*.qmod
+mod.json
