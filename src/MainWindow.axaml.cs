@@ -86,11 +86,14 @@ namespace QuestPatcher
             bool appIsInstalled = DebugBridge.runCommand("shell pm list packages {app-id}") != "";
             if (appIsInstalled)
             {
+                loggingBox.Height = 250;
                 appInstalledText.IsVisible = true;
             }
             else
             {
+                loggingBox.Height = 240;
                 appNotInstalledText.IsVisible = true;
+                return;
             }
 
             await moddingHandler.CheckInstallStatus();

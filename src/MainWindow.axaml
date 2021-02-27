@@ -27,7 +27,7 @@
 
     <TextBlock Padding="6" TextDecorations="underline" HorizontalAlignment="Center">Modding Log</TextBlock>
     <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-            Padding="13" Margin="10" TextWrapping="Wrap" Height="250" IsReadOnly="True">
+            Padding="13" Margin="10" TextWrapping="Wrap" Height="290" IsReadOnly="True">
     </TextBox>
   </StackPanel>
 </Window>
