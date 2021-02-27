@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Diagnostics;
 
-namespace QuestPatcher
+namespace Quatcher
 {
     class ModdingHandler
     {
