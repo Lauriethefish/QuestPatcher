@@ -1,5 +1,7 @@
 
+using Avalonia.Controls;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text.Json;
 
 namespace QuestPatcher {
@@ -8,7 +10,7 @@ namespace QuestPatcher {
 
         public string Version { get; set; }
 
-        public string? DownloadPath { get; set; } = null;
+        public string? DownloadIfMissing { get; set; } = null;
     }
 
     public class ModManifest {
@@ -23,14 +25,27 @@ namespace QuestPatcher {
         public string GameId { get; set; }
         public string GameVersion { get; set; }
 
-        public string Type { get; set; }
-
-        public bool AllowMultipleInstalls { get; set; } = false; // If true, multiple different versions of this mod ID can be installed.
+        public bool IsLibrary { get; set; }
 
         public List<string> ModFiles { get; set; } = new List<string>();
         public List<string> LibraryFiles { get; set; } = new List<string>();
 
         public List<DependencyInfo> Dependencies { get; set; } = new List<DependencyInfo>();
+
+        public Control GuiElement { get; set; } // Used for removing this mod from the gui
+
+        public bool DependsOn(string otherId)
+        {
+            foreach(DependencyInfo dependency in Dependencies)
+            {
+                if(dependency.Id == otherId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public static ModManifest Load(string str) {
             JsonSerializerOptions options = new JsonSerializerOptions {

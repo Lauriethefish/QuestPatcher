@@ -8,6 +8,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Interactivity;
+using System.Net;
 
 namespace QuestPatcher {
     public class ModsManager
@@ -53,6 +54,44 @@ namespace QuestPatcher {
             }
         }
 
+        public async Task InstallDependency(DependencyInfo dependency)
+        {
+            ModManifest? existing = null;
+            InstalledMods.TryGetValue(dependency.Id, out existing);
+
+            if(existing == null)
+            {
+                if(dependency.DownloadIfMissing == null)
+                {
+                    throw new Exception("Dependency " + dependency.Id + " is not installed, and does not specify a download path if missing");
+                }
+
+                WebClient webClient = new WebClient();
+
+                window.log("Downloading dependency " + dependency.Id);
+                await webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, dependency.Id + ".qmod");
+                await InstallMod(dependency.Id + ".qmod");
+
+                ModManifest dependencyManifest = InstalledMods[dependency.Id];
+                
+                // Sanity checks that the download link actually pointed to the right mod
+                if(!VersionUtil.isVersionWithinRange(dependencyManifest.Version, dependency.Version))
+                {
+                    throw new Exception("Downloaded dependency " + dependency.Id + " was not within the version stated in the mod's manifest");
+                }
+
+                if(dependency.Id != dependencyManifest.Id)
+                {
+                    throw new Exception("Downloaded dependency had ID " + dependencyManifest.Id + ", whereas the dependency stated ID " + dependency.Id);
+                }
+            }   else    {
+                if(!VersionUtil.isVersionWithinRange(existing.Version, dependency.Version))
+                {
+                    throw new Exception("Dependency " + dependency.Id + " is installed, but the installed version is not within the given version range");
+                }
+            }
+        }
+
         public async Task InstallMod(string path) {
             string extractPath = "./" + Path.GetFileNameWithoutExtension(path) + "_temp/";
 
@@ -69,12 +108,17 @@ namespace QuestPatcher {
 
                 if (manifest.GameId != debugBridge.APP_ID)
                 {
-                    throw new Exception("This mod is not indended for the selected game!");
+                    throw new Exception("This mod is not intended for the selected game!");
                 }
 
                 if (InstalledMods.ContainsKey(manifest.Id))
                 {
                     throw new Exception("Attempted to install a mod when it was already installed");
+                }
+
+                foreach(DependencyInfo dependency in manifest.Dependencies)
+                {
+                    await InstallDependency(dependency);
                 }
 
                 // Copy all of the SO files
@@ -104,9 +148,10 @@ namespace QuestPatcher {
             }
         }
 
-        private async Task uninstallMod(ModManifest manifest)
+        public async Task UninstallMod(ModManifest manifest)
         {
             window.log("Uninstalling mod with ID " + manifest.Id + " . . .");
+            window.InstalledModsPanel.Children.Remove(manifest.GuiElement);
             InstalledMods.Remove(manifest.Id);
 
             foreach (string modFilePath in manifest.ModFiles) {
@@ -139,7 +184,54 @@ namespace QuestPatcher {
             window.log("Removing mod manifest . . .");
             await debugBridge.runCommandAsync("shell rm -f " + INSTALLED_MODS_PATH + manifest.Id + ".json"); // Remove the mod manifest
 
+            if (!manifest.IsLibrary)
+            {
+                await removeUnusedLibraries();
+            }
             window.log("Done!");
+        }
+
+        // Recursively removed any unused libraries.
+        // Not very efficient but gets the job done
+        private async Task removeUnusedLibraries()
+        {
+           
+            window.log("Cleaning unused libraries . . .");
+
+            int lastSize = -1;
+            while (InstalledMods.Count != lastSize) // Keep attempting to remove libraries until none get removed this time
+            {
+                lastSize = InstalledMods.Count;
+
+                List<ModManifest> unused = new List<ModManifest>();
+                foreach (ModManifest manifest in InstalledMods.Values)
+                {
+                    if (!manifest.IsLibrary) { continue; } // Mods aren't uninstalled if unused
+
+                    // Check if any other mods/libraries depend on this one
+                    bool used = false;
+                    foreach (ModManifest otherManifest in InstalledMods.Values)
+                    {
+
+                        if (otherManifest.DependsOn(manifest.Id))
+                        {
+                            used = true;
+                            break;
+                        }
+                    }
+
+                    if (!used)
+                    {
+                        unused.Add(manifest);
+                    }
+                }
+
+                // Uninstall any unused libraries this iteration
+                foreach (ModManifest manifest in unused)
+                {
+                    await UninstallMod(manifest);
+                }
+            }
         }
 
         // Kind of janky, but there isn't another good way to do this unless I set up MVVM which will take ages
@@ -165,14 +257,38 @@ namespace QuestPatcher {
             gameVersion.Text = "Intended for game version: " + manifest.GameVersion;
 
             Button uninstall = new Button();
-            uninstall.Content = "Uninstall Mod";
+            if(manifest.IsLibrary)
+            {
+                // Libraries should not be uninstalled manually.
+                // Instead, they are automatically uninstalled whenever there aren't any mods that use them installed.
+                uninstall.Foreground = Brushes.Red;
+                uninstall.Content = "Force Uninstall Library";
+            }
+            else
+            {
+                uninstall.Content = "Uninstall Mod";
+            }
+
+            stackPanel.Children.Add(name);
+            stackPanel.Children.Add(version);
+            stackPanel.Children.Add(gameVersion);
+            stackPanel.Children.Add(uninstall);
+            manifest.GuiElement = border;
+
+            window.InstalledModsPanel.Children.Add(border);
+            InstalledMods[manifest.Id] = manifest;
+
             uninstall.Click += async delegate (object? sender, RoutedEventArgs args)
             {
                 try
                 {
+                    if(manifest.IsLibrary)
+                    {
+                        window.log("WARNING: Libraries should not be uninstalled manually. They are automatically uninstalled when no mods that use them are installed");
+                    }
+
                     // Uninstall the mod from the Quest
-                    await uninstallMod(manifest);
-                    window.InstalledModsPanel.Children.Remove(border);
+                    await UninstallMod(manifest);
 
                     window.ModInstallErrorText.IsVisible = false;
                 }
@@ -183,14 +299,6 @@ namespace QuestPatcher {
                 }
             };
 
-            stackPanel.Children.Add(name);
-            stackPanel.Children.Add(version);
-            stackPanel.Children.Add(gameVersion);
-            stackPanel.Children.Add(uninstall);
-
-            window.InstalledModsPanel.Children.Add(border);
-            InstalledMods[manifest.Id] = manifest;
         }
-
     }
 }
