@@ -98,6 +98,7 @@ namespace QuestPatcher
             await Task.Run(() => {
                 ZipFile.ExtractToDirectory("./platform-tools.zip", "./");
             });
+            File.Delete("./platform-tools.zip");
 
             window.log("Done!");
         }
