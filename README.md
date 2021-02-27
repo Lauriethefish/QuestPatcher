@@ -1,6 +1,6 @@
-# QuestPatcher
+# Quatcher
 
-QuestPatcher is a WIP GUI based mod installer for any il2cpp unity app on the Oculus Quest.
+Quatcher is a WIP GUI based mod installer for any il2cpp unity app on the Oculus Quest.
 It was originally created for modding GorillaTag.
 
 It should support Windows, Mac and Linux.
