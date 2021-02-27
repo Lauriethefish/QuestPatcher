@@ -34,13 +34,15 @@ namespace QuestPatcher
 
         private async Task downloadIfNotExists(string downloadLink, string savePath)
         {
+            savePath = TOOLS_DIRECTORY + savePath;
+
             if(File.Exists(savePath))
             {
                 return;
             }
 
             window.log("Downloading " + savePath);
-            await new WebClient().DownloadFileTaskAsync(downloadLink, TOOLS_DIRECTORY + savePath);
+            await new WebClient().DownloadFileTaskAsync(downloadLink, savePath);
         }
 
         // Invokes a JAR file in the temporary directory with name jarName, passing it args
@@ -98,7 +100,10 @@ namespace QuestPatcher
 
         public void RemoveTemporaryDirectory()
         {
-            Directory.Delete(TEMP_DIRECTORY, true);
+            if (Directory.Exists(TEMP_DIRECTORY))
+            {
+                Directory.Delete(TEMP_DIRECTORY, true);
+            }
         }
 
         public async Task CheckInstallStatus()
