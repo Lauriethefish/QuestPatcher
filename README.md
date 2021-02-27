@@ -12,4 +12,4 @@ Currently it isn't released, as several more things still need to be added:
 See `MOD_FORMAT.md` for instructions about making a mod that is loadable by this patcher.
 
 ## TODO
-- Improve GUI perhaps
+- Improve GUI perhaps 
