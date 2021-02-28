@@ -26,6 +26,12 @@ namespace QuestPatcher {
         }
     }
 
+    public class FileCopyInfo
+    {
+        public string Name { get; set; }
+        public string Destination { get; set; }
+    }
+
     public class ModManifest {
         public string _QPVersion { get; set; }
         public string Name { get; set; }
@@ -44,6 +50,8 @@ namespace QuestPatcher {
 
         public List<string> ModFiles { get; set; } = new List<string>();
         public List<string> LibraryFiles { get; set; } = new List<string>();
+
+        public List<FileCopyInfo> FileCopies { get; set; } = new List<FileCopyInfo>();
 
         public List<DependencyInfo> Dependencies { get; set; } = new List<DependencyInfo>();
 

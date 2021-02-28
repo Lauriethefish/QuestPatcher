@@ -131,13 +131,19 @@ namespace QuestPatcher {
                 foreach (string libraryPath in manifest.LibraryFiles)
                 {
                     window.log("Copying mod file " + libraryPath);
-                    string result = await debugBridge.runCommandAsync("push " + extractPath + libraryPath + " sdcard/Android/data/{app-id}/files/libs/" + libraryPath);
+                    await debugBridge.runCommandAsync("push " + extractPath + libraryPath + " sdcard/Android/data/{app-id}/files/libs/" + libraryPath);
                 }
 
                 foreach (string modFilePath in manifest.ModFiles)
                 {
                     window.log("Copying library file " + modFilePath);
-                    string result = await debugBridge.runCommandAsync("push " + extractPath + modFilePath + " sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
+                    await debugBridge.runCommandAsync("push " + extractPath + modFilePath + " sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
+                }
+
+                foreach (FileCopyInfo fileCopy in manifest.FileCopies)
+                {
+                    window.log("Copying file " + fileCopy.Name + " to " + fileCopy.Destination);
+                    await debugBridge.runCommandAsync("push " + extractPath + fileCopy.Name + " " + fileCopy.Destination);
                 }
 
                 // Store that the mod was successfully installed
@@ -164,7 +170,6 @@ namespace QuestPatcher {
                 window.log("Removing mod file " + modFilePath);
                 await debugBridge.runCommandAsync("shell rm -f sdcard/Android/data/{app-id}/files/mods/" + modFilePath); // Remove each mod file
             }
-
             
             foreach (string libraryPath in manifest.LibraryFiles)
             {
@@ -185,6 +190,12 @@ namespace QuestPatcher {
                     window.log("Removing library file " + libraryPath);
                     await debugBridge.runCommandAsync("shell rm -f sdcard/Android/data/{app-id}/files/libs/" + libraryPath);
                 }
+            }
+
+            foreach (FileCopyInfo fileCopy in manifest.FileCopies)
+            {
+                window.log("Removing copied file " + fileCopy.Destination);
+                await debugBridge.runCommandAsync("shell rm -f " + fileCopy.Destination);
             }
 
             window.log("Removing mod manifest . . .");
