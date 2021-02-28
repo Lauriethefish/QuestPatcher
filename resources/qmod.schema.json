@@ -26,6 +26,12 @@
                     "version": "^0.1.0",
                     "downloadIfMissing": "https://somesite.com/my_dependency_0_1_0.qmod"
                 }
+            ],
+            "fileCopies": [
+                {
+                    "name": "myFile.png",
+                    "destination": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
+                }
             ]
         }
     ],
