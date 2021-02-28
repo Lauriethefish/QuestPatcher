@@ -13,7 +13,6 @@
             "gameId": "com.AnotherAxiom.GorillaTag",
             "gameVersion": "1.0.1",
             "isLibrary": false,
-            "type": "Gameplay",
             "modFiles": [
                 "libexample-mod-2.so"
             ],
@@ -43,7 +42,6 @@
 			"version",
 			"gameId",
 			"gameVersion",
-			"type",
 			"modFiles"
 	  ],
 	  "anyOf": [
