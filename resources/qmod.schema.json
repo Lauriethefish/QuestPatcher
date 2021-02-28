@@ -1,0 +1,314 @@
+{
+    "$id": "https://raw.githubusercontent.com/sc2ad/QuestPatcher/main/resources/qmod.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "default": {},
+    "description": "A mod of the format described by QuestPatcher.",
+    "examples": [
+        {
+            "_QPVersion": "0.1.0",
+            "name": "ExampleMod2",
+            "id": "example-mod-2",
+            "author": "Lauriethefish#6700",
+            "version": "1.0.0",
+            "gameId": "com.AnotherAxiom.GorillaTag",
+            "gameVersion": "1.0.1",
+            "isLibrary": false,
+            "type": "Gameplay",
+            "modFiles": [
+                "libexample-mod-2.so"
+            ],
+            "libraryFiles": [
+                "libbeatsaber-hook_1_0_12.so"
+            ],
+            "dependencies": [
+                {
+                    "id": "my-dependency",
+                    "version": "^0.1.0",
+                    "downloadIfMissing": "https://somesite.com/my_dependency_0_1_0.qmod"
+                }
+            ],
+            "fileCopies": [
+                {
+                    "name": "myFile.png",
+                    "destination": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
+                }
+            ]
+        }
+    ],
+    "required": [
+        "_QPVersion",
+        "name",
+        "id",
+        "author",
+        "version",
+        "gameId",
+        "gameVersion",
+        "type",
+        "modFiles",
+        "libraryFiles",
+        "dependencies",
+        "fileCopies"
+    ],
+    "title": "The root schema",
+    "type": "object",
+    "properties": {
+        "_QPVersion": {
+            "$id": "#/properties/_QPVersion",
+            "const": "0.1.0",
+            "default": "",
+            "description": "The version of the schema to use for QuestPatcher. Must be 0.1.0.",
+            "examples": [
+                "0.1.0"
+            ],
+            "title": "QuestPatcher Version",
+            "type": "string"
+        },
+        "name": {
+            "$id": "#/properties/name",
+            "default": "",
+            "description": "Name of the mod",
+            "examples": [
+                "ExampleMod2"
+            ],
+            "title": "Name",
+            "type": "string"
+        },
+        "id": {
+            "$id": "#/properties/id",
+            "default": "",
+            "description": "The ID of the mod.",
+            "examples": [
+                "example-mod-2"
+            ],
+            "title": "ID",
+            "pattern": "^\\S+$",
+            "type": "string"
+        },
+        "author": {
+            "$id": "#/properties/author",
+            "default": "",
+            "description": "The author of the mod.",
+            "examples": [
+                "Lauriethefish#6700"
+            ],
+            "title": "Author",
+            "type": "string"
+        },
+        "version": {
+            "$id": "#/properties/version",
+            "default": "",
+            "description": "The valid SemVer of the mod.",
+            "examples": [
+                "1.0.0"
+            ],
+            "title": "Version",
+            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+            "type": "string"
+        },
+        "gameId": {
+            "$id": "#/properties/gameId",
+            "default": "",
+            "description": "The Android package ID of the target package.",
+            "examples": [
+                "com.AnotherAxiom.GorillaTag"
+            ],
+            "title": "Package ID",
+            "type": "string"
+        },
+        "gameVersion": {
+            "$id": "#/properties/gameVersion",
+            "default": "",
+            "description": "The Android package version of the target package.",
+            "examples": [
+                "1.0.1"
+            ],
+            "title": "Package Version",
+            "type": "string"
+        },
+        "type": {
+            "$id": "#/properties/type",
+            "default": "",
+            "description": "Type of the mod, a category.",
+            "examples": [
+                "Gameplay"
+            ],
+            "title": "Type",
+            "type": "string"
+        },
+        "modFiles": {
+            "$id": "#/properties/modFiles",
+            "default": [],
+            "description": "The files to install as mods.",
+            "examples": [
+                [
+                    "libexample-mod-2.so"
+                ]
+            ],
+            "title": "Mod Files",
+            "uniqueItems": true,
+            "type": "array",
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/modFiles/items",
+                "type": "string",
+                "title": "Mod File",
+                "default": "",
+                "description": "A file to install as a mod.",
+                "examples": [
+                    "libexample-mod-2.so"
+                ]
+            }
+        },
+        "libraryFiles": {
+            "$id": "#/properties/libraryFiles",
+            "type": "array",
+            "title": "Library Files",
+            "uniqueItems": true,
+            "description": "The files to install as libraries.",
+            "default": [],
+            "examples": [
+                [
+                    "libbeatsaber-hook_1_0_12.so"
+                ]
+            ],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/libraryFiles/items",
+                "type": "string",
+                "title": "Library File",
+                "description": "A file to install as a library.",
+                "default": "",
+                "examples": [
+                    "libbeatsaber-hook_1_0_12.so"
+                ]
+            }
+        },
+        "dependencies": {
+            "$id": "#/properties/dependencies",
+            "type": "array",
+            "title": "Dependencies",
+            "description": "Other QuestPatcher mods that this mod is dependent on.",
+            "default": [],
+            "examples": [
+                [
+                    {
+                        "id": "my-dependency",
+                        "version": "^0.1.0",
+                        "downloadIfMissing": "https://somesite.com/my_dependency_0_1_0.qmod"
+                    }
+                ]
+            ],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/dependencies/items",
+                "type": "object",
+                "title": "Dependency",
+                "description": "A dependency required by this mod.",
+                "default": {},
+                "examples": [
+                    {
+                        "id": "my-dependency",
+                        "version": "^0.1.0",
+                        "downloadIfMissing": "https://somesite.com/my_dependency_0_1_0.qmod"
+                    }
+                ],
+                "required": [
+                    "id",
+                    "version"
+                ],
+                "properties": {
+                    "id": {
+                        "$id": "#/properties/dependencies/items/properties/id",
+                        "type": "string",
+                        "title": "ID",
+                        "description": "The ID of the dependency.",
+                        "default": "",
+                        "pattern": "^\\S+$",
+                        "examples": [
+                            "my-dependency"
+                        ]
+                    },
+                    "version": {
+                        "$id": "#/properties/dependencies/items/properties/version",
+                        "type": "string",
+                        "title": "Version Range",
+                        "description": "The version range that the dependency must be within.",
+                        "default": "",
+                        "examples": [
+                            "^0.1.0"
+                        ]
+                    },
+                    "downloadIfMissing": {
+                        "$id": "#/properties/dependencies/items/properties/downloadIfMissing",
+                        "type": "string",
+                        "title": "Download If Missing",
+                        "description": "If the dependency is not installed, a uri to download it from.",
+                        "default": "",
+                        "pattern": "^([a-z0-9+.-]+):(?://(?:((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)(?::(\\d*))?(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?|(/?(?:[a-z0-9-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?)(?:\\?((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?(?:#((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?$",
+                        "examples": [
+                            "https://somesite.com/my_dependency_0_1_0.qmod"
+                        ]
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "fileCopies": {
+            "$id": "#/properties/fileCopies",
+            "type": "array",
+            "title": "File Copies",
+            "description": "Files that will be copied.",
+            "default": [],
+            "examples": [
+                [
+                    {
+                        "name": "myFile.png",
+                        "destination": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
+                    }
+                ]
+            ],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/fileCopies/items",
+                "type": "object",
+                "title": "Copy File",
+                "description": "A file to copy to the Quest.",
+                "default": "",
+                "examples": [
+                    {
+                        "name": "myFile.png",
+                        "destination": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
+                    }
+                ],
+                "required": [
+                    "name",
+                    "destination"
+                ],
+                "properties": {
+                    "name": {
+                        "$id": "#/properties/fileCopies/items/properties/name",
+                        "type": "string",
+                        "title": "Name",
+                        "description": "The source location of the file copy.",
+                        "default": "",
+                        "examples": [
+                            "myFile.png"
+                        ]
+                    },
+                    "destination": {
+                        "$id": "#/properties/fileCopies/items/properties/destination",
+                        "type": "string",
+                        "title": "Destination",
+                        "description": "The destination location of the file copy.",
+                        "default": "",
+                        "examples": [
+                            "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
+                        ]
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    },
+    "additionalProperties": true
+}
