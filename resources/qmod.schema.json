@@ -239,17 +239,17 @@
                             "^0.1.0"
                         ]
                     },
-                    "downloadIfMissing": {
-                        "$id": "#/properties/dependencies/items/properties/downloadIfMissing",
-                        "type": "string",
-                        "title": "Download If Missing",
-                        "description": "If the dependency is not installed, a uri to download it from.",
-                        "default": "",
-                        "pattern": "^([a-z0-9+.-]+):(?://(?:((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)(?::(\\d*))?(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?|(/?(?:[a-z0-9-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?)(?:\\?((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?(?:#((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?$",
-                        "examples": [
-                            "https://somesite.com/my_dependency_0_1_0.qmod"
-                        ]
-                    }
+                  "downloadIfMissing": {
+                    "$id": "#/properties/dependencies/items/properties/downloadIfMissing",
+                    "type": "string",
+                    "title": "Download If Missing",
+                    "description": "If the dependency is not installed, a uri to download it from.",
+                    "default": "",
+                    "pattern": "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)",
+                    "examples": [
+                      "https://somesite.com/my_dependency_0_1_0.qmod"
+                    ]
+                  }
                 },
                 "additionalProperties": false
             }
