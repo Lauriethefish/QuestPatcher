@@ -48,7 +48,7 @@ namespace QuestPatcher {
             foreach(string path in parsedPaths) {
                 string contents = await debugBridge.runCommandAsync("shell cat " + path);
 
-                ModManifest manifest = ModManifest.Load(contents);
+                ModManifest manifest = await ModManifest.Load(contents);
 
                 addManifest(manifest);
             }
@@ -110,7 +110,7 @@ namespace QuestPatcher {
                 // Read the manifest
                 window.log("Loading manifest . . .");
                 string manifestText = await File.ReadAllTextAsync(extractPath + "mod.json");
-                ModManifest manifest = ModManifest.Load(manifestText);
+                ModManifest manifest = await ModManifest.Load(manifestText);
 
                 if (manifest.GameId != debugBridge.APP_ID)
                 {

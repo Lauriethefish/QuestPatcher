@@ -2,7 +2,11 @@
 using Avalonia.Controls;
 using System.Collections.Generic;
 using System.Text.Json;
+using Json.Schema;
 using System;
+using System.Reflection;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace QuestPatcher {
     public class DependencyInfo {
@@ -16,13 +20,7 @@ namespace QuestPatcher {
 
         public void ParseRange()
         {
-            SemVer.Range? parsed;
-            if(!SemVer.Range.TryParse(Version, out parsed))
-            {
-                throw new FormatException("Failed to parse version range \"" + Version + "\"");
-            }
-
-            ParsedVersion = parsed;
+            ParsedVersion = SemVer.Range.Parse(Version);
         }
     }
 
@@ -33,6 +31,8 @@ namespace QuestPatcher {
     }
 
     public class ModManifest {
+        private static JsonSchema? schema;
+
         public string _QPVersion { get; set; }
         public string Name { get; set; }
         public string Id { get; set; }
@@ -70,7 +70,29 @@ namespace QuestPatcher {
             return false;
         }
 
-        public static ModManifest Load(string str) {
+        public static async Task<ModManifest> Load(string str) {
+            if(schema == null)
+            {
+                Assembly assembly = Assembly.GetExecutingAssembly();
+
+                Stream? schemaStream = assembly.GetManifestResourceStream("QuestPatcher.resources.qmod.schema.json");
+                if(schemaStream == null)
+                {
+                    throw new FileNotFoundException("Unable to find manifest schema in resources");
+                }
+
+                schema = await JsonSchema.FromStream(schemaStream);
+
+            }
+
+            JsonDocument document = JsonDocument.Parse(str);
+            ValidationResults validity = schema.Validate(document.RootElement);
+            if(!validity.IsValid)
+            {
+                validity.ToDetailed();
+                throw new FormatException(validity.Message); // Unfortunately the message is always null, still trying to figure out why . . .
+            }
+
             JsonSerializerOptions options = new JsonSerializerOptions {
                 PropertyNameCaseInsensitive = true
             };
@@ -81,13 +103,7 @@ namespace QuestPatcher {
                 throw new NullReferenceException("Manifest was null");
             }
 
-            // Check that the versions and version ranges are valid semver now, to avoid errors later on
-            SemVer.Version? parsed;
-            if(!SemVer.Version.TryParse(manifest.Version, out parsed))
-            {
-                throw new FormatException("Failed to parse version string \"" + manifest.Version + "\".");
-            }
-            manifest.ParsedVersion = parsed;
+            manifest.ParsedVersion = SemVer.Version.Parse(manifest.Version);
 
             foreach(DependencyInfo dependency in manifest.Dependencies)
             {
