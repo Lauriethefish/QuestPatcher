@@ -40,7 +40,8 @@
         "type",
         "modFiles",
         "libraryFiles",
-        "dependencies"
+        "dependencies",
+        "fileCopies"
     ],
     "title": "The root schema",
     "type": "object",
@@ -74,7 +75,7 @@
                 "example-mod-2"
             ],
             "title": "ID",
-            "pattern": "^[^\\s]$",
+            "pattern": "^\\S+$",
             "type": "string"
         },
         "author": {
@@ -117,16 +118,6 @@
             ],
             "title": "Package Version",
             "type": "string"
-        },
-        "isLibrary": {
-            "$id": "#/properties/isLibrary",
-            "default": false,
-            "description": "True if the mod being installed is a library, false otherwise.",
-            "examples": [
-                false
-            ],
-            "title": "Is Library",
-            "type": "boolean"
         },
         "type": {
             "$id": "#/properties/type",
@@ -226,7 +217,7 @@
                         "title": "ID",
                         "description": "The ID of the dependency.",
                         "default": "",
-                        "pattern": "^[^\\s]$",
+                        "pattern": "^\\S+$",
                         "examples": [
                             "my-dependency"
                         ]
@@ -250,6 +241,62 @@
                         "pattern": "^([a-z0-9+.-]+):(?://(?:((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)(?::(\\d*))?(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?|(/?(?:[a-z0-9-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?)(?:\\?((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?(?:#((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?$",
                         "examples": [
                             "https://somesite.com/my_dependency_0_1_0.qmod"
+                        ]
+                    }
+                },
+                "additionalProperties": false
+            }
+        },
+        "fileCopies": {
+            "$id": "#/properties/fileCopies",
+            "type": "array",
+            "title": "File Copies",
+            "description": "Files that will be copied.",
+            "default": [],
+            "examples": [
+                [
+                    {
+                        "name": "myFile.png",
+                        "destination": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
+                    }
+                ]
+            ],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/fileCopies/items",
+                "type": "object",
+                "title": "Copy File",
+                "description": "A file to copy to the Quest.",
+                "default": "",
+                "examples": [
+                    {
+                        "name": "myFile.png",
+                        "destination": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
+                    }
+                ],
+                "required": [
+                    "name",
+                    "destination"
+                ],
+                "properties": {
+                    "name": {
+                        "$id": "#/properties/fileCopies/items/properties/name",
+                        "type": "string",
+                        "title": "Name",
+                        "description": "The source location of the file copy.",
+                        "default": "",
+                        "examples": [
+                            "myFile.png"
+                        ]
+                    },
+                    "destination": {
+                        "$id": "#/properties/fileCopies/items/properties/destination",
+                        "type": "string",
+                        "title": "Destination",
+                        "description": "The destination location of the file copy.",
+                        "default": "",
+                        "examples": [
+                            "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
                         ]
                     }
                 },

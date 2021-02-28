@@ -6,7 +6,6 @@
     "version": "1.0.0",
     "gameId": "com.AnotherAxiom.GorillaTag",
     "gameVersion": "1.0.1",
-    "isLibrary": false,
     "type": "Gameplay",
     "modFiles": [
         "libexample-mod-2.so"
@@ -18,5 +17,11 @@
         "id": "my-dependency",
         "version": "^0.1.0",
         "downloadIfMissing": "https://somesite.com/my_dependency_0_1_0.qmod"
-    }]
+    }],
+    "fileCopies": [
+        {
+            "name": "myFile.png",
+            "destination": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/myFile.png"
+        }
+    ]
 }
