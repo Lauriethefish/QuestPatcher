@@ -15,7 +15,6 @@ An example `mod.json` is below:
     "gameId": "com.AnotherAxiom.GorillaTag",
     "gameVersion": "1.0.1",
     "isLibrary": false,
-    "type": "Gameplay",
     "modFiles": [
         "libexample-mod.so"
     ],
@@ -35,8 +34,6 @@ An example `mod.json` is below:
 The `version` must be semver, i.e. three version numbers like `0.6.8`. Versions like `0.84` or `0.1.0.0` are *not* allowed. Semver documentation can be found [here](https://semver.org/).
 
 The `gameVersion` is shown to the user, but can\'t be easily checked when the mod is installed.
-
-The `type` can be anything you want.
 
 The mod will not install on an app other than `gameId` (the installer will throw an error)
 
