@@ -36,19 +36,22 @@
         }
     ],
     "required": [
-        "_QPVersion",
-        "name",
-        "id",
-        "author",
-        "version",
-        "gameId",
-        "gameVersion",
-        "type",
-        "modFiles",
-        "libraryFiles",
-        "dependencies",
-        "fileCopies"
-    ],
+			"_QPVersion",
+			"name",
+			"id",
+			"author",
+			"version",
+			"gameId",
+			"gameVersion",
+			"type",
+			"modFiles"
+	  ],
+	  "anyOf": [
+          { "required": ["modFiles"] },
+          { "required": ["libraryFiles"] },
+          { "required": ["dependencies"] },
+		  { "required": ["fileCopies"] }
+	  ],
     "title": "The root schema",
     "type": "object",
     "properties": {
