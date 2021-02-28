@@ -266,6 +266,9 @@ namespace QuestPatcher {
             
             TextBlock name = new TextBlock();
             name.Text = "Mod Name: " + manifest.Name;
+
+            TextBlock author = new TextBlock();
+            author.Text = "Mod Author: " + manifest.Author;
             
             TextBlock version = new TextBlock();
             version.Text = "Mod Version: " + manifest.Version;
@@ -289,6 +292,7 @@ namespace QuestPatcher {
             stackPanel.Children.Add(name);
             stackPanel.Children.Add(version);
             stackPanel.Children.Add(gameVersion);
+            stackPanel.Children.Add(author);
             stackPanel.Children.Add(uninstall);
             manifest.GuiElement = border;
 
