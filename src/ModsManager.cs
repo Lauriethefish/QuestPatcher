@@ -112,7 +112,7 @@ namespace QuestPatcher {
                 string manifestText = await File.ReadAllTextAsync(extractPath + "mod.json");
                 ModManifest manifest = await ModManifest.Load(manifestText);
 
-                if (manifest.GameId != debugBridge.APP_ID)
+                if (manifest.PackageId != debugBridge.APP_ID)
                 {
                     throw new Exception("This mod is not intended for the selected game!");
                 }
@@ -274,7 +274,7 @@ namespace QuestPatcher {
             version.Text = "Mod Version: " + manifest.Version;
 
             TextBlock gameVersion = new TextBlock();
-            gameVersion.Text = "Intended for game version: " + manifest.GameVersion;
+            gameVersion.Text = "Intended for game version: " + manifest.PackageVersion;
 
             Button uninstall = new Button();
             if(manifest.IsLibrary)

@@ -10,8 +10,8 @@
             "id": "example-mod-2",
             "author": "Lauriethefish#6700",
             "version": "1.0.0",
-            "gameId": "com.AnotherAxiom.GorillaTag",
-            "gameVersion": "1.0.1",
+            "packageId": "com.AnotherAxiom.GorillaTag",
+            "packageVersion": "1.0.1",
             "isLibrary": false,
             "modFiles": [
                 "libexample-mod-2.so"
@@ -40,9 +40,8 @@
 			"id",
 			"author",
 			"version",
-			"gameId",
-			"gameVersion",
-			"modFiles"
+			"packageId",
+			"packageVersion"
 	  ],
 	  "anyOf": [
           { "required": ["modFiles"] },
@@ -106,8 +105,8 @@
             "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
             "type": "string"
         },
-        "gameId": {
-            "$id": "#/properties/gameId",
+        "packageId": {
+            "$id": "#/properties/packageId",
             "default": "",
             "description": "The Android package ID of the target package.",
             "examples": [
@@ -116,24 +115,14 @@
             "title": "Package ID",
             "type": "string"
         },
-        "gameVersion": {
-            "$id": "#/properties/gameVersion",
+        "packageVersion": {
+            "$id": "#/properties/packageVersion",
             "default": "",
             "description": "The Android package version of the target package.",
             "examples": [
                 "1.0.1"
             ],
             "title": "Package Version",
-            "type": "string"
-        },
-        "type": {
-            "$id": "#/properties/type",
-            "default": "",
-            "description": "Type of the mod, a category.",
-            "examples": [
-                "Gameplay"
-            ],
-            "title": "Type",
             "type": "string"
         },
         "modFiles": {

@@ -43,8 +43,8 @@ namespace QuestPatcher {
 
         public SemVer.Version ParsedVersion { get; private set; }
 
-        public string GameId { get; set; }
-        public string GameVersion { get; set; }
+        public string PackageId { get; set; }
+        public string PackageVersion { get; set; }
 
         public bool IsLibrary { get; set; }
 
