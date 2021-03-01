@@ -28,13 +28,22 @@ namespace QuestPatcher {
         }
 
         public async Task LoadModsFromQuest() {
+            string modsNonSplit;
+            try
+            {
+                await debugBridge.runCommandAsync("shell mkdir -p " + INSTALLED_MODS_PATH);
+                await debugBridge.runCommandAsync("shell mkdir -p sdcard/Android/data/{app-id}/files/mods");
+                await debugBridge.runCommandAsync("shell mkdir -p sdcard/Android/data/{app-id}/files/libs");
 
-            await debugBridge.runCommandAsync("shell mkdir -p " + INSTALLED_MODS_PATH);
-            await debugBridge.runCommandAsync("shell mkdir -p sdcard/Android/data/{app-id}/files/mods");
-            await debugBridge.runCommandAsync("shell mkdir -p sdcard/Android/data/{app-id}/files/libs");
-
-            // List the manifests in the installed mods directory for this app
-            string modsNonSplit = await debugBridge.runCommandAsync("shell ls -R " + INSTALLED_MODS_PATH);
+                // List the manifests in the installed mods directory for this app
+                modsNonSplit = await debugBridge.runCommandAsync("shell ls -R " + INSTALLED_MODS_PATH);
+            }
+            catch (Exception ex)
+            {
+                window.log("An error occurred while loading mods from the Quest: " + ex.Message);
+                Console.Error.WriteLine(ex);
+                return;
+            }
 
             // Remove unnecessary things that ADB adds
             string[] rawPaths = modsNonSplit.Split("\n");
@@ -48,9 +57,16 @@ namespace QuestPatcher {
             foreach(string path in parsedPaths) {
                 string contents = await debugBridge.runCommandAsync("shell cat " + path);
 
-                ModManifest manifest = await ModManifest.Load(contents);
-
-                addManifest(manifest);
+                try
+                {
+                    ModManifest manifest = await ModManifest.Load(contents);
+                    addManifest(manifest);
+                }
+                catch (Exception ex)
+                {
+                    window.log("An error occured while loading " + Path.GetFileNameWithoutExtension(path) + " from the Quest: " + ex.Message);
+                    Console.Error.WriteLine(ex);
+                }
             }
         }
 
