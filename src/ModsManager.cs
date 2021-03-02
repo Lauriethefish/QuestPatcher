@@ -87,7 +87,7 @@ namespace QuestPatcher {
 
                 window.log("Downloading dependency " + dependency.Id);
 
-                string downloadedPath = dependency.Id + ".qmod";
+                string downloadedPath = Path.GetTempPath() + dependency.Id + ".qmod";
                 await webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, downloadedPath);
                 await InstallMod(downloadedPath);
 
@@ -116,7 +116,7 @@ namespace QuestPatcher {
         }
 
         public async Task InstallMod(string path) {
-            string extractPath = "./" + Path.GetFileNameWithoutExtension(path) + "_temp/";
+            string extractPath = Path.GetTempPath() + Path.GetFileNameWithoutExtension(path) + "_temp/";
 
             try
             {

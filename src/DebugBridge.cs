@@ -12,6 +12,7 @@ namespace QuestPatcher
     public class DebugBridge
     {
         private static readonly CompareInfo compareInfo = new CultureInfo((int) CultureTypes.AllCultures).CompareInfo;
+        private readonly string PLATFORM_TOOLS_APPDATA_PATH = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher/platform-tools/";
 
         public string APP_ID { get; } = File.ReadAllText("appId.txt");
 
@@ -42,11 +43,13 @@ namespace QuestPatcher
         public async Task<string> runCommandAsync(string command)
         {
             Process process = new Process();
-            process.StartInfo.FileName = (adbOnPath ? "" : "./platform-tools/") + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
+            process.StartInfo.FileName = (adbOnPath ? "" : PLATFORM_TOOLS_APPDATA_PATH) + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
             process.StartInfo.Arguments = handlePlaceholders(command);
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
+
+            //window.log("Executing ADB command: adb " + process.StartInfo.Arguments);
 
             process.Start();
 
@@ -68,7 +71,7 @@ namespace QuestPatcher
             try
             {
                 await runCommandAsync("version");
-            }   catch (Win32Exception) // Thrown if the file doesn't exist
+            }   catch (Exception) // Thrown if the file doesn't exist
             {
                 adbOnPath = false;
             }
@@ -84,7 +87,7 @@ namespace QuestPatcher
                 return;
             }
 
-            if(Directory.Exists("./platform-tools"))
+            if(Directory.Exists(PLATFORM_TOOLS_APPDATA_PATH))
             {
                 window.log("Platform-tools already installed");
                 return;
@@ -93,12 +96,12 @@ namespace QuestPatcher
             WebClient webClient = new WebClient();
 
             window.log("Platform-tools missing, installing!");
-            await webClient.DownloadFileTaskAsync(findPlatformToolsLink(), "./platform-tools.zip");
+            await webClient.DownloadFileTaskAsync(findPlatformToolsLink(), Path.GetTempPath() + "platform-tools.zip");
             window.log("Extracting . . .");
             await Task.Run(() => {
-                ZipFile.ExtractToDirectory("./platform-tools.zip", "./");
+                ZipFile.ExtractToDirectory(Path.GetTempPath() + "platform-tools.zip", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher");
             });
-            File.Delete("./platform-tools.zip");
+            File.Delete(Path.GetTempPath() + "platform-tools.zip");
 
             window.log("Done!");
         }

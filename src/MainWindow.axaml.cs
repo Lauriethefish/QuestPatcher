@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using System;
@@ -102,6 +103,8 @@ namespace QuestPatcher
 
             startModding.Click += onStartModdingClick;
             browseModsButton.Click += onBrowseForModsClick;
+
+            AddHandler(DragDrop.DropEvent, onDragAndDrop);
         }
 
         private async Task switchToModMenu() {
@@ -155,11 +158,28 @@ namespace QuestPatcher
             }
 
             // Install the mod with that path
+            await attemptInstall(files[0]);
+        }
+
+        private async void onDragAndDrop(object? sender, DragEventArgs args)
+        {
+            if(args.Data.Contains(DataFormats.FileNames))
+            {
+                foreach(string path in args.Data.GetFileNames())
+                {
+                    await attemptInstall(path);
+                }
+            }
+        }
+
+        private async Task attemptInstall(string path)
+        {
             try
             {
                 ModInstallErrorText.IsVisible = false;
-                await modsManager.InstallMod(files[0]);
-            }   catch(Exception ex)
+                await modsManager.InstallMod(path);
+            }
+            catch (Exception ex)
             {
                 ModInstallErrorText.IsVisible = true;
                 ModInstallErrorText.Text = "Error while installing mod: " + ex.Message;

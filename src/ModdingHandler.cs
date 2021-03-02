@@ -9,8 +9,8 @@ namespace QuestPatcher
 {
     class ModdingHandler
     {
-        private const string TEMP_DIRECTORY = "./temp/";
-        private const string TOOLS_DIRECTORY = "./tools/"; // Stores downloaded JARs used for modding
+        private readonly string TEMP_DIRECTORY = Path.GetTempPath() + "temp/";
+        private readonly string TOOLS_DIRECTORY = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher/tools/"; // Stores downloaded JARs used for modding
         private const string LIB_PATH = "lib/arm64-v8a/";
 
         public AppInfo AppInfo { get; private set; }
@@ -121,7 +121,7 @@ namespace QuestPatcher
             window.log("Pulling APK from Quest to check if modded . . .");
             string appPath = await debugBridge.runCommandAsync("shell pm path {app-id}");
             appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the "package:" from the start and the new line from the end
-            await debugBridge.runCommandAsync("pull \"" + appPath + "\" "+ TEMP_DIRECTORY + "/unmodded.apk");
+            await debugBridge.runCommandAsync("pull \"" + appPath + "\" \"" + TEMP_DIRECTORY + "/unmodded.apk\"");
 
             await downloadIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
 
@@ -176,7 +176,7 @@ namespace QuestPatcher
             
             // Install the modified APK
             window.log("Installing modded app . . .");
-            output = await debugBridge.runCommandAsync("install " + TEMP_DIRECTORY + "modded-and-signed.apk");
+            output = await debugBridge.runCommandAsync("install \"" + TEMP_DIRECTORY + "modded-and-signed.apk\"");
             window.log(output);
 
             window.log("Modding complete!");
