@@ -14,7 +14,7 @@ namespace QuestPatcher
         private static readonly CompareInfo compareInfo = new CultureInfo((int) CultureTypes.AllCultures).CompareInfo;
         private readonly string PLATFORM_TOOLS_APPDATA_PATH = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher/platform-tools/";
 
-        public string APP_ID { get; } = File.ReadAllText("appId.txt");
+        public string APP_ID { get; } = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/appId.txt");
 
         private MainWindow window;
         private bool adbOnPath = false;
