@@ -121,7 +121,7 @@ namespace QuestPatcher
             window.log("Pulling APK from Quest to check if modded . . .");
             string appPath = await debugBridge.runCommandAsync("shell pm path {app-id}");
             appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the "package:" from the start and the new line from the end
-            await debugBridge.runCommandAsync("pull " + appPath + " "+ TEMP_DIRECTORY + "/unmodded.apk");
+            await debugBridge.runCommandAsync("pull \"" + appPath + "\" "+ TEMP_DIRECTORY + "/unmodded.apk");
 
             await downloadIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
 
