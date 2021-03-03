@@ -4,7 +4,7 @@
 #define MyAppName "QuestPatcher"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Lauriethefish#6700"
-#define MyAppURL "https://github.com/Lauriethefish/Quest-Discord-Presence-Client"
+#define MyAppURL "https://github.com/Lauriethefish/QuestPatcher"
 #define MyAppExeName "QuestPatcher.exe"
 
 [Setup]
@@ -48,4 +48,5 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 [Run]
 Filename: "{app}\QuestPatcher.exe"; Description: "Open QuestPatcher"; Flags: nowait postinstall skipifsilent
 
-[UninstallRun]
+[UninstallDelete]
+Type: filesandordirs; Name: "C:\Program Files\MyAppName"
