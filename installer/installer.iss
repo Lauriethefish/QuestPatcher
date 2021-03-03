@@ -49,4 +49,4 @@ Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Filename: "{app}\QuestPatcher.exe"; Description: "Open QuestPatcher"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-Type: filesandordirs; Name: "C:\Program Files\MyAppName"
+Type: filesandordirs; Name: "C:\Program Files\{#MyAppName}"
