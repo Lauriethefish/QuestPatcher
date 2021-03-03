@@ -27,6 +27,9 @@ namespace QuestPatcher
         public ScrollViewer InstalledMods { get; private set; }
         public StackPanel InstalledModsPanel { get; private set; }
 
+        public Button LogcatButton { get; private set; }
+        private Button openLogsButton;
+
         public AppInfo AppInfo { get; private set; }
 
         public DebugBridge DebugBridge { get; private set; }
@@ -97,16 +100,19 @@ namespace QuestPatcher
             if (listResult.Contains("no devices/emulators found"))
             {
                 questNotPluggedInText.IsVisible = true;
-                LoggingBox.Height = 240;
+                LoggingBox.Height = 220;
                 return;
             }   else if (listResult == "")  {
-                LoggingBox.Height = 240;
+                LoggingBox.Height = 220;
                 appNotInstalledText.IsVisible = true;
                 return;
             }   else   {
-                LoggingBox.Height = 250;
+                LoggingBox.Height = 220;
                 appInstalledText.IsVisible = true;
             }
+
+            LogcatButton.Click += DebugBridge.onStartLogcatClick;
+            openLogsButton.Click += DebugBridge.onOpenLogsClick;
 
             await moddingHandler.CheckInstallStatus();
 
@@ -116,7 +122,7 @@ namespace QuestPatcher
             }
             else
             {
-                LoggingBox.Height = 195;
+                LoggingBox.Height = 175;
                 startModding.IsVisible = true;
             }
 
@@ -127,9 +133,9 @@ namespace QuestPatcher
         }
 
         private async Task switchToModMenu() {
-            this.MaxHeight += 200;
-            this.MinHeight += 200;
-            this.LoggingBox.Height = 145;
+            this.MaxHeight += 250;
+            this.MinHeight += 250;
+            this.LoggingBox.Height = 155;
 
             startModding.IsVisible = false;
             InstalledMods.IsVisible = true;
@@ -140,7 +146,7 @@ namespace QuestPatcher
         private async void onStartModdingClick(object? sender, RoutedEventArgs args)
         {
             startModding.IsVisible = false;
-            LoggingBox.Height = 255;
+            LoggingBox.Height = 235;
 
             try
             {
@@ -220,6 +226,8 @@ namespace QuestPatcher
             browseModsButton = this.FindControl<Button>("browseModsButton");
             ModInstallErrorText = this.FindControl<TextBlock>("modInstallErrorText");
             patchingPanel = this.FindControl<Panel>("patchingPanel");
+            LogcatButton = this.FindControl<Button>("logcatButton");
+            openLogsButton = this.FindControl<Button>("openLogsButton");
         }
     }
 }

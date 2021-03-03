@@ -18,18 +18,22 @@
     </StackPanel>
 
     <Border Padding="13">
-      <ScrollViewer VerticalScrollBarVisibility="Visible" IsVisible="False" Name="installedMods" Height="305">
+      <ScrollViewer VerticalScrollBarVisibility="Visible" IsVisible="False" Name="installedMods" Height="305">        
         <StackPanel Orientation="Vertical" Name="installedModsPanel" DragDrop.AllowDrop="True" Background="LightGray">
           <Button Name="browseModsButton" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="600">Browse for Mods</Button>
           <TextBlock Name="modInstallErrorText" IsVisible="False" HorizontalAlignment="Center" Foreground="Red" MaxWidth="500" TextWrapping="Wrap"/>
         </StackPanel>
-      </ScrollViewer>
+      </ScrollViewer> 
     </Border>
 
     <TextBlock Padding="6" TextDecorations="underline" HorizontalAlignment="Center">Modding Log</TextBlock>
     <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-            Padding="13" Margin="10" TextWrapping="Wrap" Height="280" IsReadOnly="True">
+            Padding="13" Margin="10" TextWrapping="Wrap" Height="260" IsReadOnly="True">
     </TextBox>
 
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+      <Button Name="logcatButton">Start ADB Log</Button>
+      <Button Name="openLogsButton">Open Logs Folder</Button>
+    </StackPanel>
   </StackPanel>
 </Window>
