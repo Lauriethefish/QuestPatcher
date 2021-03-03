@@ -37,16 +37,19 @@ namespace QuestPatcher
         public Logger Logger { get; }
 
         public string DATA_PATH { get; }
+        public string TEMP_PATH { get; }
 
         public MainWindow()
         {
-            DATA_PATH = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher";
+            DATA_PATH = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher/";
+            TEMP_PATH = Path.GetTempPath() + "/QuestPatcher/";
+
             Directory.CreateDirectory(DATA_PATH);
 
             Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .WriteTo.Console(LogEventLevel.Verbose)
-                .WriteTo.File(DATA_PATH + "/log.log", LogEventLevel.Verbose, "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File(DATA_PATH + "log.log", LogEventLevel.Verbose, "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.TextWriter(new WindowLogger(this), LogEventLevel.Information, "{Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
@@ -155,7 +158,7 @@ namespace QuestPatcher
 
         private void onClose(object? sender, EventArgs args)
         {
-            moddingHandler.RemoveTemporaryDirectory();
+            Directory.Delete(TEMP_PATH, true);
             Logger.Verbose("QuestPatcher closing-------------------");
         }
 

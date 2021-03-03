@@ -16,6 +16,8 @@ namespace QuestPatcher {
     {
         // Temporarily extract the ZIP file here so that we can use ADB push
         private string INSTALLED_MODS_PATH = "sdcard/QuestPatcher/{app-id}/installedMods/";
+        private string EXTRACTED_MODS_PATH;
+        private string DEPENDENCY_PATH;
 
         private MainWindow window;
         private Logger logger;
@@ -29,6 +31,11 @@ namespace QuestPatcher {
             this.window = window;
             this.debugBridge = window.DebugBridge;
             this.logger = window.Logger;
+            this.EXTRACTED_MODS_PATH = window.TEMP_PATH + "extractedMods/";
+            this.DEPENDENCY_PATH = window.TEMP_PATH + "downloadedDepdendencies/";
+
+            Directory.CreateDirectory(DEPENDENCY_PATH);
+            Directory.CreateDirectory(EXTRACTED_MODS_PATH);
         }
 
         public async Task LoadModsFromQuest() {
@@ -90,7 +97,7 @@ namespace QuestPatcher {
 
                 logger.Information("Downloading dependency " + dependency.Id);
 
-                string downloadedPath = Path.GetTempPath() + dependency.Id + ".qmod";
+                string downloadedPath = DEPENDENCY_PATH + dependency.Id + ".qmod";
                 await webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, downloadedPath);
                 await InstallMod(downloadedPath);
 
@@ -119,7 +126,8 @@ namespace QuestPatcher {
         }
 
         public async Task InstallMod(string path) {
-            string extractPath = Path.GetTempPath() + Path.GetFileNameWithoutExtension(path) + "_temp/";
+            string extractPath = EXTRACTED_MODS_PATH + Path.GetFileNameWithoutExtension(path) + "/";
+            Directory.CreateDirectory(extractPath);
 
             try
             {

@@ -13,15 +13,16 @@ namespace QuestPatcher
     public class DebugBridge
     {
         private static readonly CompareInfo compareInfo = new CultureInfo((int) CultureTypes.AllCultures).CompareInfo;
-        private readonly string PLATFORM_TOOLS_APPDATA_PATH = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher/platform-tools/";
 
         public string APP_ID { get; } = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/appId.txt");
 
+        private MainWindow window;
         private Logger logger;
         private bool adbOnPath = false;
 
         public DebugBridge(MainWindow window)
         {
+            this.window = window;
             this.logger = window.Logger;
         }
 
@@ -44,7 +45,7 @@ namespace QuestPatcher
         public async Task<string> runCommandAsync(string command)
         {
             Process process = new Process();
-            process.StartInfo.FileName = (adbOnPath ? "" : PLATFORM_TOOLS_APPDATA_PATH) + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
+            process.StartInfo.FileName = (adbOnPath ? "" : window.DATA_PATH + "platform-tools/") + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
             process.StartInfo.Arguments = handlePlaceholders(command);
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.RedirectStandardError = true;
@@ -95,7 +96,7 @@ namespace QuestPatcher
                 return;
             }
 
-            if(Directory.Exists(PLATFORM_TOOLS_APPDATA_PATH))
+            if(Directory.Exists(window.DATA_PATH + "platform-tools/"))
             {
                 logger.Information("Platform-tools already installed");
                 return;
