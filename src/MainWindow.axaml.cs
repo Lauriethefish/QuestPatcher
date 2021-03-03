@@ -12,6 +12,7 @@ namespace QuestPatcher
     {
         private TextBlock welcomeText;
         private TextBlock appNotInstalledText;
+        private TextBlock questNotPluggedInText;
         private TextBlock appInstalledText;
         private TextBox loggingBox;
         private Button startModding;
@@ -76,17 +77,19 @@ namespace QuestPatcher
             // Then we can check if the app is installed
             patchingPanel.IsVisible = true;
 
-            bool appIsInstalled = DebugBridge.runCommand("shell pm list packages {app-id}") != "";
-            if (appIsInstalled)
+            string listResult = await DebugBridge.runCommandAsync("shell pm list packages {app-id}");
+            if (listResult.Contains("no devices/emulators found"))
             {
-                loggingBox.Height = 250;
-                appInstalledText.IsVisible = true;
-            }
-            else
-            {
+                questNotPluggedInText.IsVisible = true;
+                loggingBox.Height = 240;
+                return;
+            }   else if (listResult == "")  {
                 loggingBox.Height = 240;
                 appNotInstalledText.IsVisible = true;
                 return;
+            }   else   {
+                loggingBox.Height = 250;
+                appInstalledText.IsVisible = true;
             }
 
             await moddingHandler.CheckInstallStatus();
@@ -190,6 +193,7 @@ namespace QuestPatcher
         private void findComponents()
         {
             appNotInstalledText = this.FindControl<TextBlock>("appNotInstalledText");
+            questNotPluggedInText = this.FindControl<TextBlock>("questNotPluggedInText");
             appInstalledText = this.FindControl<TextBlock>("appInstalledText");
             loggingBox = this.FindControl<TextBox>("loggingBox");
             startModding = this.FindControl<Button>("startModding");

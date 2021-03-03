@@ -46,6 +46,7 @@ namespace QuestPatcher
             process.StartInfo.FileName = (adbOnPath ? "" : PLATFORM_TOOLS_APPDATA_PATH) + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
             process.StartInfo.Arguments = handlePlaceholders(command);
             process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
@@ -53,6 +54,7 @@ namespace QuestPatcher
 
             process.Start();
 
+            string errorOutput = process.StandardError.ReadToEnd();
             string output = process.StandardOutput.ReadToEnd();
             await process.WaitForExitAsync();
 
@@ -60,8 +62,9 @@ namespace QuestPatcher
             {
                 throw new Exception(output);
             }
+            string fullOutput = errorOutput + output;
 
-            return output;
+            return fullOutput;
         }
 
         private async Task checkIfAdbOnPath()
