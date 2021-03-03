@@ -115,7 +115,7 @@ namespace QuestPatcher
 
             WebClient webClient = new WebClient();
 
-            logger.Information("platform-tools missing, installing!");
+            logger.Information("Installing platform-tools!");
             await webClient.DownloadFileTaskAsync(findPlatformToolsLink(), Path.GetTempPath() + "platform-tools.zip");
             logger.Information("Extracting . . .");
             await Task.Run(() => {
