@@ -47,5 +47,8 @@ Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 [Run]
 Filename: "{app}\QuestPatcher.exe"; Description: "Open QuestPatcher"; Flags: nowait postinstall skipifsilent
 
+[UninstallRun]
+Filename: "{cmd}"; Parameters: "/C ""taskkill /im adb.exe /f /t"
+
 [UninstallDelete]
-Type: filesandordirs; Name: "C:\Program Files\{#MyAppName}"
+Type: filesandordirs; Name: "{app}"
