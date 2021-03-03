@@ -126,6 +126,7 @@ namespace QuestPatcher
             if(!OperatingSystem.IsWindows())
             {
                 logger.Information("Making ADB executable . . .");
+                await makeAdbExecutable();
             }
 
             logger.Information("Done!");
@@ -140,8 +141,16 @@ namespace QuestPatcher
 
             process.StartInfo.FileName = "/bin/bash";
             process.StartInfo.Arguments = "-c \" " + command.Replace("\"", "\\\"") + " \"";
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
             process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
             process.Start();
+
+            string output = process.StandardOutput.ReadToEnd();
+            string errorOutput = process.StandardError.ReadToEnd();
+            logger.Information("Output: " + output);
+            logger.Information("Error output: " + errorOutput);
 
             await process.WaitForExitAsync();
         }
