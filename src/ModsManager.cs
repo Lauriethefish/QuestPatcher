@@ -171,7 +171,7 @@ namespace QuestPatcher {
                 foreach (FileCopyInfo fileCopy in manifest.FileCopies)
                 {
                     logger.Information("Copying file " + fileCopy.Name + " to " + fileCopy.Destination);
-                    await debugBridge.runCommandAsync("push " + extractPath + fileCopy.Name + " " + fileCopy.Destination);
+                    await debugBridge.runCommandAsync("push \"" + extractPath + fileCopy.Name + "\" \"" + fileCopy.Destination + "\"");
                 }
 
                 // Store that the mod was successfully installed
