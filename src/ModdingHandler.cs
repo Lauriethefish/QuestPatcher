@@ -173,7 +173,7 @@ namespace QuestPatcher
 
             // Sign it so that Android will install it
             logger.Information("Signing the modded APK . . .");
-            cmd = "--apks " + TEMP_PATH + "modded.apk";
+            cmd = "--apks \"" + TEMP_PATH + "modded.apk\"";
             await InvokeJarAsync("uber-apk-signer.jar", cmd);
 
             File.Move(TEMP_PATH + "modded-aligned-debugSigned.apk", TEMP_PATH + "modded-and-signed.apk");
