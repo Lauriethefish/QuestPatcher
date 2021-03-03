@@ -116,14 +116,34 @@ namespace QuestPatcher
             WebClient webClient = new WebClient();
 
             logger.Information("Installing platform-tools!");
-            await webClient.DownloadFileTaskAsync(findPlatformToolsLink(), Path.GetTempPath() + "platform-tools.zip");
+            await webClient.DownloadFileTaskAsync(findPlatformToolsLink(), window.TEMP_PATH + "platform-tools.zip");
             logger.Information("Extracting . . .");
             await Task.Run(() => {
-                ZipFile.ExtractToDirectory(Path.GetTempPath() + "platform-tools.zip", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher");
+                ZipFile.ExtractToDirectory(window.TEMP_PATH + "platform-tools.zip", window.DATA_PATH);
             });
             File.Delete(Path.GetTempPath() + "platform-tools.zip");
 
+            if(!OperatingSystem.IsWindows())
+            {
+                logger.Information("Making ADB executable . . .");
+            }
+
             logger.Information("Done!");
+        }
+
+        // Uses chmod to make the downloaded platform-tools executable on linux
+        private async Task makeAdbExecutable()
+        {
+            Process process = new Process();
+
+            string command = "chmod +x " + window.DATA_PATH + "platform-tools/adb";
+
+            process.StartInfo.FileName = "/bin/bash";
+            process.StartInfo.Arguments = "-c \" " + command.Replace("\"", "\\\"") + " \"";
+            process.StartInfo.UseShellExecute = false;
+            process.Start();
+
+            await process.WaitForExitAsync();
         }
 
         public string findPlatformToolsLink()
