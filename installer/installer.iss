@@ -43,7 +43,6 @@ Source: "C:\Users\Lauri\Gorilla_Tag_Mod_Dev\MonqueModder\appId.txt"; DestDir: "{
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 
 [Run]
 Filename: "{app}\QuestPatcher.exe"; Description: "Open QuestPatcher"; Flags: nowait postinstall skipifsilent
