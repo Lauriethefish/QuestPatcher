@@ -9,7 +9,7 @@ namespace QuestPatcher
 {
     class ModdingHandler
     {
-        private readonly string TEMP_DIRECTORY = Path.GetTempPath() + "temp/";
+        private readonly string TEMP_DIRECTORY = Path.GetTempPath() + "QuestPatcher/";
         private readonly string TOOLS_DIRECTORY = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher/tools/"; // Stores downloaded JARs used for modding
         private const string LIB_PATH = "lib/arm64-v8a/";
 
