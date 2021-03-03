@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Interactivity;
 using System.Net;
+using Serilog.Core;
 
 namespace QuestPatcher {
     public class ModsManager
@@ -17,6 +18,7 @@ namespace QuestPatcher {
         private string INSTALLED_MODS_PATH = "sdcard/QuestPatcher/{app-id}/installedMods/";
 
         private MainWindow window;
+        private Logger logger;
         private DebugBridge debugBridge;
 
         // Map of Mod ID -> Mod Manifest
@@ -26,6 +28,7 @@ namespace QuestPatcher {
         public ModsManager(MainWindow window) {
             this.window = window;
             this.debugBridge = window.DebugBridge;
+            this.logger = window.Logger;
         }
 
         public async Task LoadModsFromQuest() {
@@ -41,8 +44,8 @@ namespace QuestPatcher {
             }
             catch (Exception ex)
             {
-                window.log("An error occurred while loading mods from the Quest: " + ex.Message);
-                Console.Error.WriteLine(ex);
+                logger.Fatal("An error occurred while loading mods from the Quest: " + ex.Message);
+                logger.Verbose(ex.ToString());
                 return;
             }
 
@@ -65,8 +68,8 @@ namespace QuestPatcher {
                 }
                 catch (Exception ex)
                 {
-                    window.log("An error occured while loading " + Path.GetFileNameWithoutExtension(path) + " from the Quest: " + ex.Message);
-                    Console.Error.WriteLine(ex);
+                    logger.Error("An error occured while loading " + Path.GetFileNameWithoutExtension(path) + " from the Quest: " + ex.Message);
+                    logger.Verbose(ex.ToString());
                 }
             }
         }
@@ -85,7 +88,7 @@ namespace QuestPatcher {
 
                 WebClient webClient = new WebClient();
 
-                window.log("Downloading dependency " + dependency.Id);
+                logger.Information("Downloading dependency " + dependency.Id);
 
                 string downloadedPath = Path.GetTempPath() + dependency.Id + ".qmod";
                 await webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, downloadedPath);
@@ -120,12 +123,12 @@ namespace QuestPatcher {
 
             try
             {
-                window.log("Extracting mod . . .");
+                logger.Information("Extracting mod . . .");
                 Directory.CreateDirectory(extractPath);
                 ZipFile.ExtractToDirectory(path, extractPath);
 
                 // Read the manifest
-                window.log("Loading manifest . . .");
+                logger.Information("Loading manifest . . .");
                 string manifestText = await File.ReadAllTextAsync(extractPath + "mod.json");
                 ModManifest manifest = await ModManifest.Load(manifestText);
 
@@ -147,28 +150,28 @@ namespace QuestPatcher {
                 // Copy all of the SO files
                 foreach (string libraryPath in manifest.LibraryFiles)
                 {
-                    window.log("Copying mod file " + libraryPath);
+                    logger.Information("Copying mod file " + libraryPath);
                     await debugBridge.runCommandAsync("push \"" + extractPath + libraryPath + "\" \"sdcard/Android/data/{app-id}/files/libs/" + libraryPath + "\"");
                 }
 
                 foreach (string modFilePath in manifest.ModFiles)
                 {
-                    window.log("Copying library file " + modFilePath);
+                    logger.Information("Copying library file " + modFilePath);
                     await debugBridge.runCommandAsync("push \"" + extractPath + modFilePath + "\" sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
                 }
 
                 foreach (FileCopyInfo fileCopy in manifest.FileCopies)
                 {
-                    window.log("Copying file " + fileCopy.Name + " to " + fileCopy.Destination);
+                    logger.Information("Copying file " + fileCopy.Name + " to " + fileCopy.Destination);
                     await debugBridge.runCommandAsync("push " + extractPath + fileCopy.Name + " " + fileCopy.Destination);
                 }
 
                 // Store that the mod was successfully installed
-                window.log("Copying manifest . . .");
+                logger.Information("Copying manifest . . .");
                 debugBridge.runCommand("push \"" + extractPath + "mod.json\" \"" + INSTALLED_MODS_PATH + manifest.Id + ".json\"");
 
                 addManifest(manifest);
-                window.log("Done!");
+                logger.Information("Done!");
             }
             finally
             {
@@ -179,12 +182,12 @@ namespace QuestPatcher {
 
         public async Task UninstallMod(ModManifest manifest)
         {
-            window.log("Uninstalling mod with ID " + manifest.Id + " . . .");
+            logger.Information("Uninstalling mod with ID " + manifest.Id + " . . .");
             window.InstalledModsPanel.Children.Remove(manifest.GuiElement);
             InstalledMods.Remove(manifest.Id);
 
             foreach (string modFilePath in manifest.ModFiles) {
-                window.log("Removing mod file " + modFilePath);
+                logger.Information("Removing mod file " + modFilePath);
                 await debugBridge.runCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/mods/" + modFilePath + "\""); // Remove each mod file
             }
             
@@ -196,7 +199,7 @@ namespace QuestPatcher {
                 {
                     if(otherManifest.LibraryFiles.Contains(libraryPath))
                     {
-                        window.log("Other mod " + otherManifest.Id + " still needs library " + libraryPath + ", not removing");
+                        logger.Information("Other mod " + otherManifest.Id + " still needs library " + libraryPath + ", not removing");
                         isUsedElsewhere = true;
                         break;
                     }
@@ -204,33 +207,32 @@ namespace QuestPatcher {
 
                 if(!isUsedElsewhere)
                 {
-                    window.log("Removing library file " + libraryPath);
+                    logger.Information("Removing library file " + libraryPath);
                     await debugBridge.runCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/libs/" + libraryPath + "\"");
                 }
             }
 
             foreach (FileCopyInfo fileCopy in manifest.FileCopies)
             {
-                window.log("Removing copied file " + fileCopy.Destination);
+                logger.Information("Removing copied file " + fileCopy.Destination);
                 await debugBridge.runCommandAsync("shell rm -f \"" + fileCopy.Destination + "\"");
             }
 
-            window.log("Removing mod manifest . . .");
+            logger.Information("Removing mod manifest . . .");
             await debugBridge.runCommandAsync("shell rm -f \"" + INSTALLED_MODS_PATH + manifest.Id + ".json\""); // Remove the mod manifest
 
             if (!manifest.IsLibrary)
             {
                 await removeUnusedLibraries();
             }
-            window.log("Done!");
+            logger.Information("Done!");
         }
 
         // Recursively removed any unused libraries.
         // Not very efficient but gets the job done
         private async Task removeUnusedLibraries()
         {
-           
-            window.log("Cleaning unused libraries . . .");
+            logger.Information("Cleaning unused libraries . . .");
 
             int lastSize = -1;
             while (InstalledMods.Count != lastSize) // Keep attempting to remove libraries until none get removed this time
@@ -331,7 +333,7 @@ namespace QuestPatcher {
                 {
                     if(manifest.IsLibrary)
                     {
-                        window.log("WARNING: Libraries should not be uninstalled manually. They are automatically uninstalled when no mods that use them are installed");
+                        logger.Warning("WARNING: Libraries should not be uninstalled manually. They are automatically uninstalled when no mods that use them are installed");
                     }
 
                     // Uninstall the mod from the Quest

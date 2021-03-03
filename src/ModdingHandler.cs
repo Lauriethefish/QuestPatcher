@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Diagnostics;
+using Serilog.Core;
 
 namespace QuestPatcher
 {
@@ -15,13 +16,13 @@ namespace QuestPatcher
 
         public AppInfo AppInfo { get; private set; }
 
-        private MainWindow window;
         private DebugBridge debugBridge;
+        private Logger logger;
 
         public ModdingHandler(MainWindow window)
         {
-            this.window = window;
             this.debugBridge = window.DebugBridge;
+            this.logger = window.Logger;
         }
 
         // We need some files for installation that we can't just distrubute with this
@@ -41,23 +42,31 @@ namespace QuestPatcher
                 return;
             }
 
-            window.log("Downloading " + savePath);
+            logger.Information("Downloading " + savePath);
             await new WebClient().DownloadFileTaskAsync(downloadLink, savePath);
         }
 
-        // Invokes a JAR file in the temporary directory with name jarName, passing it args
+        // Invokes a JAR file in the tools directory with name jarName, passing it args
         private async Task<string> invokeJavaAsync(string jarName, string args)
         {
             Process process = new Process();
             process.StartInfo.FileName = OperatingSystem.IsWindows() ? "java.exe" : "java";
             process.StartInfo.Arguments = "-Xmx1024m -jar " + TOOLS_DIRECTORY + "/" + jarName + " " + args;
+            logger.Verbose("Running Java command: " + "java " + process.StartInfo.Arguments);
+
             process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
             process.Start();
 
             string output = await process.StandardOutput.ReadToEndAsync();
+            string errorOutput = await process.StandardError.ReadToEndAsync();
+
+            logger.Verbose("Standard output: " + output);
+            logger.Verbose("Error output: " + errorOutput);
+
             await process.WaitForExitAsync();
 
             return output;
@@ -110,15 +119,15 @@ namespace QuestPatcher
         {
             if (Directory.Exists(TEMP_DIRECTORY))
             {
-                window.log("Removing existing temporary directory . . .");
+                logger.Information("Removing existing temporary directory . . .");
                 Directory.Delete(TEMP_DIRECTORY, true);
             }
-            window.log("Creating temporary directory . . .");
+            logger.Information("Creating temporary directory . . .");
             Directory.CreateDirectory(TEMP_DIRECTORY);
             Directory.CreateDirectory(TOOLS_DIRECTORY);
 
 
-            window.log("Pulling APK from Quest to check if modded . . .");
+            logger.Information("Pulling APK from Quest to check if modded . . .");
             string appPath = await debugBridge.runCommandAsync("shell pm path {app-id}");
             appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the "package:" from the start and the new line from the end
             await debugBridge.runCommandAsync("pull \"" + appPath + "\" \"" + TEMP_DIRECTORY + "/unmodded.apk\"");
@@ -126,14 +135,14 @@ namespace QuestPatcher
             await downloadIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
 
             // Decompile the APK using apktool. We have to do this to read the manifest since it's AXML, which is nasty
-            window.log("Decompiling APK . . .");
+            logger.Information("Decompiling APK . . .");
             string cmd = "d -f -o \"" + TEMP_DIRECTORY + "app\" \"" + TEMP_DIRECTORY + "unmodded.apk\"";
             await invokeJavaAsync("apktool.jar", cmd);
 
-            window.log("Decompiled APK");
+            logger.Information("Decompiled APK");
             AppInfo = new AppInfo(TEMP_DIRECTORY + "unmodded.apk", TEMP_DIRECTORY + "app/");
 
-            window.log(AppInfo.IsModded ? "APK is modded" : "App is not modded");
+            logger.Information(AppInfo.IsModded ? "APK is modded" : "App is not modded");
         }
 
         public async Task startModdingProcess()
@@ -141,45 +150,45 @@ namespace QuestPatcher
             await downloadFiles();
 
             // Add permissions to access (read/write) external files.
-            window.log("Modding manifest . . .");
+            logger.Information("Modding manifest . . .");
             string oldManifest = File.ReadAllText(TEMP_DIRECTORY + "app/AndroidManifest.xml");
             string newManifest = modifyManifest(oldManifest);
             File.WriteAllText(TEMP_DIRECTORY + "app/AndroidManifest.xml", newManifest);
 
             // Add the modloader, and the modified libmain.so that loads it.
-            window.log("Adding library files . . .");
+            logger.Information("Adding library files . . .");
             copyLibraryFile("libmain.so", false);
             copyLibraryFile("libmodloader.so", true);
 
 
             // Recompile the modified APK using apktool
-            window.log("Compiling modded APK . . .");
+            logger.Information("Compiling modded APK . . .");
             string cmd = "b -f -o \"" + TEMP_DIRECTORY + "modded.apk\" \"" + TEMP_DIRECTORY + "app\"";
             await invokeJavaAsync("apktool.jar", cmd);
 
-            window.log("Adding tag . . .");
+            logger.Information("Adding tag . . .");
             ZipArchive apkArchive = ZipFile.Open(TEMP_DIRECTORY + "modded.apk", ZipArchiveMode.Update);
             apkArchive.CreateEntry("modded");
             apkArchive.Dispose();
 
             // Sign it so that Android will install it
-            window.log("Signing the modded APK . . .");
+            logger.Information("Signing the modded APK . . .");
             cmd = "--apks " + TEMP_DIRECTORY + "modded.apk";
             await invokeJavaAsync("uber-apk-signer.jar", cmd);
 
             File.Move(TEMP_DIRECTORY + "modded-aligned-debugSigned.apk", TEMP_DIRECTORY + "modded-and-signed.apk");
 
             // Uninstall the original app with ADB first, ADB doesn't have a better way of doing this
-            window.log("Uninstalling unmodded app . . .");
+            logger.Information("Uninstalling unmodded app . . .");
             string output = await debugBridge.runCommandAsync("uninstall {app-id}");
-            window.log(output);
+            logger.Information(output);
             
             // Install the modified APK
-            window.log("Installing modded app . . .");
+            logger.Information("Installing modded app . . .");
             output = await debugBridge.runCommandAsync("install \"" + TEMP_DIRECTORY + "modded-and-signed.apk\"");
-            window.log(output);
+            logger.Information(output);
 
-            window.log("Modding complete!");
+            logger.Information("Modding complete!");
         }
     }
 }

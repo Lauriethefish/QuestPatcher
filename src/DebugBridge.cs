@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Globalization;
 using System.Net;
 using System.ComponentModel;
+using Serilog.Core;
 
 namespace QuestPatcher
 {
@@ -16,12 +17,12 @@ namespace QuestPatcher
 
         public string APP_ID { get; } = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/appId.txt");
 
-        private MainWindow window;
+        private Logger logger;
         private bool adbOnPath = false;
 
         public DebugBridge(MainWindow window)
         {
-            this.window = window;
+            this.logger = window.Logger;
         }
 
         private string handlePlaceholders(string command)
@@ -50,12 +51,16 @@ namespace QuestPatcher
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
 
-            //window.log("Executing ADB command: adb " + process.StartInfo.Arguments);
+            logger.Verbose("Executing ADB command: adb " + process.StartInfo.Arguments);
 
             process.Start();
 
             string errorOutput = process.StandardError.ReadToEnd();
             string output = process.StandardOutput.ReadToEnd();
+
+            logger.Verbose("Standard output: " + output);
+            logger.Verbose("Error output: " + errorOutput);
+
             await process.WaitForExitAsync();
 
             if (containsIgnoreCase(output, "error") || containsIgnoreCase(output, "failed"))
@@ -86,27 +91,27 @@ namespace QuestPatcher
             await checkIfAdbOnPath();
             if(adbOnPath)
             {
-                window.log("Located ADB installation on PATH");
+                logger.Information("Located ADB installation on PATH");
                 return;
             }
 
             if(Directory.Exists(PLATFORM_TOOLS_APPDATA_PATH))
             {
-                window.log("Platform-tools already installed");
+                logger.Information("Platform-tools already installed");
                 return;
             }
 
             WebClient webClient = new WebClient();
 
-            window.log("Platform-tools missing, installing!");
+            logger.Information("platform-tools missing, installing!");
             await webClient.DownloadFileTaskAsync(findPlatformToolsLink(), Path.GetTempPath() + "platform-tools.zip");
-            window.log("Extracting . . .");
+            logger.Information("Extracting . . .");
             await Task.Run(() => {
                 ZipFile.ExtractToDirectory(Path.GetTempPath() + "platform-tools.zip", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher");
             });
             File.Delete(Path.GetTempPath() + "platform-tools.zip");
 
-            window.log("Done!");
+            logger.Information("Done!");
         }
 
         public string findPlatformToolsLink()

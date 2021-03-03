@@ -5,6 +5,10 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using System;
 using System.Threading.Tasks;
+using Serilog;
+using Serilog.Core;
+using System.IO;
+using Serilog.Events;
 
 namespace QuestPatcher
 {
@@ -14,7 +18,7 @@ namespace QuestPatcher
         private TextBlock appNotInstalledText;
         private TextBlock questNotPluggedInText;
         private TextBlock appInstalledText;
-        private TextBox loggingBox;
+        public TextBox LoggingBox { get; private set; }
         private Button startModding;
         private Panel patchingPanel;
         public TextBlock ModInstallErrorText { get; private set; }
@@ -30,8 +34,24 @@ namespace QuestPatcher
 
         private ModsManager modsManager;
 
+        public Logger Logger { get; }
+
+        public string DATA_PATH { get; }
+
         public MainWindow()
         {
+            DATA_PATH = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher";
+            Directory.CreateDirectory(DATA_PATH);
+
+            Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.Console(LogEventLevel.Verbose)
+                .WriteTo.File(DATA_PATH + "/log.log", LogEventLevel.Verbose, "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.TextWriter(new WindowLogger(this), LogEventLevel.Information, "{Message:lj}{NewLine}{Exception}")
+                .CreateLogger();
+
+            Logger.Verbose("QuestPatcher starting-------------------");
+
             this.DebugBridge = new DebugBridge(this);
             this.moddingHandler = new ModdingHandler(this);
             this.modsManager = new ModsManager(this);
@@ -43,14 +63,6 @@ namespace QuestPatcher
 #if DEBUG
             this.AttachDevTools();
 #endif      
-        }
-
-        // Writes a new line to the "modding log" section
-        public void log(string str)
-        {
-            Console.WriteLine(str);
-            loggingBox.Text += (str + "\n");
-            loggingBox.CaretIndex = int.MaxValue; // Scroll to the bottom
         }
 
         private void InitializeComponent()
@@ -70,7 +82,8 @@ namespace QuestPatcher
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message + ": " + ex.StackTrace);
+                Logger.Fatal("An error occurred while installing ADB: " + ex.Message);
+                Logger.Verbose(ex.ToString());
                 return;
             }
 
@@ -81,14 +94,14 @@ namespace QuestPatcher
             if (listResult.Contains("no devices/emulators found"))
             {
                 questNotPluggedInText.IsVisible = true;
-                loggingBox.Height = 240;
+                LoggingBox.Height = 240;
                 return;
             }   else if (listResult == "")  {
-                loggingBox.Height = 240;
+                LoggingBox.Height = 240;
                 appNotInstalledText.IsVisible = true;
                 return;
             }   else   {
-                loggingBox.Height = 250;
+                LoggingBox.Height = 250;
                 appInstalledText.IsVisible = true;
             }
 
@@ -100,7 +113,7 @@ namespace QuestPatcher
             }
             else
             {
-                loggingBox.Height = 195;
+                LoggingBox.Height = 195;
                 startModding.IsVisible = true;
             }
 
@@ -113,7 +126,7 @@ namespace QuestPatcher
         private async Task switchToModMenu() {
             this.MaxHeight += 200;
             this.MinHeight += 200;
-            this.loggingBox.Height = 145;
+            this.LoggingBox.Height = 145;
 
             startModding.IsVisible = false;
             InstalledMods.IsVisible = true;
@@ -124,16 +137,16 @@ namespace QuestPatcher
         private async void onStartModdingClick(object? sender, RoutedEventArgs args)
         {
             startModding.IsVisible = false;
-            loggingBox.Height = 255;
+            LoggingBox.Height = 255;
 
             try
             {
                 await moddingHandler.startModdingProcess();
             }   catch(Exception ex)
             {
-                log("An error occurred while attempting to patch the game");
-                log(ex.Message);
-                Console.Error.WriteLine(ex);
+                Logger.Fatal("An error occurred while attempting to patch the game");
+                Logger.Fatal(ex.Message);
+                Logger.Verbose(ex.ToString());
                 return;
             }
 
@@ -143,6 +156,7 @@ namespace QuestPatcher
         private void onClose(object? sender, EventArgs args)
         {
             moddingHandler.RemoveTemporaryDirectory();
+            Logger.Verbose("QuestPatcher closing-------------------");
         }
 
         private async void onBrowseForModsClick(object? sender, RoutedEventArgs args) {
@@ -186,7 +200,7 @@ namespace QuestPatcher
             {
                 ModInstallErrorText.IsVisible = true;
                 ModInstallErrorText.Text = "Error while installing mod: " + ex.Message;
-                Console.Error.WriteLine(ex);
+                Logger.Verbose(ex.ToString());
             }
         }
 
@@ -195,7 +209,7 @@ namespace QuestPatcher
             appNotInstalledText = this.FindControl<TextBlock>("appNotInstalledText");
             questNotPluggedInText = this.FindControl<TextBlock>("questNotPluggedInText");
             appInstalledText = this.FindControl<TextBlock>("appInstalledText");
-            loggingBox = this.FindControl<TextBox>("loggingBox");
+            LoggingBox = this.FindControl<TextBox>("loggingBox");
             startModding = this.FindControl<Button>("startModding");
             welcomeText = this.FindControl<TextBlock>("welcomeText");
             InstalledModsPanel = this.FindControl<StackPanel>("installedModsPanel");
