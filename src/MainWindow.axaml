@@ -7,7 +7,8 @@
         Title="QuestPatcher">
   <StackPanel Orientation="Vertical">
     <TextBlock HorizontalAlignment="Center" Padding="13" Name="welcomeText">Welcome to QuestPatcher. You are modding</TextBlock>
-    
+    <TextBlock Name="javaNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">Java is not installed. Please install Java and then restart QuestPatcher</TextBlock>
+
     <StackPanel Orientation="Vertical" IsVisible="False" Name="patchingPanel">
       <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">App with specified ID could not be found</TextBlock>
       <TextBlock Name="questNotPluggedInText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">Please plug in your Quest and then restart QuestPatcher</TextBlock>
@@ -28,7 +29,7 @@
 
     <TextBlock Padding="6" TextDecorations="underline" HorizontalAlignment="Center">Modding Log</TextBlock>
     <TextBox Name="loggingBox" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Auto"
-            Padding="13" Margin="10" TextWrapping="Wrap" Height="260" IsReadOnly="True">
+            Padding="13" Margin="10" TextWrapping="Wrap" Height="240" IsReadOnly="True">
     </TextBox>
 
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
