@@ -51,7 +51,7 @@ namespace QuestPatcher
         {
             Process process = new Process();
             process.StartInfo.FileName = OperatingSystem.IsWindows() ? "java.exe" : "java";
-            process.StartInfo.Arguments = "-Xmx1024m -jar " + TOOLS_DIRECTORY + "/" + jarName + " " + args;
+            process.StartInfo.Arguments = "-Xmx1024m -jar \"" + TOOLS_DIRECTORY + "/" + jarName + "\" " + args;
             logger.Verbose("Running Java command: " + "java " + process.StartInfo.Arguments);
 
             process.StartInfo.RedirectStandardOutput = true;
