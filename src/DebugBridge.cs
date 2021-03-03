@@ -171,7 +171,7 @@ namespace QuestPatcher
                 {
                     outputWriter.WriteLine(args.Data);
                 }
-                catch (ObjectDisposedException ex)
+                catch (ObjectDisposedException)
                 {
                     logger.Verbose("ADB attempted to send data after it was closed");
                 }
