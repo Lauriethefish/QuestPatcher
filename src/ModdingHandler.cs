@@ -49,12 +49,17 @@ namespace QuestPatcher
             await new WebClient().DownloadFileTaskAsync(downloadLink, savePath);
         }
 
+        public async Task<string> InvokeJarAsync(string jarName, string args) {
+            return await InvokeJavaAsync("-Xmx1024m -jar \"" + TOOLS_PATH + "/" + jarName + "\" " + args);
+        }
+
+
         // Invokes a JAR file in the tools directory with name jarName, passing it args
-        private async Task<string> invokeJavaAsync(string jarName, string args)
+        public async Task<string> InvokeJavaAsync(string args)
         {
             Process process = new Process();
             process.StartInfo.FileName = OperatingSystem.IsWindows() ? "java.exe" : "java";
-            process.StartInfo.Arguments = "-Xmx1024m -jar \"" + TOOLS_PATH + "/" + jarName + "\" " + args;
+            process.StartInfo.Arguments = args;
             logger.Verbose("Running Java command: " + "java " + process.StartInfo.Arguments);
 
             process.StartInfo.RedirectStandardOutput = true;
@@ -72,7 +77,7 @@ namespace QuestPatcher
 
             await process.WaitForExitAsync();
 
-            return output;
+            return errorOutput + output;
         }
 
         // Adds read and write permissions to the given manifest string
@@ -132,7 +137,7 @@ namespace QuestPatcher
             // Decompile the APK using apktool. We have to do this to read the manifest since it's AXML, which is nasty
             logger.Information("Decompiling APK . . .");
             string cmd = "d -f -o \"" + TEMP_PATH + "app\" \"" + TEMP_PATH + "unmodded.apk\"";
-            await invokeJavaAsync("apktool.jar", cmd);
+            await InvokeJarAsync("apktool.jar", cmd);
 
             logger.Information("Decompiled APK");
             AppInfo = new AppInfo(TEMP_PATH + "unmodded.apk", TEMP_PATH + "app/");
@@ -159,7 +164,7 @@ namespace QuestPatcher
             // Recompile the modified APK using apktool
             logger.Information("Compiling modded APK . . .");
             string cmd = "b -f -o \"" + TEMP_PATH + "modded.apk\" \"" + TEMP_PATH + "app\"";
-            await invokeJavaAsync("apktool.jar", cmd);
+            await InvokeJarAsync("apktool.jar", cmd);
 
             logger.Information("Adding tag . . .");
             ZipArchive apkArchive = ZipFile.Open(TEMP_PATH + "modded.apk", ZipArchiveMode.Update);
@@ -169,7 +174,7 @@ namespace QuestPatcher
             // Sign it so that Android will install it
             logger.Information("Signing the modded APK . . .");
             cmd = "--apks " + TEMP_PATH + "modded.apk";
-            await invokeJavaAsync("uber-apk-signer.jar", cmd);
+            await InvokeJarAsync("uber-apk-signer.jar", cmd);
 
             File.Move(TEMP_PATH + "modded-aligned-debugSigned.apk", TEMP_PATH + "modded-and-signed.apk");
 

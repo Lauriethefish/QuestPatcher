@@ -16,6 +16,7 @@ namespace QuestPatcher
     {
         private TextBlock welcomeText;
         private TextBlock appNotInstalledText;
+        private TextBlock javaNotInstalledText;
         private TextBlock questNotPluggedInText;
         private TextBlock appInstalledText;
         public TextBox LoggingBox { get; private set; }
@@ -81,6 +82,21 @@ namespace QuestPatcher
         {
             welcomeText.Text += (" " + DebugBridge.APP_ID);
 
+            try
+            {
+                string version = await moddingHandler.InvokeJavaAsync("-version");
+                string trimmedVersion = version.Split("\n")[0].Substring(13);
+
+                Logger.Information("Java version " + trimmedVersion);
+            }   catch (Exception ex)
+            {
+                LoggingBox.Height = 200;
+                javaNotInstalledText.IsVisible = true;
+                Logger.Information("Java not found");
+                Logger.Verbose(ex.ToString());
+                return;
+            }
+
             // First install the debug bridge if it is missing
             try
             {
@@ -93,26 +109,26 @@ namespace QuestPatcher
                 return;
             }
 
+            LogcatButton.Click += DebugBridge.onStartLogcatClick;
+            openLogsButton.Click += DebugBridge.onOpenLogsClick;
+
             // Then we can check if the app is installed
             patchingPanel.IsVisible = true;
 
             string listResult = await DebugBridge.runCommandAsync("shell pm list packages {app-id}");
             if (listResult.Contains("no devices/emulators found"))
             {
+                LoggingBox.Height = 200;
                 questNotPluggedInText.IsVisible = true;
-                LoggingBox.Height = 220;
                 return;
             }   else if (listResult == "")  {
-                LoggingBox.Height = 220;
+                LoggingBox.Height = 200;
                 appNotInstalledText.IsVisible = true;
                 return;
             }   else   {
-                LoggingBox.Height = 220;
+                LoggingBox.Height = 213;
                 appInstalledText.IsVisible = true;
             }
-
-            LogcatButton.Click += DebugBridge.onStartLogcatClick;
-            openLogsButton.Click += DebugBridge.onOpenLogsClick;
 
             await moddingHandler.CheckInstallStatus();
 
@@ -122,7 +138,7 @@ namespace QuestPatcher
             }
             else
             {
-                LoggingBox.Height = 175;
+                LoggingBox.Height = 155;
                 startModding.IsVisible = true;
             }
 
@@ -146,7 +162,7 @@ namespace QuestPatcher
         private async void onStartModdingClick(object? sender, RoutedEventArgs args)
         {
             startModding.IsVisible = false;
-            LoggingBox.Height = 235;
+            LoggingBox.Height = 215;
 
             try
             {
@@ -216,6 +232,7 @@ namespace QuestPatcher
         private void findComponents()
         {
             appNotInstalledText = this.FindControl<TextBlock>("appNotInstalledText");
+            javaNotInstalledText = this.FindControl<TextBlock>("javaNotInstalledText");
             questNotPluggedInText = this.FindControl<TextBlock>("questNotPluggedInText");
             appInstalledText = this.FindControl<TextBlock>("appInstalledText");
             LoggingBox = this.FindControl<TextBox>("loggingBox");
