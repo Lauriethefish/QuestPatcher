@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -10,6 +10,10 @@
     <PackageReference Include="Avalonia.Diagnostics" Version="0.10.0" />
     <PackageReference Include="JsonSchema.net" Version="1.9.1" />
     <PackageReference Include="SemanticVersioning" Version="1.3.0" />
+    <PackageReference Include="serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
    </ItemGroup>
    <ItemGroup>
 	    <EmbeddedResource Include="resources/qmod.schema.json" />
