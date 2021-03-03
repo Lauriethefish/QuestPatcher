@@ -21,15 +21,21 @@ namespace QuestPatcher
 
         public override Encoding Encoding => Encoding.UTF8;
 
+        private void addText(string text)
+        {
+            window.LoggingBox.Text += text;
+            window.LoggingBox.CaretIndex = int.MaxValue;
+        }
+
         public override void Write(char value)
         {
-            window.LoggingBox.Text += value;
+            addText("" + value);
         }
 
         public override void Write(char[] buffer, int index, int count)
         {
             string str = new string(buffer, index, count);
-            window.LoggingBox.Text += str;
+            addText(str);
         }
     }
 }
