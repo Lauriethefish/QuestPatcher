@@ -67,8 +67,8 @@ namespace QuestPatcher
 
             process.Start();
 
-            string errorOutput = process.StandardError.ReadToEnd();
-            string output = process.StandardOutput.ReadToEnd();
+            string errorOutput = await process.StandardError.ReadToEndAsync();
+            string output = await process.StandardOutput.ReadToEndAsync();
 
             logger.Verbose("Standard output: " + output);
             logger.Verbose("Error output: " + errorOutput);
