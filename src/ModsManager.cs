@@ -176,7 +176,7 @@ namespace QuestPatcher {
 
                 // Store that the mod was successfully installed
                 logger.Information("Copying manifest . . .");
-                debugBridge.runCommand("push \"" + extractPath + "mod.json\" \"" + INSTALLED_MODS_PATH + manifest.Id + ".json\"");
+                await debugBridge.runCommandAsync("push \"" + extractPath + "mod.json\" \"" + INSTALLED_MODS_PATH + manifest.Id + ".json\"");
 
                 addManifest(manifest);
                 logger.Information("Done!");
