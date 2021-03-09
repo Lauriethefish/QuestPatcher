@@ -9,7 +9,7 @@ It uses Sc2ad's [QuestLoader](https://github.com/sc2ad/QuestLoader/) for loading
 
 Currently it isn't released, as several more things still need to be added:
 
-See `MOD_FORMAT.md` for instructions about making a mod that is loadable by this patcher.
+See `resources/qmod.schema.json` for the `mod.json` that QMODs must contain, alongside their mod files.
 
 ## TODO
 - Improve GUI perhaps
