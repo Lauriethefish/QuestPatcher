@@ -11,7 +11,7 @@ Currently it isn't released, as several more things still need to be added:
 
 See `resources/qmod.schema.json` for the `mod.json` that QMODs must contain, alongside their mod files.
 
-**NOTE:** To mod other games, edit `appId.txt` with the package ID of the app on your Quest that you want to mod.
+**NOTE:** To mod other games, edit `appId.txt` in the installation directory (`C:\Program Files\QuestPatcher\` on Windows) with the package ID of the app on your Quest that you want to mod.
 
 ## TODO
 - Improve GUI perhaps
