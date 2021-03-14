@@ -83,11 +83,28 @@ namespace QuestPatcher
         // Adds read and write permissions to the given manifest string
         private string modifyManifest(string manifest)
         {
+            /*
+            This is futureproofing as in Android 11 WRITE and READ is replaced by MANAGE
+            otherwise Storage access would be limited to scoped-storage like an app-specific directory or a public shared directory, 
+            can be removed until any device updates to Android 11 would keep for compatability though.
+            */
+            const string MANAGE_PERMISSIONS = "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\"/>";
+
             const string WRITE_PERMISSIONS = "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>";
             const string READ_PERMISSIONS = "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>";
 
-            int newLineIndex = manifest.IndexOf('\n');
+            // Required for Apps that target Android 10 API Level 29 or higher as that uses scoped storage see: https://developer.android.com/training/data-storage/use-cases#opt-out-scoped-storage
+            const string LegacyExternalStorage = "<application android:requestLegacyExternalStorage = \"true\"";
+
+            const string ApplicationStr = "<application";
+
+              int newLineIndex = manifest.IndexOf('\n');
             string newManifest = manifest.Substring(0, newLineIndex) + "\n";
+            if (manifest.IndexOf(MANAGE_PERMISSIONS) == -1)
+            {
+                newManifest += "    " + MANAGE_PERMISSIONS + "\n";
+            }
+
             if (manifest.IndexOf(WRITE_PERMISSIONS) == -1)
             {
                 newManifest += "    " + WRITE_PERMISSIONS + "\n";
@@ -96,6 +113,12 @@ namespace QuestPatcher
             if (manifest.IndexOf(READ_PERMISSIONS) == -1)
             {
                 newManifest += "    " + READ_PERMISSIONS + "\n";
+            }
+
+            if (manifest.IndexOf(LegacyExternalStorage) == -1)
+            {
+                logger.Information("Adding LegacyStorageSupport");
+                manifest = manifest.Replace(ApplicationStr, LegacyExternalStorage);
             }
 
             newManifest += manifest.Substring(newLineIndex + 1);
