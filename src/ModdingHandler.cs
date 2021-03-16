@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Diagnostics;
 using Serilog.Core;
+using System.Text.Json;
 
 namespace QuestPatcher
 {
@@ -18,6 +19,8 @@ namespace QuestPatcher
 
         private DebugBridge debugBridge;
         private Logger logger;
+
+        private WebClient webClient = new WebClient();
 
         public ModdingHandler(MainWindow window)
         {
@@ -36,17 +39,53 @@ namespace QuestPatcher
             await downloadIfNotExists("https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar", "uber-apk-signer.jar");
         }
 
+        // Uses https://github.com/Lauriethefish/QuestUnstrippedUnity to download an appropriate unstripped libunity.so for this app, if there is one indexed.
+        private async Task<bool> attemptDownloadUnstrippedUnity()
+        {
+            Uri indexUrl = new Uri("https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/index.json");
+
+            logger.Information("Checking index for unstripped libunity.so . . .");
+            string libUnityIndexString = await webClient.DownloadStringTaskAsync(indexUrl);
+            logger.Debug("Contents of index: " + libUnityIndexString);
+            JsonDocument document = JsonDocument.Parse(libUnityIndexString);
+
+            JsonElement versionElement;
+            if(document.RootElement.TryGetProperty(debugBridge.APP_ID, out versionElement))
+            {
+                logger.Information("Successfully found unstripped libunity.so");
+                string libUnityUrl = "https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/" + versionElement.GetString() + ".so";
+                await download(libUnityUrl, "libunity.so", true);
+                return true;
+            }
+            else
+            {
+                logger.Information("No libunity found");
+                return false;
+            }
+        }
+
         private async Task downloadIfNotExists(string downloadLink, string savePath)
         {
-            savePath = TOOLS_PATH + savePath;
+            await download(downloadLink, savePath, false);
+        }
 
-            if(File.Exists(savePath))
+        private async Task download(string downloadLink, string savePath, bool overwriteIfExists)
+        {
+            string actualPath = TOOLS_PATH + savePath;
+            if(File.Exists(actualPath))
             {
-                return;
+                if (overwriteIfExists)
+                {
+                    File.Delete(actualPath);
+                }
+                else
+                {
+                    return;
+                }
             }
 
-            logger.Information("Downloading " + savePath);
-            await new WebClient().DownloadFileTaskAsync(downloadLink, savePath);
+            logger.Information("Downloading " + savePath + " . . .");
+            await webClient.DownloadFileTaskAsync(downloadLink, actualPath);
         }
 
         public async Task<string> InvokeJarAsync(string jarName, string args) {
@@ -129,6 +168,7 @@ namespace QuestPatcher
         // Copies a library file to the correct folder in the APK. If failOnExists is true, then the installer will complain that the game is already modded and exit.
         private void copyLibraryFile(string name, bool failOnExists)
         {
+            logger.Information("Copying library " + name + " . . .");
             string destPath = TEMP_PATH + "app/" + LIB_PATH + name;
             if(File.Exists(destPath) && failOnExists)
             {
@@ -171,6 +211,7 @@ namespace QuestPatcher
         public async Task startModdingProcess()
         {
             await downloadFiles();
+            bool replaceUnity = await attemptDownloadUnstrippedUnity();
 
             // Add permissions to access (read/write) external files.
             logger.Information("Modding manifest . . .");
@@ -182,7 +223,10 @@ namespace QuestPatcher
             logger.Information("Adding library files . . .");
             copyLibraryFile("libmain.so", false);
             copyLibraryFile("libmodloader.so", true);
-
+            if (replaceUnity)
+            {
+                copyLibraryFile("libunity.so", false);
+            }
 
             // Recompile the modified APK using apktool
             logger.Information("Compiling modded APK . . .");
