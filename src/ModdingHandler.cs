@@ -197,21 +197,32 @@ namespace QuestPatcher
 
             await downloadIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
 
-            // Decompile the APK using apktool. We have to do this to read the manifest since it's AXML, which is nasty
-            logger.Information("Decompiling APK . . .");
-            string cmd = "d -f -o \"" + TEMP_PATH + "app\" \"" + TEMP_PATH + "unmodded.apk\"";
-            await InvokeJarAsync("apktool.jar", cmd);
+            // Unfortunately apktool doesn't extract the tag file, so we manually open the APK
+            ZipArchive apkArchive = ZipFile.OpenRead(TEMP_PATH + "unmodded.apk");
+            bool isModded = apkArchive.GetEntry("modded") != null;
+            apkArchive.Dispose();
 
-            logger.Information("Decompiled APK");
-            AppInfo = new AppInfo(TEMP_PATH + "unmodded.apk", TEMP_PATH + "app/");
+            string gameVersion = await debugBridge.runCommandAsync("shell dumpsys \"package {app-id} | grep versionName\"");
+            // Remove the version= and the \n
+            gameVersion = gameVersion.Remove(0, 16);
+            gameVersion = gameVersion.Trim();
 
+            AppInfo = new AppInfo(isModded, gameVersion);
             logger.Information(AppInfo.IsModded ? "APK is modded" : "App is not modded");
+            logger.Information("APK version: \"" + AppInfo.GameVersion + "\"");
         }
 
         public async Task startModdingProcess()
         {
             await downloadFiles();
             bool replaceUnity = await attemptDownloadUnstrippedUnity();
+
+            // Decompile the APK using apktool. We have to do this to read the manifest since it's AXML, which is nasty
+            logger.Information("Decompiling APK . . .");
+            string cmd = "d -f -o \"" + TEMP_PATH + "app\" \"" + TEMP_PATH + "unmodded.apk\"";
+            await InvokeJarAsync("apktool.jar", cmd);
+
+            logger.Information("Decompiled APK");
 
             // Add permissions to access (read/write) external files.
             logger.Information("Modding manifest . . .");
@@ -230,7 +241,7 @@ namespace QuestPatcher
 
             // Recompile the modified APK using apktool
             logger.Information("Compiling modded APK . . .");
-            string cmd = "b -f -o \"" + TEMP_PATH + "modded.apk\" \"" + TEMP_PATH + "app\"";
+            cmd = "b -f -o \"" + TEMP_PATH + "modded.apk\" \"" + TEMP_PATH + "app\"";
             await InvokeJarAsync("apktool.jar", cmd);
 
             logger.Information("Adding tag . . .");

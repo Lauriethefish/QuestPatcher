@@ -14,17 +14,10 @@ namespace QuestPatcher
         public bool IsModded { get; }
         public string GameVersion { get; }
 
-        public AppInfo(string apkPath, string decompilationPath)
+        public AppInfo(bool isModded, string gameVersion)
         {
-            // Unfortunately apktool doesn't extract the tag file, so we manually open the APK
-            ZipArchive apkArchive = ZipFile.OpenRead(apkPath);
-            IsModded = apkArchive.GetEntry("modded") != null;
-            apkArchive.Dispose();
-
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(decompilationPath + "AndroidManifest.xml");
-            // Unable to find the version in the manifest atm
-
+            this.IsModded = isModded;
+            this.GameVersion = gameVersion;
         }
     }
 }
