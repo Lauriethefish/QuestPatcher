@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "QuestPatcher"
-#define MyAppVersion "1.1.1"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "Lauriethefish#6700"
 #define MyAppURL "https://github.com/Lauriethefish/QuestPatcher"
 #define MyAppExeName "QuestPatcher.exe"
