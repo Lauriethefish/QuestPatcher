@@ -37,6 +37,7 @@ namespace QuestPatcher
             await downloadIfNotExists("https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader.so", "libmodloader.so");
             await downloadIfNotExists("https://github.com/RedBrumbler/QuestAppPatcher/blob/master/extraFiles/libmain.so?raw=true", "libmain.so");
             await downloadIfNotExists("https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar", "uber-apk-signer.jar");
+            await downloadIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
         }
 
         // Uses https://github.com/Lauriethefish/QuestUnstrippedUnity to download an appropriate unstripped libunity.so for this app, if there is one indexed.
@@ -200,8 +201,6 @@ namespace QuestPatcher
             string appPath = await debugBridge.runCommandAsync("shell pm path {app-id}");
             appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the "package:" from the start and the new line from the end
             await debugBridge.runCommandAsync("pull \"" + appPath + "\" \"" + TEMP_PATH + "/unmodded.apk\"");
-
-            await downloadIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
 
             // Unfortunately apktool doesn't extract the tag file, so we manually open the APK
             ZipArchive apkArchive = ZipFile.OpenRead(TEMP_PATH + "unmodded.apk");
