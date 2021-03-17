@@ -49,13 +49,19 @@ namespace QuestPatcher
             logger.Debug("Contents of index: " + libUnityIndexString);
             JsonDocument document = JsonDocument.Parse(libUnityIndexString);
 
-            JsonElement versionElement;
-            if(document.RootElement.TryGetProperty(debugBridge.APP_ID, out versionElement))
+            JsonElement packageMapElement;
+            if(document.RootElement.TryGetProperty(debugBridge.APP_ID, out packageMapElement))
             {
-                logger.Information("Successfully found unstripped libunity.so");
-                string libUnityUrl = "https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/" + versionElement.GetString() + ".so";
-                await download(libUnityUrl, "libunity.so", true);
-                return true;
+                JsonElement packageVersionElement;
+                if(packageMapElement.TryGetProperty(AppInfo.GameVersion, out packageVersionElement)) {
+                    logger.Information("Successfully found unstripped libunity.so");
+                    string libUnityUrl = "https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/" + packageVersionElement.GetString() + ".so";
+                    await download(libUnityUrl, "libunity.so", true);
+                    return true;
+                }   else    {
+                    logger.Information("libunity was available for other versions of your app, but not the one that you have installed");
+                    return true;
+                }
             }
             else
             {
