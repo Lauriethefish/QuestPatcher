@@ -59,13 +59,13 @@ namespace QuestPatcher
 
             Logger.Verbose("QuestPatcher starting-------------------");
 
+            InitializeComponent();
             this.DebugBridge = new DebugBridge(this);
             this.moddingHandler = new ModdingHandler(this);
             this.modsManager = new ModsManager(this);
 
             this.Opened += onLoad;
             this.Closed += onClose;
-            InitializeComponent();
 
 #if DEBUG
             this.AttachDevTools();

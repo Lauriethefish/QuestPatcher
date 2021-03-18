@@ -14,8 +14,9 @@ namespace QuestPatcher
     public class DebugBridge
     {
         private static readonly CompareInfo compareInfo = new CultureInfo((int) CultureTypes.AllCultures).CompareInfo;
+        private const string DEFAULT_APP_ID = "com.AnotherAxiom.GorillaTag";
 
-        public string APP_ID { get; } = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "/appId.txt");
+        public string APP_ID { get; }
         private string ADB_LOG_PATH;
 
         private MainWindow window;
@@ -28,6 +29,16 @@ namespace QuestPatcher
             this.window = window;
             this.logger = window.Logger;
             this.ADB_LOG_PATH = window.DATA_PATH + "adb.log";
+
+            try
+            {
+                this.APP_ID = File.ReadAllText(window.DATA_PATH + "appId.txt");
+                logger.Information("Read app ID " + APP_ID + " from appdata");
+            }   catch(FileNotFoundException)
+            {
+                logger.Information("Using default app ID: " + DEFAULT_APP_ID);
+                this.APP_ID = DEFAULT_APP_ID;
+            }
         }
 
         private string handlePlaceholders(string command)
