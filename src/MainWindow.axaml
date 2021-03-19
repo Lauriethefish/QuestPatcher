@@ -6,9 +6,17 @@
         x:Class="QuestPatcher.MainWindow"
         Title="QuestPatcher">
   <StackPanel Orientation="Vertical">
-    <TextBlock HorizontalAlignment="Center" Padding="13" Name="welcomeText">Welcome to QuestPatcher. You are modding</TextBlock>
+    <StackPanel Name="nonEditAppIdPanel" Orientation="Horizontal" HorizontalAlignment="Center">
+      <TextBlock Padding="13" Name="welcomeText">You are modding</TextBlock>
+      <Button Name="editAppIdButton">Change</Button>
+    </StackPanel>
     <TextBlock Name="javaNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">Java is not installed. Please install Java and then restart QuestPatcher</TextBlock>
 
+    <StackPanel Name="editAppIdPanel" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False">
+      <TextBox Name="newAppIdBox" MinWidth="300" Margin="13"/>
+      <Button Name="newAppIdConfirmButton">Confirm</Button> 
+    </StackPanel>
+    
     <StackPanel Orientation="Vertical" IsVisible="False" Name="patchingPanel">
       <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">App with specified ID could not be found</TextBlock>
       <TextBlock Name="questNotPluggedInText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">Please plug in your Quest and then restart QuestPatcher</TextBlock>

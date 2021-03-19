@@ -9,6 +9,7 @@ using Serilog;
 using Serilog.Core;
 using System.IO;
 using Serilog.Events;
+using System.Diagnostics;
 
 namespace QuestPatcher
 {
@@ -30,6 +31,12 @@ namespace QuestPatcher
 
         public Button LogcatButton { get; private set; }
         private Button openLogsButton;
+
+        private Button editAppIdButton;
+        private TextBox newAppIdBox;
+        private Button newAppIdConfirmButton;
+        private StackPanel nonEditAppIdPanel;
+        private StackPanel editAppIdPanel;
 
         public AppInfo AppInfo { get; private set; }
 
@@ -112,6 +119,9 @@ namespace QuestPatcher
             LogcatButton.Click += DebugBridge.onStartLogcatClick;
             openLogsButton.Click += DebugBridge.onOpenLogsClick;
 
+            editAppIdButton.Click += onEditAppIdClick;
+            newAppIdConfirmButton.Click += onConfirmNewAppIdClick;
+
             // Then we can check if the app is installed
             patchingPanel.IsVisible = true;
 
@@ -176,6 +186,37 @@ namespace QuestPatcher
             }
 
             await switchToModMenu();
+        }
+
+        private void onEditAppIdClick(object? sender, RoutedEventArgs args)
+        {
+            nonEditAppIdPanel.IsVisible = false;
+
+            newAppIdBox.Text = DebugBridge.APP_ID;
+            newAppIdBox.SelectAll();
+            editAppIdPanel.IsVisible = true;
+            this.MinHeight += 10;
+        }
+
+        private void onConfirmNewAppIdClick(object? sender, RoutedEventArgs args)
+        {
+            string newId = newAppIdBox.Text;
+
+            Logger.Information("Changing app Id to " + newId);
+            File.WriteAllText(DATA_PATH + "appId.txt", newId);
+
+            restartApp();
+        }
+
+        private void restartApp()
+        {
+            Logger.Information("Restarting . . . ");
+            Process process = new Process();
+            process.StartInfo.FileName = AppDomain.CurrentDomain.BaseDirectory + (OperatingSystem.IsWindows() ? "QuestPatcher.exe" : "QuestPatcher");
+            process.StartInfo.UseShellExecute = false;
+            process.Start();
+
+            Environment.Exit(0);
         }
 
         private void onClose(object? sender, EventArgs args)
@@ -245,6 +286,11 @@ namespace QuestPatcher
             patchingPanel = this.FindControl<Panel>("patchingPanel");
             LogcatButton = this.FindControl<Button>("logcatButton");
             openLogsButton = this.FindControl<Button>("openLogsButton");
+            editAppIdButton = this.FindControl<Button>("editAppIdButton");
+            nonEditAppIdPanel = this.FindControl<StackPanel>("nonEditAppIdPanel");
+            editAppIdPanel = this.FindControl<StackPanel>("editAppIdPanel");
+            newAppIdConfirmButton = this.FindControl<Button>("newAppIdConfirmButton");
+            newAppIdBox = this.FindControl<TextBox>("newAppIdBox");
         }
     }
 }
