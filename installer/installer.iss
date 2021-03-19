@@ -39,7 +39,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 Source: "C:\Users\Lauri\Gorilla_Tag_Mod_Dev\QuestPatcher\bin\Release\net5.0\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Lauri\Gorilla_Tag_Mod_Dev\QuestPatcher\bin\Release\net5.0\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\Lauri\Gorilla_Tag_Mod_Dev\QuestPatcher\appId.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
