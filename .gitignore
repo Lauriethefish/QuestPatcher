@@ -6,4 +6,4 @@ ExampleMod/
 mod.json
 .vs/
 installer/inno/
-installer/QuestPatcher.exe
+installer/windows-installer.exe
