@@ -1,0 +1,28 @@
+name: Windows Installer
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build installer on windows
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.102
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Run build script
+      run: ./buildInstaller.ps1
+    - name: Artifact Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows-installer
+        path: ./installer/QuestPatcher.exe
