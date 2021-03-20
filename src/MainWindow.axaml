@@ -20,8 +20,9 @@
     <StackPanel Orientation="Vertical" IsVisible="False" Name="patchingPanel">
       <TextBlock Name="appNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">App with specified ID could not be found</TextBlock>
       <TextBlock Name="questNotPluggedInText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">Please plug in your Quest and then restart QuestPatcher</TextBlock>
+      <TextBlock Name="multipleDevicesText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">You have multiple Android devices plugged in. Unplug all other Android devices.</TextBlock>
       <TextBlock Name="appInstalledText" HorizontalAlignment="Center" Padding="6" Foreground="Green" IsVisible="false">Your app is installed</TextBlock>
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
         <Button Name="startModding" Margin="13" IsVisible="False">Patch my app!</Button>
       </StackPanel>
     </StackPanel>
