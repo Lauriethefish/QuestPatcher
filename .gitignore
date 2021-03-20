@@ -5,3 +5,5 @@ ExampleMod/
 *.qmod
 mod.json
 .vs/
+installer/inno/
+installer/QuestPatcher.exe
