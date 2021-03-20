@@ -96,7 +96,35 @@ namespace QuestPatcher
         }
 
         public async Task<string> InvokeJarAsync(string jarName, string args) {
-            return await InvokeJavaAsync("-Xmx1024m -jar \"" + TOOLS_PATH + "/" + jarName + "\" " + args);
+            string command = "-Xmx1024m -jar \"" + TOOLS_PATH + "/" + jarName + "\" " + args;
+
+            string result = await InvokeJavaAsync(command);
+            if(result.Contains("corrupt"))
+            {
+                // Sometimes the JAR files get corrupted, e.g. if the users exits while they're downloading.
+                // To solve this, we delete the existing ones and then re-download.
+                logger.Information("A JAR file was corrupted. Attempting to re-download JARs . . .");
+                clearJARs();
+                await downloadFiles();
+                return await InvokeJavaAsync(command);
+            }
+            else
+            {
+                return result;
+            }
+        }
+
+        private void clearJARs()
+        {
+            foreach(string fileName in Directory.GetFiles(TOOLS_PATH))
+            {
+                string extension = Path.GetExtension(fileName).ToUpper();
+                if (extension == ".JAR")
+                {
+                    logger.Information("Deleting JAR " + fileName);
+                    File.Delete(fileName);
+                }
+            }
         }
 
 
