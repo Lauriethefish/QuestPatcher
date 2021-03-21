@@ -232,7 +232,7 @@ namespace QuestPatcher
 
             // Unfortunately apktool doesn't extract the tag file, so we manually open the APK
             ZipArchive apkArchive = ZipFile.OpenRead(TEMP_PATH + "unmodded.apk");
-            bool isModded = apkArchive.GetEntry("modded") != null;
+            bool isModded = apkArchive.GetEntry("modded") != null || apkArchive.GetEntry("BMBF.modded") != null;
             apkArchive.Dispose();
 
             string gameVersion = await debugBridge.runCommandAsync("shell dumpsys \"package {app-id} | grep versionName\"");
@@ -280,6 +280,11 @@ namespace QuestPatcher
             logger.Information("Adding tag . . .");
             ZipArchive apkArchive = ZipFile.Open(TEMP_PATH + "modded.apk", ZipArchiveMode.Update);
             apkArchive.CreateEntry("modded");
+            if (debugBridge.APP_ID == "com.beatgames.beatsaber")
+            {
+                logger.Information("Game is Beat Saber, also adding BMBF.modded tag . . .");
+                apkArchive.CreateEntry("BMBF.modded");
+            }
             apkArchive.Dispose();
 
             // Sign it so that Android will install it
