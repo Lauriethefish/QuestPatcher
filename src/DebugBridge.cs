@@ -132,7 +132,7 @@ namespace QuestPatcher
             await Task.Run(() => {
                 ZipFile.ExtractToDirectory(window.TEMP_PATH + "platform-tools.zip", window.DATA_PATH);
             });
-            File.Delete(Path.GetTempPath() + "platform-tools.zip");
+            File.Delete(window.TEMP_PATH + "platform-tools.zip");
 
             if(!OperatingSystem.IsWindows())
             {
