@@ -17,5 +17,6 @@
    </ItemGroup>
    <ItemGroup>
 	    <EmbeddedResource Include="resources/qmod.schema.json" />
+      <EmbeddedResource Include="resources/file-copy-paths.json" />
    </ItemGroup>
 </Project>

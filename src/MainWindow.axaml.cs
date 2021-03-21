@@ -10,6 +10,10 @@ using Serilog.Core;
 using System.IO;
 using Serilog.Events;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace QuestPatcher
 {
@@ -46,6 +50,9 @@ namespace QuestPatcher
 
         private ModsManager modsManager;
 
+        // Map of file extension (upper case) to location on the Quest, loaded from drag-and-drop.json
+        private Dictionary<string, FileCopyTypeInfo> fileCopyPaths = new Dictionary<string, FileCopyTypeInfo>();
+
         public Logger Logger { get; }
 
         public string DATA_PATH { get; }
@@ -80,6 +87,29 @@ namespace QuestPatcher
 #endif      
         }
 
+        private async Task loadFileCopyPaths()
+        {
+            Logger.Verbose("Loading file copy paths . . .");
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            Stream? fileCopiesStream = assembly.GetManifestResourceStream("QuestPatcher.resources.file-copy-paths.json");
+            if(fileCopiesStream == null)
+            {
+                throw new FileNotFoundException("Unable to find file copy paths in resources");
+            }
+
+            JsonDocument document = await JsonDocument.ParseAsync(fileCopiesStream);
+            JsonElement packageElement;
+            if(document.RootElement.TryGetProperty(DebugBridge.APP_ID, out packageElement))
+            {
+                foreach(JsonProperty property in packageElement.EnumerateObject())
+                {
+                    fileCopyPaths[property.Name.ToUpper()] = new FileCopyTypeInfo(property.Value);
+                }
+            }
+
+            Logger.Verbose("Loaded " + fileCopyPaths.Count + " copy paths");
+        }
+
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
@@ -90,6 +120,7 @@ namespace QuestPatcher
         {
             welcomeText.Text += (" " + DebugBridge.APP_ID);
 
+            await loadFileCopyPaths();
             try
             {
                 string version = await moddingHandler.InvokeJavaAsync("-version");
@@ -238,8 +269,18 @@ namespace QuestPatcher
             FileDialogFilter filter = new FileDialogFilter();
             filter.Extensions.Add("qmod");
             filter.Name = "Quest Mods";
-
             fileDialog.Filters.Add(filter);
+
+            foreach (KeyValuePair<string, FileCopyTypeInfo> fileCopy in fileCopyPaths)
+            {
+                FileDialogFilter fileCopyFilter = new FileDialogFilter();
+                fileCopyFilter.Extensions.Add(fileCopy.Key.ToLower());
+
+                string description = fileCopy.Value.Description == null ? fileCopy.Key + " Files" : fileCopy.Value.Description;
+                fileCopyFilter.Name = description;
+                fileDialog.Filters.Add(fileCopyFilter);
+            }
+
             string[] files = await fileDialog.ShowAsync(this);
             if(files.Length == 0) {
                 return;
@@ -253,6 +294,18 @@ namespace QuestPatcher
         {
             if(args.Data.Contains(DataFormats.FileNames))
             {
+                // Sometimes a COMException gets thrown if the files can't be parsed for whatever reason.
+                // We need to handle this to avoid crashing QuestPatcher.
+                try
+                {
+                    IEnumerable<string> fileNames = args.Data.GetFileNames();
+                }
+                catch (COMException)
+                {
+                    Logger.Error("Invalid file dragged into window");
+                    return;
+                }
+
                 foreach(string path in args.Data.GetFileNames())
                 {
                     await attemptInstall(path);
@@ -260,7 +313,30 @@ namespace QuestPatcher
             }
         }
 
+        // Attempts a file copy or a mod install of the file at path
+        // If neither is available for the file, it'll print an error message
         private async Task attemptInstall(string path)
+        {
+            string extension = Path.GetExtension(path).Substring(1).ToUpper(); // Remove the . and make the extension upper case
+            if(extension == "QMOD")
+            {
+                await attemptInstallMod(path);
+            }
+            else
+            {
+                FileCopyTypeInfo copyPath;
+                if(fileCopyPaths.TryGetValue(extension, out copyPath))
+                {
+                    await attemptFileCopy(path, copyPath.DestinationPath);
+                }
+                else
+                {
+                    Logger.Error("Unknown file extension " + extension);
+                }
+            }
+        }
+
+        private async Task attemptInstallMod(string path)
         {
             try
             {
@@ -271,6 +347,23 @@ namespace QuestPatcher
             {
                 ModInstallErrorText.IsVisible = true;
                 ModInstallErrorText.Text = "Error while installing mod: " + ex.Message;
+                Logger.Verbose(ex.ToString());
+            }
+        }
+
+        private async Task attemptFileCopy(string path, string destination)
+        {
+            try
+            {
+                Logger.Information("Copying file . . .");
+                ModInstallErrorText.IsVisible = false;
+                await DebugBridge.runCommandAsync("push \"" + path + "\" \"" + Path.Combine(destination, Path.GetFileName(path)) + "\"");
+                Logger.Information("Successfully copied " + Path.GetFileName(path) + " to " + destination);
+            }
+            catch (Exception ex)
+            {
+                ModInstallErrorText.IsVisible = true;
+                ModInstallErrorText.Text = "Error while copying file: " + ex.Message;
                 Logger.Verbose(ex.ToString());
             }
         }
