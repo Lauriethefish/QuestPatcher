@@ -4,8 +4,8 @@
     "id": "example-mod-2",
     "author": "Lauriethefish#6700",
     "version": "1.0.0",
-    "gameId": "com.AnotherAxiom.GorillaTag",
-    "gameVersion": "1.0.1",
+    "packageId": "com.AnotherAxiom.GorillaTag",
+    "packageVersion": "1.0.1",
     "type": "Gameplay",
     "modFiles": [
         "libexample-mod-2.so"
