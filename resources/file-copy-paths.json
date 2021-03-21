@@ -3,6 +3,14 @@
         "gtmap": {
             "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/MonkeMapLoader/CustomMaps/",
             "description": "Gorilla Tag Maps"
+        },
+        "hat": {
+            "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/GorillaCosmetics/Hats/",
+            "description": "Gorilla Tag Hats"
+        },
+        "gmat": {
+            "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/GorillaCosmetics/Materials/",
+            "description": "Gorilla Tag Materials"
         }
     }
 }
