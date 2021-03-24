@@ -24,6 +24,7 @@ namespace QuestPatcher
         private TextBlock javaNotInstalledText;
         private TextBlock questNotPluggedInText;
         private TextBlock multipleDevicesText;
+        private TextBlock unauthorizedText;
         private TextBlock appInstalledText;
         public TextBox LoggingBox { get; private set; }
         private Button startModding;
@@ -163,11 +164,15 @@ namespace QuestPatcher
                 LoggingBox.Height = 200;
                 questNotPluggedInText.IsVisible = true;
                 return;
-            }   else if(listResult.Contains("more than one device/emulator"))   {
+            } else if (listResult.Contains("more than one device/emulator")) {
                 LoggingBox.Height = 200;
                 multipleDevicesText.IsVisible = true;
                 return;
-            }   else if (listResult == "")  {
+            } else if(listResult.Contains("unauthorized"))  {
+                LoggingBox.Height = 200;
+                unauthorizedText.IsVisible = true;
+                return;
+            } else if (listResult == "") {
                 LoggingBox.Height = 200;
                 appNotInstalledText.IsVisible = true;
                 return;
@@ -374,6 +379,7 @@ namespace QuestPatcher
             javaNotInstalledText = this.FindControl<TextBlock>("javaNotInstalledText");
             questNotPluggedInText = this.FindControl<TextBlock>("questNotPluggedInText");
             multipleDevicesText = this.FindControl<TextBlock>("multipleDevicesText");
+            unauthorizedText = this.FindControl<TextBlock>("unauthorizedText");
             appInstalledText = this.FindControl<TextBlock>("appInstalledText");
             LoggingBox = this.FindControl<TextBox>("loggingBox");
             startModding = this.FindControl<Button>("startModding");
