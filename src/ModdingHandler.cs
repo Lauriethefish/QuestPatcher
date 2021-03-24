@@ -280,11 +280,6 @@ namespace QuestPatcher
             logger.Information("Adding tag . . .");
             ZipArchive apkArchive = ZipFile.Open(TEMP_PATH + "modded.apk", ZipArchiveMode.Update);
             apkArchive.CreateEntry("modded");
-            if (debugBridge.APP_ID == "com.beatgames.beatsaber")
-            {
-                logger.Information("Game is Beat Saber, also adding BMBF.modded tag . . .");
-                apkArchive.CreateEntry("BMBF.modded");
-            }
             apkArchive.Dispose();
 
             // Sign it so that Android will install it
