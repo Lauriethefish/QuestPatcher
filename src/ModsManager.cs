@@ -158,13 +158,13 @@ namespace QuestPatcher {
                 // Copy all of the SO files
                 foreach (string libraryPath in manifest.LibraryFiles)
                 {
-                    logger.Information("Copying mod file " + libraryPath);
+                    logger.Information("Copying library file " + libraryPath);
                     await debugBridge.runCommandAsync("push \"" + extractPath + libraryPath + "\" \"sdcard/Android/data/{app-id}/files/libs/" + libraryPath + "\"");
                 }
 
                 foreach (string modFilePath in manifest.ModFiles)
                 {
-                    logger.Information("Copying library file " + modFilePath);
+                    logger.Information("Copying mod file " + modFilePath);
                     await debugBridge.runCommandAsync("push \"" + extractPath + modFilePath + "\" sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
                 }
 
