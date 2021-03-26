@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.Threading.Tasks;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 
 namespace QuestPatcher
 {
+    // Used to allow us to log messages into the QuestPatcher window so that the user can see what it is doing.
     class WindowLogger : TextWriter
     {
         private MainWindow window;

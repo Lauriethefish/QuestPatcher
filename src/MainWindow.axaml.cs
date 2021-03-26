@@ -80,15 +80,15 @@ namespace QuestPatcher
             this.moddingHandler = new ModdingHandler(this);
             this.modsManager = new ModsManager(this);
 
-            this.Opened += onLoad;
-            this.Closed += onClose;
+            this.Opened += OnLoad;
+            this.Closed += OnClose;
 
 #if DEBUG
             this.AttachDevTools();
 #endif      
         }
 
-        private async Task loadFileCopyPaths()
+        private async Task LoadFileCopyPaths()
         {
             Logger.Verbose("Loading file copy paths . . .");
             Assembly assembly = Assembly.GetExecutingAssembly();
@@ -111,17 +111,11 @@ namespace QuestPatcher
             Logger.Verbose("Loaded " + fileCopyPaths.Count + " copy paths");
         }
 
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-            findComponents();
-        }
-
-        private async void onLoad(object? sender, EventArgs args)
+        private async void OnLoad(object? sender, EventArgs args)
         {
             welcomeText.Text += (" " + DebugBridge.APP_ID);
 
-            await loadFileCopyPaths();
+            await LoadFileCopyPaths();
             try
             {
                 string version = await moddingHandler.InvokeJavaAsync("-version");
@@ -149,16 +143,16 @@ namespace QuestPatcher
                 return;
             }
 
-            LogcatButton.Click += DebugBridge.onStartLogcatClick;
-            openLogsButton.Click += DebugBridge.onOpenLogsClick;
+            LogcatButton.Click += DebugBridge.OnStartLogcatClick;
+            openLogsButton.Click += DebugBridge.OnOpenLogsClick;
 
-            editAppIdButton.Click += onEditAppIdClick;
-            newAppIdConfirmButton.Click += onConfirmNewAppIdClick;
+            editAppIdButton.Click += OnEditAppIdClick;
+            newAppIdConfirmButton.Click += OnConfirmNewAppIdClick;
 
             // Then we can check if the app is installed
             patchingPanel.IsVisible = true;
 
-            string listResult = await DebugBridge.runCommandAsync("shell pm list packages {app-id}");
+            string listResult = await DebugBridge.RunCommandAsync("shell pm list packages {app-id}");
             if (listResult.Contains("no devices/emulators found"))
             {
                 LoggingBox.Height = 200;
@@ -185,7 +179,7 @@ namespace QuestPatcher
 
             if (moddingHandler.AppInfo.IsModded)
             {
-                await switchToModMenu();
+                await SwitchToModMenu();
             }
             else
             {
@@ -193,13 +187,13 @@ namespace QuestPatcher
                 startModding.IsVisible = true;
             }
 
-            startModding.Click += onStartModdingClick;
-            browseModsButton.Click += onBrowseForModsClick;
+            startModding.Click += OnStartModdingClick;
+            browseModsButton.Click += OnBrowseForModsClick;
 
-            AddHandler(DragDrop.DropEvent, onDragAndDrop);
+            AddHandler(DragDrop.DropEvent, OnDragAndDrop);
         }
 
-        private async Task switchToModMenu() {
+        private async Task SwitchToModMenu() {
             this.MaxHeight += 250;
             this.MinHeight += 250;
             this.LoggingBox.Height = 155;
@@ -210,14 +204,14 @@ namespace QuestPatcher
             await modsManager.LoadModsFromQuest();
         }
 
-        private async void onStartModdingClick(object? sender, RoutedEventArgs args)
+        private async void OnStartModdingClick(object? sender, RoutedEventArgs args)
         {
             startModding.IsVisible = false;
             LoggingBox.Height = 215;
 
             try
             {
-                await moddingHandler.startModdingProcess();
+                await moddingHandler.StartModdingProcess();
             }   catch(Exception ex)
             {
                 Logger.Fatal("An error occurred while attempting to patch the game");
@@ -226,10 +220,10 @@ namespace QuestPatcher
                 return;
             }
 
-            await switchToModMenu();
+            await SwitchToModMenu();
         }
 
-        private void onEditAppIdClick(object? sender, RoutedEventArgs args)
+        private void OnEditAppIdClick(object? sender, RoutedEventArgs args)
         {
             nonEditAppIdPanel.IsVisible = false;
 
@@ -239,17 +233,19 @@ namespace QuestPatcher
             this.MinHeight += 10;
         }
 
-        private void onConfirmNewAppIdClick(object? sender, RoutedEventArgs args)
+        private void OnConfirmNewAppIdClick(object? sender, RoutedEventArgs args)
         {
             string newId = newAppIdBox.Text;
 
             Logger.Information("Changing app Id to " + newId);
             File.WriteAllText(DATA_PATH + "appId.txt", newId);
 
-            restartApp();
+            RestartApp();
         }
 
-        private void restartApp()
+        // Restarts QuestPatcher from the installation directory.
+        // Used when changing app IDs
+        private void RestartApp()
         {
             Logger.Information("Restarting . . . ");
             Process process = new Process();
@@ -260,13 +256,21 @@ namespace QuestPatcher
             Environment.Exit(0);
         }
 
-        private void onClose(object? sender, EventArgs args)
+        private void OnClose(object? sender, EventArgs args)
         {
-            Directory.Delete(TEMP_PATH, true);
+            // Clear temp files in order to save on disk space.
+            try
+            {
+                Directory.Delete(TEMP_PATH, true);
+            }
+            catch (Exception)
+            {
+                Logger.Warning("Failed to delete the temporary directory - is it still in use?");
+            }
             Logger.Verbose("QuestPatcher closing-------------------");
         }
 
-        private async void onBrowseForModsClick(object? sender, RoutedEventArgs args) {
+        private async void OnBrowseForModsClick(object? sender, RoutedEventArgs args) {
             // Show a browse dialogue to enter the path of the mod file
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.AllowMultiple = false;
@@ -292,10 +296,10 @@ namespace QuestPatcher
             }
 
             // Install the mod with that path
-            await attemptInstall(files[0]);
+            await AttemptInstall(files[0]);
         }
 
-        private async void onDragAndDrop(object? sender, DragEventArgs args)
+        private async void OnDragAndDrop(object? sender, DragEventArgs args)
         {
             if(args.Data.Contains(DataFormats.FileNames))
             {
@@ -313,26 +317,26 @@ namespace QuestPatcher
 
                 foreach(string path in args.Data.GetFileNames())
                 {
-                    await attemptInstall(path);
+                    await AttemptInstall(path);
                 }
             }
         }
 
         // Attempts a file copy or a mod install of the file at path
         // If neither is available for the file, it'll print an error message
-        private async Task attemptInstall(string path)
+        private async Task AttemptInstall(string path)
         {
             string extension = Path.GetExtension(path).Substring(1).ToUpper(); // Remove the . and make the extension upper case
             if(extension == "QMOD")
             {
-                await attemptInstallMod(path);
+                await AttemptInstallMod(path);
             }
             else
             {
                 FileCopyTypeInfo copyPath;
                 if(fileCopyPaths.TryGetValue(extension, out copyPath))
                 {
-                    await attemptFileCopy(path, copyPath.DestinationPath);
+                    await AttemptFileCopy(path, copyPath.DestinationPath);
                 }
                 else
                 {
@@ -341,7 +345,7 @@ namespace QuestPatcher
             }
         }
 
-        private async Task attemptInstallMod(string path)
+        private async Task AttemptInstallMod(string path)
         {
             try
             {
@@ -356,13 +360,13 @@ namespace QuestPatcher
             }
         }
 
-        private async Task attemptFileCopy(string path, string destination)
+        private async Task AttemptFileCopy(string path, string destination)
         {
             try
             {
                 Logger.Information("Copying file . . .");
                 ModInstallErrorText.IsVisible = false;
-                await DebugBridge.runCommandAsync("push \"" + path + "\" \"" + Path.Combine(destination, Path.GetFileName(path)) + "\"");
+                await DebugBridge.RunCommandAsync("push \"" + path + "\" \"" + Path.Combine(destination, Path.GetFileName(path)) + "\"");
                 Logger.Information("Successfully copied " + Path.GetFileName(path) + " to " + destination);
             }
             catch (Exception ex)
@@ -373,7 +377,14 @@ namespace QuestPatcher
             }
         }
 
-        private void findComponents()
+        private void InitializeComponent()
+        {
+            AvaloniaXamlLoader.Load(this);
+            FindComponents();
+        }
+
+        // Assigns all of the controls that have a field in this class
+        private void FindComponents()
         {
             appNotInstalledText = this.FindControl<TextBlock>("appNotInstalledText");
             javaNotInstalledText = this.FindControl<TextBlock>("javaNotInstalledText");

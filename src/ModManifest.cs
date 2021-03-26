@@ -71,6 +71,7 @@ namespace QuestPatcher {
         }
 
         public static async Task<ModManifest> Load(string str) {
+            // Load the QMOD schema from resources if we haven't already.
             if(schema == null)
             {
                 Assembly assembly = Assembly.GetExecutingAssembly();
@@ -86,6 +87,7 @@ namespace QuestPatcher {
             }
 
             JsonDocument document = JsonDocument.Parse(str);
+            // First make sure that this schema is actually a valid mod by checking it against the schema
             ValidationResults validity = schema.Validate(document.RootElement);
             if(!validity.IsValid)
             {

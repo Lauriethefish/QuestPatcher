@@ -31,17 +31,18 @@ namespace QuestPatcher
             TOOLS_PATH = window.DATA_PATH + "tools/";
         }
 
-        // We need some files for installation that we can't just distrubute with this
-        private async Task downloadFiles()
+        // We need some files for installation that we can't just distrubute with this, so we download them while we're running.
+        // This also makes sure that we're always using the latest version of the modloader (QuestLoader)
+        private async Task DownloadToolsFiles()
         {
-            await downloadIfNotExists("https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader.so", "libmodloader.so");
-            await downloadIfNotExists("https://github.com/RedBrumbler/QuestAppPatcher/blob/master/extraFiles/libmain.so?raw=true", "libmain.so");
-            await downloadIfNotExists("https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar", "uber-apk-signer.jar");
-            await downloadIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
+            await DownloadFileIfNotExists("https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader.so", "libmodloader.so");
+            await DownloadFileIfNotExists("https://github.com/RedBrumbler/QuestAppPatcher/blob/master/extraFiles/libmain.so?raw=true", "libmain.so");
+            await DownloadFileIfNotExists("https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar", "uber-apk-signer.jar");
+            await DownloadFileIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
         }
 
         // Uses https://github.com/Lauriethefish/QuestUnstrippedUnity to download an appropriate unstripped libunity.so for this app, if there is one indexed.
-        private async Task<bool> attemptDownloadUnstrippedUnity()
+        private async Task<bool> AttemptDownloadUnstrippedUnity()
         {
             Uri indexUrl = new Uri("https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/index.json");
 
@@ -57,7 +58,7 @@ namespace QuestPatcher
                 if(packageMapElement.TryGetProperty(AppInfo.GameVersion, out packageVersionElement)) {
                     logger.Information("Successfully found unstripped libunity.so");
                     string libUnityUrl = "https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/" + packageVersionElement.GetString() + ".so";
-                    await download(libUnityUrl, "libunity.so", true);
+                    await DownloadFile(libUnityUrl, "libunity.so", true);
                     return true;
                 }   else    {
                     logger.Information("libunity was available for other versions of your app, but not the one that you have installed");
@@ -71,12 +72,12 @@ namespace QuestPatcher
             }
         }
 
-        private async Task downloadIfNotExists(string downloadLink, string savePath)
+        private async Task DownloadFileIfNotExists(string downloadLink, string savePath)
         {
-            await download(downloadLink, savePath, false);
+            await DownloadFile(downloadLink, savePath, false);
         }
 
-        private async Task download(string downloadLink, string savePath, bool overwriteIfExists)
+        private async Task DownloadFile(string downloadLink, string savePath, bool overwriteIfExists)
         {
             string actualPath = TOOLS_PATH + savePath;
             if(File.Exists(actualPath))
@@ -95,6 +96,8 @@ namespace QuestPatcher
             await webClient.DownloadFileTaskAsync(downloadLink, actualPath);
         }
 
+        // Invokes a JAR in the tools directory with name jarName and args args.
+        // Returns the error output and the standard output concatenated together when the proces exits.
         public async Task<string> InvokeJarAsync(string jarName, string args) {
             string command = "-Xmx1024m -jar \"" + TOOLS_PATH + "/" + jarName + "\" " + args;
 
@@ -104,8 +107,8 @@ namespace QuestPatcher
                 // Sometimes the JAR files get corrupted, e.g. if the users exits while they're downloading.
                 // To solve this, we delete the existing ones and then re-download.
                 logger.Information("A JAR file was corrupted. Attempting to re-download JARs . . .");
-                clearJARs();
-                await downloadFiles();
+                ClearJars();
+                await DownloadToolsFiles();
                 return await InvokeJavaAsync(command);
             }
             else
@@ -114,7 +117,8 @@ namespace QuestPatcher
             }
         }
 
-        private void clearJARs()
+        // Clears all .JAR files in the tools directory - used when they are corrupted.
+        private void ClearJars()
         {
             foreach(string fileName in Directory.GetFiles(TOOLS_PATH))
             {
@@ -129,6 +133,7 @@ namespace QuestPatcher
 
 
         // Invokes a JAR file in the tools directory with name jarName, passing it args
+        // Returns the error output and the standard output concatenated together when the process exits.
         public async Task<string> InvokeJavaAsync(string args)
         {
             Process process = new Process();
@@ -154,13 +159,14 @@ namespace QuestPatcher
             return errorOutput + output;
         }
 
-        // Adds read and write permissions to the given manifest string
-        private string modifyManifest(string manifest)
+        // Modifies this manifest string with the attributes necessary for modding
+        // This includes adding read and write permissions to the given manifest string
+        private string ModifyManifest(string manifest)
         {
             /*
-            This is futureproofing as in Android 11 WRITE and READ is replaced by MANAGE
-            otherwise Storage access would be limited to scoped-storage like an app-specific directory or a public shared directory, 
-            can be removed until any device updates to Android 11 would keep for compatability though.
+                This is futureproofing as in Android 11 WRITE and READ is replaced by MANAGE
+                otherwise Storage access would be limited to scoped-storage like an app-specific directory or a public shared directory, 
+                can be removed until any device updates to Android 11 would keep for compatability though.
             */
             const string MANAGE_PERMISSIONS = "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\"/>";
 
@@ -191,7 +197,7 @@ namespace QuestPatcher
 
             if (manifest.IndexOf(LegacyExternalStorage) == -1)
             {
-                logger.Information("Adding LegacyStorageSupport");
+                logger.Debug("Adding LegacyStorageSupport");
                 manifest = manifest.Replace(ApplicationStr, LegacyExternalStorage);
             }
 
@@ -201,7 +207,7 @@ namespace QuestPatcher
         }
 
         // Copies a library file to the correct folder in the APK. If failOnExists is true, then the installer will complain that the game is already modded and exit.
-        private void copyLibraryFile(string name, bool failOnExists)
+        private void CopyLibraryFile(string name, bool failOnExists)
         {
             logger.Information("Copying library " + name + " . . .");
             string destPath = TEMP_PATH + "app/" + LIB_PATH + name;
@@ -213,6 +219,7 @@ namespace QuestPatcher
             File.Copy(TOOLS_PATH + name, destPath, true);
         }
 
+        // Pulls the APK from the Quest to check if it is modded, and to check its version.
         public async Task CheckInstallStatus()
         {
             if (Directory.Exists(TEMP_PATH))
@@ -226,16 +233,16 @@ namespace QuestPatcher
 
 
             logger.Information("Pulling APK from Quest to check if modded . . .");
-            string appPath = await debugBridge.runCommandAsync("shell pm path {app-id}");
+            string appPath = await debugBridge.RunCommandAsync("shell pm path {app-id}");
             appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the "package:" from the start and the new line from the end
-            await debugBridge.runCommandAsync("pull \"" + appPath + "\" \"" + TEMP_PATH + "/unmodded.apk\"");
+            await debugBridge.RunCommandAsync("pull \"" + appPath + "\" \"" + TEMP_PATH + "/unmodded.apk\"");
 
             // Unfortunately apktool doesn't extract the tag file, so we manually open the APK
             ZipArchive apkArchive = ZipFile.OpenRead(TEMP_PATH + "unmodded.apk");
             bool isModded = apkArchive.GetEntry("modded") != null || apkArchive.GetEntry("BMBF.modded") != null;
             apkArchive.Dispose();
 
-            string gameVersion = await debugBridge.runCommandAsync("shell dumpsys \"package {app-id} | grep versionName\"");
+            string gameVersion = await debugBridge.RunCommandAsync("shell dumpsys \"package {app-id} | grep versionName\"");
             // Remove the version= and the \n
             gameVersion = gameVersion.Remove(0, 16);
             gameVersion = gameVersion.Trim();
@@ -245,10 +252,12 @@ namespace QuestPatcher
             logger.Information("APK version: \"" + AppInfo.GameVersion + "\"");
         }
 
-        public async Task startModdingProcess()
+        // Patches the app, including modding the manifest, and adding unstripped libunity and the modloader.
+        // Then uninstalls the unmodded app and installs the modded one.
+        public async Task StartModdingProcess()
         {
-            await downloadFiles();
-            bool replaceUnity = await attemptDownloadUnstrippedUnity();
+            await DownloadToolsFiles();
+            bool replaceUnity = await AttemptDownloadUnstrippedUnity();
 
             // Decompile the APK using apktool. We have to do this to read the manifest since it's AXML, which is nasty
             logger.Information("Decompiling APK . . .");
@@ -260,16 +269,16 @@ namespace QuestPatcher
             // Add permissions to access (read/write) external files.
             logger.Information("Modding manifest . . .");
             string oldManifest = File.ReadAllText(TEMP_PATH + "app/AndroidManifest.xml");
-            string newManifest = modifyManifest(oldManifest);
+            string newManifest = ModifyManifest(oldManifest);
             File.WriteAllText(TEMP_PATH + "app/AndroidManifest.xml", newManifest);
 
             // Add the modloader, and the modified libmain.so that loads it.
             logger.Information("Adding library files . . .");
-            copyLibraryFile("libmain.so", false);
-            copyLibraryFile("libmodloader.so", true);
+            CopyLibraryFile("libmain.so", false);
+            CopyLibraryFile("libmodloader.so", true);
             if (replaceUnity)
             {
-                copyLibraryFile("libunity.so", false);
+                CopyLibraryFile("libunity.so", false);
             }
 
             // Recompile the modified APK using apktool
@@ -291,12 +300,12 @@ namespace QuestPatcher
 
             // Uninstall the original app with ADB first, ADB doesn't have a better way of doing this
             logger.Information("Uninstalling unmodded app . . .");
-            string output = await debugBridge.runCommandAsync("uninstall {app-id}");
+            string output = await debugBridge.RunCommandAsync("uninstall {app-id}");
             logger.Information(output);
             
             // Install the modified APK
             logger.Information("Installing modded app . . .");
-            output = await debugBridge.runCommandAsync("install \"" + TEMP_PATH + "modded-and-signed.apk\"");
+            output = await debugBridge.RunCommandAsync("install \"" + TEMP_PATH + "modded-and-signed.apk\"");
             logger.Information(output);
 
             logger.Information("Modding complete!");

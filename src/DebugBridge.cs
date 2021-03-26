@@ -5,7 +5,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Globalization;
 using System.Net;
-using System.ComponentModel;
 using Serilog.Core;
 using Avalonia.Interactivity;
 
@@ -14,7 +13,7 @@ namespace QuestPatcher
     public class DebugBridge
     {
         private static readonly CompareInfo compareInfo = new CultureInfo((int) CultureTypes.AllCultures).CompareInfo;
-        private const string DEFAULT_APP_ID = "com.AnotherAxiom.GorillaTag";
+        private const string DEFAULT_APP_ID = "com.AnotherAxiom.GorillaTag"; // Used if no appId.txt is present in appdata
 
         public string APP_ID { get; }
         private string ADB_LOG_PATH;
@@ -41,18 +40,15 @@ namespace QuestPatcher
             }
         }
 
-        private string handlePlaceholders(string command)
+        // Replaces all support ADB placeholders in this set of command arguments
+        // Currently, there is only one. {app-id} is replaced with the chosen app.
+        private string HandlePlaceholders(string command)
         {
             command = command.Replace("{app-id}", APP_ID);
             return command;
         }
 
-        public string runCommand(string command)
-        {
-            return runCommandAsync(command).Result;
-        }
-
-        private bool containsIgnoreCase(string str, string lookingFor)
+        private bool ContainsIgnoreCase(string str, string lookingFor)
         {
             return compareInfo.IndexOf(str, lookingFor, CompareOptions.IgnoreCase) >= 0;
         }
@@ -61,7 +57,7 @@ namespace QuestPatcher
         {
             Process process = new Process();
             process.StartInfo.FileName = (adbOnPath ? "" : window.DATA_PATH + "platform-tools/") + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
-            process.StartInfo.Arguments = handlePlaceholders(command);
+            process.StartInfo.Arguments = HandlePlaceholders(command);
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.RedirectStandardError = true;
             process.StartInfo.UseShellExecute = false;
@@ -70,7 +66,10 @@ namespace QuestPatcher
             return process;
         }
 
-        public async Task<string> runCommandAsync(string command)
+        // Runs an ADB command with arguments command. (this should not include the "adb" itself)
+        // Returns the error output and the standard output concatenated together
+        // Task will complete once this command exits.
+        public async Task<string> RunCommandAsync(string command)
         {
             Process process = createStartInfo(command);
 
@@ -86,7 +85,7 @@ namespace QuestPatcher
 
             await process.WaitForExitAsync();
 
-            if (containsIgnoreCase(output, "error") || containsIgnoreCase(output, "failed"))
+            if (ContainsIgnoreCase(output, "error") || ContainsIgnoreCase(output, "failed"))
             {
                 throw new Exception(output);
             }
@@ -95,13 +94,13 @@ namespace QuestPatcher
             return fullOutput;
         }
 
-        private async Task checkIfAdbOnPath()
+        private async Task CheckIfAdbOnPath()
         {
             adbOnPath = true;
 
             try
             {
-                await runCommandAsync("version");
+                await RunCommandAsync("version");
             }   catch (Exception) // Thrown if the file doesn't exist
             {
                 adbOnPath = false;
@@ -111,7 +110,7 @@ namespace QuestPatcher
         // Downloads the Android platform-tools if they aren't present
         public async Task InstallIfMissing()
         {
-            await checkIfAdbOnPath();
+            await CheckIfAdbOnPath();
             if(adbOnPath)
             {
                 logger.Information("Located ADB installation on PATH");
@@ -127,7 +126,7 @@ namespace QuestPatcher
             WebClient webClient = new WebClient();
 
             logger.Information("Installing platform-tools!");
-            await webClient.DownloadFileTaskAsync(findPlatformToolsLink(), window.TEMP_PATH + "platform-tools.zip");
+            await webClient.DownloadFileTaskAsync(FindPlatformToolsLink(), window.TEMP_PATH + "platform-tools.zip");
             logger.Information("Extracting . . .");
             await Task.Run(() => {
                 ZipFile.ExtractToDirectory(window.TEMP_PATH + "platform-tools.zip", window.DATA_PATH);
@@ -137,14 +136,14 @@ namespace QuestPatcher
             if(!OperatingSystem.IsWindows())
             {
                 logger.Information("Making ADB executable . . .");
-                await makeAdbExecutable();
+                await MakeAdbExecutable();
             }
 
             logger.Information("Done!");
         }
 
-        // Uses chmod to make the downloaded platform-tools executable on linux
-        private async Task makeAdbExecutable()
+        // Uses chmod to make the downloaded platform-tools executable on linux - this avoids having to close QP and do it manually
+        private async Task MakeAdbExecutable()
         {
             Process process = new Process();
 
@@ -166,7 +165,8 @@ namespace QuestPatcher
             await process.WaitForExitAsync();
         }
 
-        public string findPlatformToolsLink()
+        // Returns the correct platform-tools download link for the installed OS
+        private string FindPlatformToolsLink()
         {
             if (OperatingSystem.IsWindows())
             {
@@ -184,7 +184,7 @@ namespace QuestPatcher
             throw new Exception("ADB is not available for your operating system!");
         }
 
-        public void onStartLogcatClick(object? sender, RoutedEventArgs args)
+        public void OnStartLogcatClick(object? sender, RoutedEventArgs args)
         {
             if(logcatProcess != null)
             {
@@ -227,7 +227,7 @@ namespace QuestPatcher
             logcatProcess.BeginOutputReadLine();
         }
 
-        public void onOpenLogsClick(object? sender, RoutedEventArgs args)
+        public void OnOpenLogsClick(object? sender, RoutedEventArgs args)
         {
             Process.Start(new ProcessStartInfo()
             {

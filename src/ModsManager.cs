@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO.Compression;
 using System.IO;
-using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -38,16 +37,17 @@ namespace QuestPatcher {
             Directory.CreateDirectory(EXTRACTED_MODS_PATH);
         }
 
+        // Loads the copied manifests from the folder /sdcard/QuestPatcher/{app-id}/installedMods as installed mods.
         public async Task LoadModsFromQuest() {
             string modsNonSplit;
             try
             {
-                await debugBridge.runCommandAsync("shell mkdir -p \"" + INSTALLED_MODS_PATH + "\"");
-                await debugBridge.runCommandAsync("shell mkdir -p \"sdcard/Android/data/{app-id}/files/mods\"");
-                await debugBridge.runCommandAsync("shell mkdir -p \"sdcard/Android/data/{app-id}/files/libs\"");
+                await debugBridge.RunCommandAsync("shell mkdir -p \"" + INSTALLED_MODS_PATH + "\"");
+                await debugBridge.RunCommandAsync("shell mkdir -p \"sdcard/Android/data/{app-id}/files/mods\"");
+                await debugBridge.RunCommandAsync("shell mkdir -p \"sdcard/Android/data/{app-id}/files/libs\"");
 
                 // List the manifests in the installed mods directory for this app
-                modsNonSplit = await debugBridge.runCommandAsync("shell ls -R \"" + INSTALLED_MODS_PATH + "\"");
+                modsNonSplit = await debugBridge.RunCommandAsync("shell ls -R \"" + INSTALLED_MODS_PATH + "\"");
             }
             catch (Exception ex)
             {
@@ -66,12 +66,12 @@ namespace QuestPatcher {
             }
 
             foreach(string path in parsedPaths) {
-                string contents = await debugBridge.runCommandAsync("shell cat \"" + path + "\"");
+                string contents = await debugBridge.RunCommandAsync("shell cat \"" + path + "\"");
 
                 try
                 {
                     ModManifest manifest = await ModManifest.Load(contents);
-                    addManifest(manifest);
+                    AddManifest(manifest);
                 }
                 catch (Exception ex)
                 {
@@ -81,7 +81,10 @@ namespace QuestPatcher {
             }
         }
 
-        public async Task InstallDependency(DependencyInfo dependency)
+        // Attempts to download the specified DeependencyInfo
+        // Will throw an exception if it's not installed and there's no downloadIfMissing, or if the installed version is not within the stated version range.
+        // Also does sanity checking of the downloaded version to make sure that the downloaded version/ID is correct.
+        private async Task InstallDependency(DependencyInfo dependency)
         {
             ModManifest? existing = null;
             InstalledMods.TryGetValue(dependency.Id, out existing);
@@ -125,6 +128,11 @@ namespace QuestPatcher {
             }
         }
 
+        // Installs the .qmod at path.
+        // This works by first extracting the mod - we're forced to do this since ADB can't push files from the ZIP directly
+        // Also does sanity checks - making sure that the mod is for the correct game, that it isn't already installed, etc.
+        // Will attempt to download dependencies of the mod.
+        // If any part of this fails, then it'll throw an exception.
         public async Task InstallMod(string path) {
             string extractPath = EXTRACTED_MODS_PATH + Path.GetFileNameWithoutExtension(path) + "/";
             Directory.CreateDirectory(extractPath);
@@ -159,35 +167,39 @@ namespace QuestPatcher {
                 foreach (string libraryPath in manifest.LibraryFiles)
                 {
                     logger.Information("Copying library file " + libraryPath);
-                    await debugBridge.runCommandAsync("push \"" + extractPath + libraryPath + "\" \"sdcard/Android/data/{app-id}/files/libs/" + Path.GetFileName(libraryPath) + "\"");
+                    await debugBridge.RunCommandAsync("push \"" + extractPath + libraryPath + "\" \"sdcard/Android/data/{app-id}/files/libs/" + Path.GetFileName(libraryPath) + "\"");
                 }
 
                 foreach (string modFilePath in manifest.ModFiles)
                 {
                     logger.Information("Copying mod file " + modFilePath);
-                    await debugBridge.runCommandAsync("push \"" + extractPath + modFilePath + "\" \"sdcard/Android/data/{app-id}/files/mods/" + Path.GetFileName(modFilePath) + "\"");
+                    await debugBridge.RunCommandAsync("push \"" + extractPath + modFilePath + "\" \"sdcard/Android/data/{app-id}/files/mods/" + Path.GetFileName(modFilePath) + "\"");
                 }
 
+                // Copy the stated file copies
                 foreach (FileCopyInfo fileCopy in manifest.FileCopies)
                 {
                     logger.Information("Copying file " + fileCopy.Name + " to " + fileCopy.Destination);
-                    await debugBridge.runCommandAsync("push \"" + extractPath + fileCopy.Name + "\" \"" + fileCopy.Destination + "\"");
+                    await debugBridge.RunCommandAsync("push \"" + extractPath + fileCopy.Name + "\" \"" + fileCopy.Destination + "\"");
                 }
 
                 // Store that the mod was successfully installed
                 logger.Information("Copying manifest . . .");
-                await debugBridge.runCommandAsync("push \"" + extractPath + "mod.json\" \"" + INSTALLED_MODS_PATH + manifest.Id + ".json\"");
+                await debugBridge.RunCommandAsync("push \"" + extractPath + "mod.json\" \"" + INSTALLED_MODS_PATH + manifest.Id + ".json\"");
 
-                addManifest(manifest);
+                AddManifest(manifest);
                 logger.Information("Done!");
             }
             finally
             {
-
                 Directory.Delete(extractPath, true);
             }
         }
 
+        // Attempts to uninstall the mod/library with this manifest
+        // modFiles will always be removed when a mod is uninstalled, however libraryFiles will only be removed if no other mods have a library with the same name
+        // fileCopies are also removed when a mod is uninstalled.
+        // Finally, this method will automatically remove any library mods that are not depended on by any other mod.
         public async Task UninstallMod(ModManifest manifest)
         {
             logger.Information("Uninstalling mod with ID " + manifest.Id + " . . .");
@@ -196,7 +208,7 @@ namespace QuestPatcher {
 
             foreach (string modFilePath in manifest.ModFiles) {
                 logger.Information("Removing mod file " + modFilePath);
-                await debugBridge.runCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/mods/" + Path.GetFileName(modFilePath) + "\""); // Remove each mod file
+                await debugBridge.RunCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/mods/" + Path.GetFileName(modFilePath) + "\""); // Remove each mod file
             }
             
             foreach (string libraryPath in manifest.LibraryFiles)
@@ -216,29 +228,29 @@ namespace QuestPatcher {
                 if(!isUsedElsewhere)
                 {
                     logger.Information("Removing library file " + libraryPath);
-                    await debugBridge.runCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/libs/" + Path.GetFileName(libraryPath) + "\"");
+                    await debugBridge.RunCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/libs/" + Path.GetFileName(libraryPath) + "\"");
                 }
             }
 
             foreach (FileCopyInfo fileCopy in manifest.FileCopies)
             {
                 logger.Information("Removing copied file " + fileCopy.Destination);
-                await debugBridge.runCommandAsync("shell rm -f \"" + fileCopy.Destination + "\"");
+                await debugBridge.RunCommandAsync("shell rm -f \"" + fileCopy.Destination + "\"");
             }
 
             logger.Information("Removing mod manifest . . .");
-            await debugBridge.runCommandAsync("shell rm -f \"" + INSTALLED_MODS_PATH + manifest.Id + ".json\""); // Remove the mod manifest
+            await debugBridge.RunCommandAsync("shell rm -f \"" + INSTALLED_MODS_PATH + manifest.Id + ".json\""); // Remove the mod manifest
 
             if (!manifest.IsLibrary)
             {
-                await removeUnusedLibraries();
+                await RemoveUnusedLibraries();
             }
             logger.Information("Done!");
         }
 
-        // Recursively removed any unused libraries.
+        // Repeatedly iterates to remove any unused libraries - that aren't depended on by any mod.
         // Not very efficient but gets the job done
-        private async Task removeUnusedLibraries()
+        private async Task RemoveUnusedLibraries()
         {
             logger.Information("Cleaning unused libraries . . .");
 
@@ -278,8 +290,9 @@ namespace QuestPatcher {
             }
         }
 
-        // Kind of janky, but there isn't another good way to do this unless I set up MVVM which will take ages
-        private void addManifest(ModManifest manifest) {
+        // Creates the UI for displaying this ModManifest in the installed mods section, and adds it to the stack panel.
+        // Kind of janky, but there isn't another good way to do this unless I set up MVVM which will take ages.
+        private void AddManifest(ModManifest manifest) {
             Border border = new Border();
             border.Padding = new Thickness(5);
             border.BorderThickness = new Thickness(1);
@@ -325,7 +338,7 @@ namespace QuestPatcher {
             stackPanel.Children.Add(gameVersion);
             stackPanel.Children.Add(author);
             stackPanel.Children.Add(uninstall);
-            if(random.Next() % 10 == 0)
+            if(random.Next() % 30 == 0)
             {
                 stackPanel.Children.Add(a);
             }
