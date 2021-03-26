@@ -5,7 +5,7 @@
     "description": "A mod of the format described by QuestPatcher.",
     "examples": [
         {
-            "_QPVersion": "0.1.0",
+            "_QPVersion": "0.1.1",
             "name": "ExampleMod2",
             "id": "example-mod-2",
             "author": "Lauriethefish#6700",
@@ -54,11 +54,14 @@
     "properties": {
         "_QPVersion": {
             "$id": "#/properties/_QPVersion",
-            "const": "0.1.0",
+            "enum": [
+                "0.1.0",
+                "0.1.1"
+            ],
             "default": "",
-            "description": "The version of the schema to use for QuestPatcher. Must be 0.1.0.",
+            "description": "The version of the schema to use for QuestPatcher. Must be 0.1.0 or 0.1.1",
             "examples": [
-                "0.1.0"
+                "0.1.1"
             ],
             "title": "QuestPatcher Version",
             "type": "string"
