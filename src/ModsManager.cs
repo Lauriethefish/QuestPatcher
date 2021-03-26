@@ -159,13 +159,13 @@ namespace QuestPatcher {
                 foreach (string libraryPath in manifest.LibraryFiles)
                 {
                     logger.Information("Copying library file " + libraryPath);
-                    await debugBridge.runCommandAsync("push \"" + extractPath + libraryPath + "\" \"sdcard/Android/data/{app-id}/files/libs/" + libraryPath + "\"");
+                    await debugBridge.runCommandAsync("push \"" + extractPath + libraryPath + "\" \"sdcard/Android/data/{app-id}/files/libs/" + Path.GetFileName(libraryPath) + "\"");
                 }
 
                 foreach (string modFilePath in manifest.ModFiles)
                 {
                     logger.Information("Copying mod file " + modFilePath);
-                    await debugBridge.runCommandAsync("push \"" + extractPath + modFilePath + "\" sdcard/Android/data/{app-id}/files/mods/" + modFilePath);
+                    await debugBridge.runCommandAsync("push \"" + extractPath + modFilePath + "\" \"sdcard/Android/data/{app-id}/files/mods/" + Path.GetFileName(modFilePath) + "\"");
                 }
 
                 foreach (FileCopyInfo fileCopy in manifest.FileCopies)
@@ -196,7 +196,7 @@ namespace QuestPatcher {
 
             foreach (string modFilePath in manifest.ModFiles) {
                 logger.Information("Removing mod file " + modFilePath);
-                await debugBridge.runCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/mods/" + modFilePath + "\""); // Remove each mod file
+                await debugBridge.runCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/mods/" + Path.GetFileName(modFilePath) + "\""); // Remove each mod file
             }
             
             foreach (string libraryPath in manifest.LibraryFiles)
@@ -216,7 +216,7 @@ namespace QuestPatcher {
                 if(!isUsedElsewhere)
                 {
                     logger.Information("Removing library file " + libraryPath);
-                    await debugBridge.runCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/libs/" + libraryPath + "\"");
+                    await debugBridge.runCommandAsync("shell rm -f \"sdcard/Android/data/{app-id}/files/libs/" + Path.GetFileName(libraryPath) + "\"");
                 }
             }
 
