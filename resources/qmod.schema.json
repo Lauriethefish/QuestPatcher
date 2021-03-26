@@ -35,20 +35,20 @@
         }
     ],
     "required": [
-			"_QPVersion",
-			"name",
-			"id",
-			"author",
-			"version",
-			"packageId",
-			"packageVersion"
-	  ],
-	  "anyOf": [
-          { "required": ["modFiles"] },
-          { "required": ["libraryFiles"] },
-          { "required": ["dependencies"] },
-		  { "required": ["fileCopies"] }
-	  ],
+        "_QPVersion",
+        "name",
+        "id",
+        "author",
+        "version",
+        "packageId",
+        "packageVersion"
+	],
+    "anyOf": [
+        { "required": ["modFiles"] },
+        { "required": ["libraryFiles"] },
+        { "required": ["dependencies"] },
+        { "required": ["fileCopies"] }
+    ],
     "title": "The root schema",
     "type": "object",
     "properties": {
