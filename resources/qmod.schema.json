@@ -94,6 +94,16 @@
             "title": "Author",
             "type": "string"
         },
+        "porter": {
+            "$id": "#/properties/porter",
+            "default": "",
+            "description": "Whoever ported this mod from another platform",
+            "examples": [
+                "Lauriethefish#6700"
+            ],
+            "title": "Porter",
+            "type": "string"
+        },
         "version": {
             "$id": "#/properties/version",
             "default": "",
@@ -123,6 +133,26 @@
                 "1.0.1"
             ],
             "title": "Package Version",
+            "type": "string"
+        },
+        "description": {
+            "$id": "#/properties/description",
+            "default": "",
+            "description": "A brief description of what the mod does",
+            "examples": [
+                "Adds custom cosmetics"
+            ],
+            "title": "Mod Description",
+            "type": "string"
+        },
+        "coverImage": {
+            "$id": "#/properties/coverImage",
+            "default": "",
+            "description": "An icon for the mod in the installed mods section (unused). Should be inside the QMOD archive",
+            "examples": [
+                "cover.jpg"
+            ],
+            "title": "Mod cover image",
             "type": "string"
         },
         "modFiles": {
