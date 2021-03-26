@@ -1,5 +1,5 @@
 {
-    "$id": "https://raw.githubusercontent.com/sc2ad/QuestPatcher/main/resources/qmod.schema.json",
+    "$id": "https://raw.githubusercontent.com/Lauriethefish/QuestPatcher/main/resources/qmod.schema.json",
     "$schema": "http://json-schema.org/draft-07/schema",
     "default": {},
     "description": "A mod of the format described by QuestPatcher.",
