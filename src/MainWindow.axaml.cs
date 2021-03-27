@@ -25,6 +25,7 @@ namespace QuestPatcher
         private TextBlock questNotPluggedInText;
         private TextBlock multipleDevicesText;
         private TextBlock unauthorizedText;
+        private TextBlock otherErrorText;
         private TextBlock appInstalledText;
         public TextBox LoggingBox { get; private set; }
         private Button startModding;
@@ -113,66 +114,37 @@ namespace QuestPatcher
 
         private async void OnLoad(object? sender, EventArgs args)
         {
-            welcomeText.Text += (" " + DebugBridge.APP_ID);
-
-            await LoadFileCopyPaths();
             try
             {
-                string version = await moddingHandler.InvokeJavaAsync("-version");
-                string trimmedVersion = version.Split("\n")[0].Substring(13);
-
-                Logger.Information("Java version " + trimmedVersion);
-            }   catch (Exception ex)
-            {
-                LoggingBox.Height = 200;
-                javaNotInstalledText.IsVisible = true;
-                Logger.Information("Java not found");
-                Logger.Verbose(ex.ToString());
-                return;
-            }
-
-            // First install the debug bridge if it is missing
-            try
-            {
-                await DebugBridge.InstallIfMissing();
+                await OnLoadInternal();
             }
             catch (Exception ex)
             {
-                Logger.Fatal("An error occurred while installing ADB: " + ex.Message);
-                Logger.Verbose(ex.ToString());
-                return;
+                LoggingBox.Height = 200;
+                otherErrorText.IsVisible = true;
+                Logger.Error("An unhandled error occured while loading QuestPatcher");
+                Logger.Error(ex.ToString());
             }
+        }
 
-            LogcatButton.Click += DebugBridge.OnStartLogcatClick;
+        private async Task OnLoadInternal()
+        {
+            welcomeText.Text += (" " + DebugBridge.APP_ID);
             openLogsButton.Click += DebugBridge.OnOpenLogsClick;
 
+            await LoadFileCopyPaths();
+            await VerifyToolsVersions();
+          
+            // If Java and ADB are installed, then these buttons are safe to click
+            LogcatButton.Click += DebugBridge.OnStartLogcatClick;
             editAppIdButton.Click += OnEditAppIdClick;
             newAppIdConfirmButton.Click += OnConfirmNewAppIdClick;
 
-            // Then we can check if the app is installed
-            patchingPanel.IsVisible = true;
-
-            string listResult = await DebugBridge.RunCommandAsync("shell pm list packages {app-id}");
-            if (listResult.Contains("no devices/emulators found"))
+            // Now we can check if the app is installed
+            if(!await CheckAppInstallStatus())
             {
                 LoggingBox.Height = 200;
-                questNotPluggedInText.IsVisible = true;
                 return;
-            } else if (listResult.Contains("more than one device/emulator")) {
-                LoggingBox.Height = 200;
-                multipleDevicesText.IsVisible = true;
-                return;
-            } else if(listResult.Contains("unauthorized"))  {
-                LoggingBox.Height = 200;
-                unauthorizedText.IsVisible = true;
-                return;
-            } else if (listResult == "") {
-                LoggingBox.Height = 200;
-                appNotInstalledText.IsVisible = true;
-                return;
-            }   else   {
-                LoggingBox.Height = 213;
-                appInstalledText.IsVisible = true;
             }
 
             await moddingHandler.CheckInstallStatus();
@@ -183,14 +155,88 @@ namespace QuestPatcher
             }
             else
             {
-                LoggingBox.Height = 155;
-                startModding.IsVisible = true;
+                PrepareForPatching();
+            }
+        }
+
+        private async Task<bool> CheckAppInstallStatus()
+        {
+            patchingPanel.IsVisible = true;
+
+            string listResult = await DebugBridge.RunCommandAsync("shell pm list packages {app-id}");
+            // Check ADB errors like multiple devices, or unauthorized access (didn't hit confirm in headset)
+            if (listResult.Contains("no devices/emulators found"))
+            {
+                LoggingBox.Height = 200;
+                questNotPluggedInText.IsVisible = true;
+                return false;
+            }
+            else if (listResult.Contains("more than one device/emulator"))
+            {
+                LoggingBox.Height = 200;
+                multipleDevicesText.IsVisible = true;
+                return false;
+            }
+            else if (listResult.Contains("unauthorized"))
+            {
+                LoggingBox.Height = 200;
+                unauthorizedText.IsVisible = true;
+                return false;
+            }
+            else if (listResult == "") // No apps are listed with the configured ID
+            {
+                LoggingBox.Height = 200;
+                appNotInstalledText.IsVisible = true;
+                return false;
+            }
+            else
+            {
+                LoggingBox.Height = 213;
+                appInstalledText.IsVisible = true;
+                return true;
+            }
+        }
+
+        private void PrepareForPatching()
+        {
+            LoggingBox.Height = 155;
+
+            startModding.IsVisible = true;
+            startModding.Click += OnStartModdingClick;
+        }
+
+        // Verifies that Java and ADB are installed. Returns true if successful, false otherwise
+        // Will download ADB if not on PATH
+        private async Task<bool> VerifyToolsVersions() {
+            // Check that Java is installed
+            try
+            {
+                string version = await moddingHandler.InvokeJavaAsync("-version");
+                string trimmedVersion = version.Split("\n")[0].Substring(13);
+
+                Logger.Information("Java version " + trimmedVersion);
+            }
+            catch (Exception ex)
+            {
+                LoggingBox.Height = 200;
+                javaNotInstalledText.IsVisible = true;
+                Logger.Information("Java not found");
+                Logger.Verbose(ex.ToString());
+                return false;
             }
 
-            startModding.Click += OnStartModdingClick;
-            browseModsButton.Click += OnBrowseForModsClick;
-
-            AddHandler(DragDrop.DropEvent, OnDragAndDrop);
+            // Install/set the path to the debug bridge.
+            try
+            {
+                await DebugBridge.InstallIfMissing();
+            }
+            catch (Exception ex)
+            {
+                Logger.Fatal("An error occurred while installing ADB: " + ex.Message);
+                Logger.Verbose(ex.ToString());
+                return false;
+            }
+            return true;
         }
 
         private async Task SwitchToModMenu() {
@@ -200,7 +246,9 @@ namespace QuestPatcher
 
             startModding.IsVisible = false;
             InstalledMods.IsVisible = true;
-            
+
+            browseModsButton.Click += OnBrowseForModsClick;
+            AddHandler(DragDrop.DropEvent, OnDragAndDrop);
             await modsManager.LoadModsFromQuest();
         }
 
@@ -391,6 +439,7 @@ namespace QuestPatcher
             questNotPluggedInText = this.FindControl<TextBlock>("questNotPluggedInText");
             multipleDevicesText = this.FindControl<TextBlock>("multipleDevicesText");
             unauthorizedText = this.FindControl<TextBlock>("unauthorizedText");
+            otherErrorText = this.FindControl<TextBlock>("otherErrorText");
             appInstalledText = this.FindControl<TextBlock>("appInstalledText");
             LoggingBox = this.FindControl<TextBox>("loggingBox");
             startModding = this.FindControl<Button>("startModding");

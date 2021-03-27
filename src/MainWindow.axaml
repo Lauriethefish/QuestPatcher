@@ -11,6 +11,7 @@
       <Button Name="editAppIdButton">Change</Button>
     </StackPanel>
     <TextBlock Name="javaNotInstalledText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">Java is not installed. Please install Java and then restart QuestPatcher</TextBlock>
+    <TextBlock Name="otherErrorText" TextAlignment="Center" HorizontalAlignment="Center" Padding="13" Foreground="Red" IsVisible="False">An unhandled error occured while loading QuestPatcher</TextBlock>
 
     <StackPanel Name="editAppIdPanel" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="False">
       <TextBox Name="newAppIdBox" MinWidth="300" Margin="13"/>
