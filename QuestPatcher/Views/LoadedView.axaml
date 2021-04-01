@@ -14,7 +14,7 @@
     <DockPanel HorizontalAlignment="Stretch">
       <ExperimentalAcrylicBorder DockPanel.Dock="Left" Width="240">
         <StackPanel Orientation="Vertical" Margin="10 30 10 10" Spacing="3">
-          <TextBlock TextAlignment="Center">Welcome To QuestPatcher 2</TextBlock>
+          <TextBlock TextAlignment="Center" Text="{Binding WelcomeText}" />
           <TextBlock TextAlignment="Center" Text="{Binding SelectedAppText}" FontSize="10" TextTrimming="CharacterEllipsis"/>
         </StackPanel>
         <ExperimentalAcrylicBorder.Material>

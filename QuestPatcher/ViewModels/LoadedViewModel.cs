@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using ReactiveUI;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Core.Models;
@@ -24,6 +25,18 @@ namespace QuestPatcher.ViewModels
         public ToolsViewModel ToolsView { get; }
 
         public OtherItemsViewModel OtherItemsView { get; }
+
+        private string AppName
+        {
+            get
+            {
+                DateTime now = DateTime.Now;
+                bool isAprilFools = now.Month == 4 && now.Day == 1;
+                return isAprilFools ? "QuestCorrupter" : "QuestPatcher";
+            }
+        }
+
+        public string WelcomeText => $"Welcome to {AppName} 2";
 
         public Config Config { get; }
         public ApkInfo AppInfo
