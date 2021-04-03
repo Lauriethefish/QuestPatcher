@@ -9,7 +9,7 @@ It uses Sc2ad's [QuestLoader](https://github.com/sc2ad/QuestLoader/) for loading
 
 See `resources/qmod.schema.json` for the `mod.json` that QMODs must contain, alongside their mod files.
 
-**NOTE:** To mod other games, edit `appId.txt` in the installation directory (`C:\Program Files\QuestPatcher\` on Windows) with the package ID of the app on your Quest that you want to mod.
+**NOTE:** To mod other games, hit `Change App` inside the QuestPatcher Window.
 
 ## TODO
 - Add cyclic dependency detection.
