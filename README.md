@@ -12,4 +12,5 @@ See `resources/qmod.schema.json` for the `mod.json` that QMODs must contain, alo
 **NOTE:** To mod other games, edit `appId.txt` in the installation directory (`C:\Program Files\QuestPatcher\` on Windows) with the package ID of the app on your Quest that you want to mod.
 
 ## TODO
-- Improve GUI perhaps
+- Add cyclic dependency detection.
+- Add support for automatically updating a dependency when it is installed, but the installed version is wrong. This would only happen if all mods that rely on that dependency have version ranges that intersect the new version.
