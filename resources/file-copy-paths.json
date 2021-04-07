@@ -11,6 +11,18 @@
         "gmat": {
             "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/GorillaCosmetics/Materials/",
             "description": "Gorilla Tag Materials"
+        },
+        "png": {
+            "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/MonkeSkies/",
+            "description": "MonkeSkies backgrounds"
+        },
+        "jpg": {
+            "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/MonkeSkies/",
+            "description": "MonkeSkies backgrounds"
+        },
+        "jpeg": {
+            "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/MonkeSkies/",
+            "description": "MonkeSkies backgrounds"
         }
     }
 }
