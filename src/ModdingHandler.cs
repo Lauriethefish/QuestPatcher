@@ -62,7 +62,7 @@ namespace QuestPatcher
                     return true;
                 }   else    {
                     logger.Information("libunity was available for other versions of your app, but not the one that you have installed");
-                    return true;
+                    return false;
                 }
             }
             else
