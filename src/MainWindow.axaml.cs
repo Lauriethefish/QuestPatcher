@@ -339,7 +339,7 @@ namespace QuestPatcher
             }
 
             string[] files = await fileDialog.ShowAsync(this);
-            if(files.Length == 0) {
+            if(files == null || files.Length == 0) {
                 return;
             }
 
