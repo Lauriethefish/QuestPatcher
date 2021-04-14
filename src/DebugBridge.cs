@@ -7,9 +7,16 @@ using System.Globalization;
 using System.Net;
 using Serilog.Core;
 using Avalonia.Interactivity;
+using System.ComponentModel;
 
 namespace QuestPatcher
 {
+    // Thrown when an ADB command's standard of error output contains "failed" or "error"
+    public class AdbException : Exception
+    {
+        public AdbException(string message) : base(message) { }
+    }
+
     public class DebugBridge
     {
         private static readonly CompareInfo compareInfo = new CultureInfo((int) CultureTypes.AllCultures).CompareInfo;
@@ -87,7 +94,7 @@ namespace QuestPatcher
 
             if (ContainsIgnoreCase(output, "error") || ContainsIgnoreCase(output, "failed"))
             {
-                throw new Exception(output);
+                throw new AdbException(output);
             }
             string fullOutput = errorOutput + output;
 
@@ -101,7 +108,7 @@ namespace QuestPatcher
             try
             {
                 await RunCommandAsync("version");
-            }   catch (Exception) // Thrown if the file doesn't exist
+            }   catch (Win32Exception) // Thrown if the file doesn't exist
             {
                 adbOnPath = false;
             }
@@ -181,7 +188,7 @@ namespace QuestPatcher
                 return "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip";
             }
 
-            throw new Exception("ADB is not available for your operating system!");
+            throw new AdbException("ADB is not available for your operating system!");
         }
 
         public void OnStartLogcatClick(object? sender, RoutedEventArgs args)

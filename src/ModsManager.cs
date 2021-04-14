@@ -11,6 +11,11 @@ using System.Net;
 using Serilog.Core;
 
 namespace QuestPatcher {
+    public class ModInstallException : Exception
+    {
+        public ModInstallException(string message) : base(message) { }
+    }
+
     public class ModsManager
     {
         // Temporarily extract the ZIP file here so that we can use ADB push
@@ -96,7 +101,7 @@ namespace QuestPatcher {
                 }
                 dependMessage += dependency.Id;
 
-                throw new Exception($"Recursive dependency detected: {dependMessage}");
+                throw new ModInstallException($"Recursive dependency detected: {dependMessage}");
             }
 
             ModManifest? existing = null;
@@ -114,11 +119,11 @@ namespace QuestPatcher {
                 {
                     logger.Warning($"Dependency with ID {dependency.Id} is already installed but with an incorrect version ({existing.Version} does not intersect {dependency.Version}). QuestPatcher will attempt to upgrade the dependency");
                 }   else    {
-                    throw new Exception($"Dependency with ID { dependency.Id } is already installed but with an incorrect version({existing.Version} does not intersect {dependency.Version}). Upgrading was not possible as there was no download link provided");
+                    throw new ModInstallException($"Dependency with ID { dependency.Id } is already installed but with an incorrect version({existing.Version} does not intersect {dependency.Version}). Upgrading was not possible as there was no download link provided");
                 }
             }   else if(!hasDownloadLink)
             {
-                throw new Exception($"Dependency {dependency.Id} is not installed, and the mod depending on it does not specify a download path if missing");
+                throw new ModInstallException($"Dependency {dependency.Id} is not installed, and the mod depending on it does not specify a download path if missing");
             }
 
             WebClient webClient = new WebClient();
@@ -143,13 +148,13 @@ namespace QuestPatcher {
             if(!dependency.ParsedVersion.IsSatisfied(dependencyManifest.ParsedVersion))
             {
                 await UninstallMod(dependencyManifest);
-                throw new Exception("Downloaded dependency " + dependency.Id + " was not within the version stated in the mod's manifest");
+                throw new ModInstallException("Downloaded dependency " + dependency.Id + " was not within the version stated in the mod's manifest");
             }
 
             if(dependency.Id != dependencyManifest.Id)
             {
                 await UninstallMod(dependencyManifest);
-                throw new Exception("Downloaded dependency had ID " + dependencyManifest.Id + ", whereas the dependency stated ID " + dependency.Id);
+                throw new ModInstallException("Downloaded dependency had ID " + dependencyManifest.Id + ", whereas the dependency stated ID " + dependency.Id);
             }
         }
 
@@ -176,7 +181,7 @@ namespace QuestPatcher {
 
             if(didError)
             {
-                throw new Exception($"Could not upgrade existing installation of mod {id}, see log for details");
+                throw new ModInstallException($"Could not upgrade existing installation of mod {id}, see log for details");
             }
             else
             {
@@ -212,7 +217,7 @@ namespace QuestPatcher {
 
                 if (manifest.PackageId != debugBridge.APP_ID)
                 {
-                    throw new Exception("This mod is not intended for the selected game!");
+                    throw new ModInstallException("This mod is not intended for the selected game!");
                 }
 
                 // If the mod is already installed, attempt a version upgrade, making sure that any mods that depend on this one's dependency ranges intersect the version of the new mod
@@ -222,7 +227,7 @@ namespace QuestPatcher {
                 {
                     if(installedVersion.Version == manifest.Version)
                     {
-                        throw new Exception($"Mod {manifest.Id} is already installed, and the version is the same");
+                        throw new ModInstallException($"Mod {manifest.Id} is already installed, and the version is the same");
                     }
                     await AttemptVersionUpgrade(installedVersion, manifest);
                 }
@@ -248,7 +253,7 @@ namespace QuestPatcher {
                 // Copy the stated file copies
                 foreach (FileCopyInfo fileCopy in manifest.FileCopies)
                 {
-                    logger.Information("Copying file " + fileCopy.Name + " to " + fileCopy.Destination);
+                    logger.Information($"Copying file {fileCopy.Name} to {fileCopy.Destination}");
                     await debugBridge.RunCommandAsync("push \"" + extractPath + fileCopy.Name + "\" \"" + fileCopy.Destination + "\"");
                 }
 
@@ -437,7 +442,6 @@ namespace QuestPatcher {
                     window.ModInstallErrorText.Text = "Error while uninstalling mod: " + ex.Message;
                 }
             };
-
         }
     }
 }

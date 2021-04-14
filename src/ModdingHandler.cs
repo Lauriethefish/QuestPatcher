@@ -9,6 +9,11 @@ using System.Text.Json;
 
 namespace QuestPatcher
 {
+    public class PatchingException : Exception
+    {
+        public PatchingException(string message) : base(message) { }
+    }
+
     class ModdingHandler
     {
         private readonly string TEMP_PATH;
@@ -67,7 +72,7 @@ namespace QuestPatcher
             }
             else
             {
-                logger.Information("No libunity found");
+                logger.Warning("No libunity found");
                 return false;
             }
         }
@@ -92,7 +97,7 @@ namespace QuestPatcher
                 }
             }
 
-            logger.Information("Downloading " + savePath + " . . .");
+            logger.Information($"Downloading {savePath} . . .");
             await webClient.DownloadFileTaskAsync(downloadLink, actualPath);
         }
 
@@ -139,7 +144,7 @@ namespace QuestPatcher
             Process process = new Process();
             process.StartInfo.FileName = OperatingSystem.IsWindows() ? "java.exe" : "java";
             process.StartInfo.Arguments = args;
-            logger.Verbose("Running Java command: " + "java " + process.StartInfo.Arguments);
+            logger.Verbose($"Running Java command: java {process.StartInfo.Arguments}");
 
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.RedirectStandardError = true;
@@ -163,11 +168,10 @@ namespace QuestPatcher
         // This includes adding read and write permissions to the given manifest string
         private string ModifyManifest(string manifest)
         {
-            /*
-                This is futureproofing as in Android 11 WRITE and READ is replaced by MANAGE
-                otherwise Storage access would be limited to scoped-storage like an app-specific directory or a public shared directory, 
-                can be removed until any device updates to Android 11 would keep for compatability though.
-            */
+            
+            // This is futureproofing as in Android 11 WRITE and READ is replaced by MANAGE.
+            // Otherwise Storage access would be limited to scoped-storage like an app-specific directory or a public shared directory.
+            // Can be removed until any device updates to Android 11, however it's best to keep for compatability.
             const string MANAGE_PERMISSIONS = "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\"/>";
 
             const string WRITE_PERMISSIONS = "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>";
@@ -197,7 +201,7 @@ namespace QuestPatcher
 
             if (manifest.IndexOf(LegacyExternalStorage) == -1)
             {
-                logger.Debug("Adding LegacyStorageSupport");
+                logger.Debug("Adding legacy storage support . . .");
                 manifest = manifest.Replace(ApplicationStr, LegacyExternalStorage);
             }
 
@@ -209,11 +213,11 @@ namespace QuestPatcher
         // Copies a library file to the correct folder in the APK. If failOnExists is true, then the installer will complain that the game is already modded and exit.
         private void CopyLibraryFile(string name, bool failOnExists)
         {
-            logger.Information("Copying library " + name + " . . .");
+            logger.Information($"Copying library {name} . . .");
             string destPath = TEMP_PATH + "app/" + LIB_PATH + name;
             if(File.Exists(destPath) && failOnExists)
             {
-                throw new Exception("Your game is already modded!");
+                throw new PatchingException("Your game is already modded!");
             }
 
             File.Copy(TOOLS_PATH + name, destPath, true);
