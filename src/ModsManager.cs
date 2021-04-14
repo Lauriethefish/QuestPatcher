@@ -84,47 +84,104 @@ namespace QuestPatcher {
         // Attempts to download the specified DeependencyInfo
         // Will throw an exception if it's not installed and there's no downloadIfMissing, or if the installed version is not within the stated version range.
         // Also does sanity checking of the downloaded version to make sure that the downloaded version/ID is correct.
-        private async Task InstallDependency(DependencyInfo dependency)
+        private async Task InstallDependency(DependencyInfo dependency, List<string> installedInChain)
         {
-            ModManifest? existing = null;
-            InstalledMods.TryGetValue(dependency.Id, out existing);
-
-            if(existing == null)
+            int existingIndex = installedInChain.FindIndex((string downloadedDep) => downloadedDep == dependency.Id);
+            if(existingIndex != -1)
             {
-                if(dependency.DownloadIfMissing == null)
+                string dependMessage = "";
+                for(int i = existingIndex; i < installedInChain.Count; i++)
                 {
-                    throw new Exception("Dependency " + dependency.Id + " is not installed, and does not specify a download path if missing");
+                    dependMessage += $"{installedInChain[i]} depends on ";
                 }
+                dependMessage += dependency.Id;
 
-                WebClient webClient = new WebClient();
+                throw new Exception($"Recursive dependency detected: {dependMessage}");
+            }
 
-                logger.Information("Downloading dependency " + dependency.Id);
+            ModManifest? existing = null;
+            bool isAlreadyInstalled = InstalledMods.TryGetValue(dependency.Id, out existing);
+            bool hasDownloadLink = dependency.DownloadIfMissing != null;
 
-                string downloadedPath = DEPENDENCY_PATH + dependency.Id + ".qmod";
-                await webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, downloadedPath);
-                await InstallMod(downloadedPath);
+            // If the dependency is already installed, and the installed version is within the version range, return
+            if(isAlreadyInstalled)
+            {
+                if (dependency.ParsedVersion.IsSatisfied(existing.ParsedVersion))
+                {
+                    logger.Debug($"Dependency {dependency.Version} is already installed and within the version range");
+                    return;
+                }   else if(hasDownloadLink)
+                {
+                    logger.Warning($"Dependency with ID {dependency.Id} is already installed but with an incorrect version ({existing.Version} does not intersect {dependency.Version}). QuestPatcher will attempt to upgrade the dependency");
+                }   else    {
+                    throw new Exception($"Dependency with ID { dependency.Id } is already installed but with an incorrect version({existing.Version} does not intersect {dependency.Version}). Upgrading was not possible as there was no download link provided");
+                }
+            }   else if(!hasDownloadLink)
+            {
+                throw new Exception($"Dependency {dependency.Id} is not installed, and the mod depending on it does not specify a download path if missing");
+            }
 
-                File.Delete(downloadedPath); // Remove the temporarily downloaded mod
+            WebClient webClient = new WebClient();
 
-                ModManifest dependencyManifest = InstalledMods[dependency.Id];
+            logger.Information("Downloading dependency " + dependency.Id);
+
+            string downloadedPath = DEPENDENCY_PATH + dependency.Id + ".qmod";
+            await webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, downloadedPath);
+
+            // We clone the list to avoid dependencies down another "branch" of the tree adding to the list, and causing a recursive dependency when the isn't one
+            List<string> newInstalledChain = new List<string>(installedInChain);
+            // Add us to the installed chain so that any dependencies further down in the same tree that attempt to install us will trigger the recursive dependency error.
+            newInstalledChain.Add(dependency.Id);
+
+            await InstallMod(downloadedPath, newInstalledChain);
+
+            File.Delete(downloadedPath); // Remove the temporarily downloaded mod
+
+            ModManifest dependencyManifest = InstalledMods[dependency.Id];
                 
-                // Sanity checks that the download link actually pointed to the right mod
-                if(!dependency.ParsedVersion.IsSatisfied(dependencyManifest.ParsedVersion))
-                {
-                    await UninstallMod(dependencyManifest);
-                    throw new Exception("Downloaded dependency " + dependency.Id + " was not within the version stated in the mod's manifest");
-                }
+            // Sanity checks that the download link actually pointed to the right mod
+            if(!dependency.ParsedVersion.IsSatisfied(dependencyManifest.ParsedVersion))
+            {
+                await UninstallMod(dependencyManifest);
+                throw new Exception("Downloaded dependency " + dependency.Id + " was not within the version stated in the mod's manifest");
+            }
 
-                if(dependency.Id != dependencyManifest.Id)
-                {
-                    await UninstallMod(dependencyManifest);
-                    throw new Exception("Downloaded dependency had ID " + dependencyManifest.Id + ", whereas the dependency stated ID " + dependency.Id);
+            if(dependency.Id != dependencyManifest.Id)
+            {
+                await UninstallMod(dependencyManifest);
+                throw new Exception("Downloaded dependency had ID " + dependencyManifest.Id + ", whereas the dependency stated ID " + dependency.Id);
+            }
+        }
+
+        // Checks to see if the currently installed manifest can be safely uninstalled, and the mod upgraded to the new version
+        // Dependencies are checked that verify that newVersion is within all of the version ranges
+        // An exception is thrown if this is not possible
+        private async Task AttemptVersionUpgrade(ModManifest currentlyInstalled, ModManifest newVersion)
+        {
+            logger.Information($"Attempting to upgrade {currentlyInstalled.Id} v{currentlyInstalled.Version} to {newVersion.Id} v{newVersion.Version}");
+            string id = currentlyInstalled.Id;
+
+            bool didError = false;
+            foreach(ModManifest mod in InstalledMods.Values)
+            {
+
+                foreach(DependencyInfo dependency in mod.Dependencies) {
+                    if(dependency.Id == id && !dependency.ParsedVersion.IsSatisfied(newVersion.Version))
+                    {
+                        logger.Error($"Dependency of mod {mod.Id} requires version range {dependency.Version} of {id}, however the version of {id} being upgraded to ({newVersion.Version}) does not match this range");
+                        didError = true;
+                    }
                 }
-            }   else    {
-                if(!dependency.ParsedVersion.IsSatisfied(existing.ParsedVersion))
-                {
-                    throw new Exception("Dependency " + dependency.Id + " is installed, but the installed version is not within the given version range");
-                }
+            }
+
+            if(didError)
+            {
+                throw new Exception($"Could not upgrade existing installation of mod {id}, see log for details");
+            }
+            else
+            {
+                logger.Information("Uninstalling old version");
+                await UninstallMod(currentlyInstalled);
             }
         }
 
@@ -133,7 +190,12 @@ namespace QuestPatcher {
         // Also does sanity checks - making sure that the mod is for the correct game, that it isn't already installed, etc.
         // Will attempt to download dependencies of the mod.
         // If any part of this fails, then it'll throw an exception.
-        public async Task InstallMod(string path) {
+        public async Task InstallMod(string path, List<string> installedInChain = null) {
+            if(installedInChain == null)
+            {
+                installedInChain = new List<string>();
+            }
+
             string extractPath = EXTRACTED_MODS_PATH + Path.GetFileNameWithoutExtension(path) + "/";
             Directory.CreateDirectory(extractPath);
 
@@ -153,14 +215,21 @@ namespace QuestPatcher {
                     throw new Exception("This mod is not intended for the selected game!");
                 }
 
-                if (InstalledMods.ContainsKey(manifest.Id))
+                // If the mod is already installed, attempt a version upgrade, making sure that any mods that depend on this one's dependency ranges intersect the version of the new mod
+                ModManifest? installedVersion;
+                InstalledMods.TryGetValue(manifest.Id, out installedVersion);
+                if (installedVersion != null)
                 {
-                    throw new Exception("Attempted to install a mod when it was already installed");
+                    if(installedVersion.Version == manifest.Version)
+                    {
+                        throw new Exception($"Mod {manifest.Id} is already installed, and the version is the same");
+                    }
+                    await AttemptVersionUpgrade(installedVersion, manifest);
                 }
 
                 foreach(DependencyInfo dependency in manifest.Dependencies)
                 {
-                    await InstallDependency(dependency);
+                    await InstallDependency(dependency, installedInChain);
                 }
 
                 // Copy all of the SO files
