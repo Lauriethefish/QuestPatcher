@@ -22,6 +22,7 @@ namespace QuestPatcher
 
         public AppInfo AppInfo { get; private set; }
 
+        private MainWindow window;
         private DebugBridge debugBridge;
         private Logger logger;
 
@@ -29,6 +30,7 @@ namespace QuestPatcher
 
         public ModdingHandler(MainWindow window)
         {
+            this.window = window;
             this.debugBridge = window.DebugBridge;
             this.logger = window.Logger;
 
@@ -57,7 +59,7 @@ namespace QuestPatcher
             JsonDocument document = JsonDocument.Parse(libUnityIndexString);
 
             JsonElement packageMapElement;
-            if(document.RootElement.TryGetProperty(debugBridge.APP_ID, out packageMapElement))
+            if(document.RootElement.TryGetProperty(window.Config.AppId, out packageMapElement))
             {
                 JsonElement packageVersionElement;
                 if(packageMapElement.TryGetProperty(AppInfo.GameVersion, out packageVersionElement)) {

@@ -215,7 +215,7 @@ namespace QuestPatcher {
                 string manifestText = await File.ReadAllTextAsync(extractPath + "mod.json");
                 ModManifest manifest = await ModManifest.Load(manifestText);
 
-                if (manifest.PackageId != debugBridge.APP_ID)
+                if (manifest.PackageId != window.Config.AppId)
                 {
                     throw new ModInstallException("This mod is not intended for the selected game!");
                 }

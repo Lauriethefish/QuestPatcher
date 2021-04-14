@@ -60,6 +60,11 @@ namespace QuestPatcher
         public string DATA_PATH { get; }
         public string TEMP_PATH { get; }
 
+        public ConfigManager ConfigManager { get; }
+        public Config Config { get; private set; }
+
+        private string CONFIG_PATH;
+
         public MainWindow()
         {
             DATA_PATH = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "/QuestPatcher/";
@@ -77,6 +82,7 @@ namespace QuestPatcher
             Logger.Verbose("QuestPatcher starting-------------------");
 
             InitializeComponent();
+            ConfigManager = new ConfigManager(Logger, DATA_PATH);
             this.DebugBridge = new DebugBridge(this);
             this.moddingHandler = new ModdingHandler(this);
             this.modsManager = new ModsManager(this);
@@ -101,7 +107,7 @@ namespace QuestPatcher
 
             JsonDocument document = await JsonDocument.ParseAsync(fileCopiesStream);
             JsonElement packageElement;
-            if(document.RootElement.TryGetProperty(DebugBridge.APP_ID, out packageElement))
+            if(document.RootElement.TryGetProperty(Config.AppId, out packageElement))
             {
                 foreach(JsonProperty property in packageElement.EnumerateObject())
                 {
@@ -129,7 +135,11 @@ namespace QuestPatcher
 
         private async Task OnLoadInternal()
         {
-            welcomeText.Text += (" " + DebugBridge.APP_ID);
+            // Make sure the config is loaded, e.g. to get the correct app ID for ADB
+            await ConfigManager.LoadConfig();
+            Config = ConfigManager.Config;
+
+            welcomeText.Text += (" " + Config.AppId);
             openLogsButton.Click += DebugBridge.OnOpenLogsClick;
 
             await LoadFileCopyPaths();
@@ -275,18 +285,19 @@ namespace QuestPatcher
         {
             nonEditAppIdPanel.IsVisible = false;
 
-            newAppIdBox.Text = DebugBridge.APP_ID;
+            newAppIdBox.Text = Config.AppId;
             newAppIdBox.SelectAll();
             editAppIdPanel.IsVisible = true;
             this.MinHeight += 10;
         }
 
-        private void OnConfirmNewAppIdClick(object? sender, RoutedEventArgs args)
+        private async void OnConfirmNewAppIdClick(object? sender, RoutedEventArgs args)
         {
             string newId = newAppIdBox.Text;
 
             Logger.Information("Changing app Id to " + newId);
-            File.WriteAllText(DATA_PATH + "appId.txt", newId);
+            Config.AppId = newId;
+            await ConfigManager.SaveConfig();
 
             RestartApp();
         }
