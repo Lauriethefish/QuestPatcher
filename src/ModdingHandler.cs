@@ -22,11 +22,11 @@ namespace QuestPatcher
 
         public AppInfo AppInfo { get; private set; }
 
-        private MainWindow window;
-        private DebugBridge debugBridge;
-        private Logger logger;
+        private readonly MainWindow window;
+        private readonly DebugBridge debugBridge;
+        private readonly Logger logger;
 
-        private WebClient webClient = new WebClient();
+        private readonly WebClient webClient = new();
 
         public ModdingHandler(MainWindow window)
         {
@@ -51,18 +51,16 @@ namespace QuestPatcher
         // Uses https://github.com/Lauriethefish/QuestUnstrippedUnity to download an appropriate unstripped libunity.so for this app, if there is one indexed.
         private async Task<bool> AttemptDownloadUnstrippedUnity()
         {
-            Uri indexUrl = new Uri("https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/index.json");
+            Uri indexUrl = new("https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/index.json");
 
             logger.Information("Checking index for unstripped libunity.so . . .");
             string libUnityIndexString = await webClient.DownloadStringTaskAsync(indexUrl);
             logger.Debug("Contents of index: " + libUnityIndexString);
             JsonDocument document = JsonDocument.Parse(libUnityIndexString);
 
-            JsonElement packageMapElement;
-            if(document.RootElement.TryGetProperty(window.Config.AppId, out packageMapElement))
+            if(document.RootElement.TryGetProperty(window.Config.AppId, out JsonElement packageMapElement))
             {
-                JsonElement packageVersionElement;
-                if(packageMapElement.TryGetProperty(AppInfo.GameVersion, out packageVersionElement)) {
+                if(packageMapElement.TryGetProperty(AppInfo.GameVersion, out JsonElement packageVersionElement)) {
                     logger.Information("Successfully found unstripped libunity.so");
                     string libUnityUrl = "https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/" + packageVersionElement.GetString() + ".so";
                     await DownloadFile(libUnityUrl, "libunity.so", true);
@@ -143,7 +141,7 @@ namespace QuestPatcher
         // Returns the error output and the standard output concatenated together when the process exits.
         public async Task<string> InvokeJavaAsync(string args)
         {
-            Process process = new Process();
+            Process process = new();
             process.StartInfo.FileName = OperatingSystem.IsWindows() ? "java.exe" : "java";
             process.StartInfo.Arguments = args;
             logger.Verbose($"Running Java command: java {process.StartInfo.Arguments}");
@@ -184,30 +182,30 @@ namespace QuestPatcher
 
             const string ApplicationStr = "<application";
 
-              int newLineIndex = manifest.IndexOf('\n');
+            int newLineIndex = manifest.IndexOf('\n');
             string newManifest = manifest.Substring(0, newLineIndex) + "\n";
-            if (manifest.IndexOf(MANAGE_PERMISSIONS) == -1)
+            if (!manifest.Contains(MANAGE_PERMISSIONS))
             {
                 newManifest += "    " + MANAGE_PERMISSIONS + "\n";
             }
 
-            if (manifest.IndexOf(WRITE_PERMISSIONS) == -1)
+            if (!manifest.Contains(WRITE_PERMISSIONS))
             {
                 newManifest += "    " + WRITE_PERMISSIONS + "\n";
             }
 
-            if (manifest.IndexOf(READ_PERMISSIONS) == -1)
+            if (!manifest.Contains(READ_PERMISSIONS))
             {
                 newManifest += "    " + READ_PERMISSIONS + "\n";
             }
 
-            if (manifest.IndexOf(LegacyExternalStorage) == -1)
+            if (!manifest.Contains(LegacyExternalStorage))
             {
                 logger.Debug("Adding legacy storage support . . .");
                 manifest = manifest.Replace(ApplicationStr, LegacyExternalStorage);
             }
 
-            newManifest += manifest.Substring(newLineIndex + 1);
+            newManifest += manifest[(newLineIndex + 1)..];
 
             return newManifest;
         }

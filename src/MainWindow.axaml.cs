@@ -48,12 +48,12 @@ namespace QuestPatcher
         public AppInfo AppInfo { get; private set; }
 
         public DebugBridge DebugBridge { get; private set; }
-        private ModdingHandler moddingHandler;
+        private readonly ModdingHandler moddingHandler;
 
-        private ModsManager modsManager;
+        private readonly ModsManager modsManager;
 
         // Map of file extension (upper case) to location on the Quest, loaded from drag-and-drop.json
-        private Dictionary<string, FileCopyTypeInfo> fileCopyPaths = new Dictionary<string, FileCopyTypeInfo>();
+        private readonly Dictionary<string, FileCopyTypeInfo> fileCopyPaths = new();
 
         public Logger Logger { get; }
 
@@ -62,8 +62,6 @@ namespace QuestPatcher
 
         public ConfigManager ConfigManager { get; }
         public Config Config { get; private set; }
-
-        private string CONFIG_PATH;
 
         public MainWindow()
         {
@@ -106,8 +104,7 @@ namespace QuestPatcher
             }
 
             JsonDocument document = await JsonDocument.ParseAsync(fileCopiesStream);
-            JsonElement packageElement;
-            if(document.RootElement.TryGetProperty(Config.AppId, out packageElement))
+            if(document.RootElement.TryGetProperty(Config.AppId, out JsonElement packageElement))
             {
                 foreach(JsonProperty property in packageElement.EnumerateObject())
                 {
@@ -222,7 +219,7 @@ namespace QuestPatcher
             try
             {
                 string version = await moddingHandler.InvokeJavaAsync("-version");
-                string trimmedVersion = version.Split("\n")[0].Substring(13);
+                string trimmedVersion = version.Split("\n")[0][13..];
 
                 Logger.Information("Java version " + trimmedVersion);
             }
@@ -307,7 +304,7 @@ namespace QuestPatcher
         private void RestartApp()
         {
             Logger.Information("Restarting . . . ");
-            Process process = new Process();
+            Process process = new();
             process.StartInfo.FileName = AppDomain.CurrentDomain.BaseDirectory + (OperatingSystem.IsWindows() ? "QuestPatcher.exe" : "QuestPatcher");
             process.StartInfo.UseShellExecute = false;
             process.Start();
@@ -331,20 +328,20 @@ namespace QuestPatcher
 
         private async void OnBrowseForModsClick(object? sender, RoutedEventArgs args) {
             // Show a browse dialogue to enter the path of the mod file
-            OpenFileDialog fileDialog = new OpenFileDialog();
+            OpenFileDialog fileDialog = new();
             fileDialog.AllowMultiple = false;
 
-            FileDialogFilter filter = new FileDialogFilter();
+            FileDialogFilter filter = new();
             filter.Extensions.Add("qmod");
             filter.Name = "Quest Mods";
             fileDialog.Filters.Add(filter);
 
             foreach (KeyValuePair<string, FileCopyTypeInfo> fileCopy in fileCopyPaths)
             {
-                FileDialogFilter fileCopyFilter = new FileDialogFilter();
+                FileDialogFilter fileCopyFilter = new();
                 fileCopyFilter.Extensions.Add(fileCopy.Key.ToLower());
 
-                string description = fileCopy.Value.Description == null ? fileCopy.Key + " Files" : fileCopy.Value.Description;
+                string description = fileCopy.Value.Description ?? fileCopy.Key + " Files";
                 fileCopyFilter.Name = description;
                 fileDialog.Filters.Add(fileCopyFilter);
             }
@@ -385,15 +382,14 @@ namespace QuestPatcher
         // If neither is available for the file, it'll print an error message
         private async Task AttemptInstall(string path)
         {
-            string extension = Path.GetExtension(path).Substring(1).ToUpper(); // Remove the . and make the extension upper case
+            string extension = Path.GetExtension(path)[1..].ToUpper(); // Remove the . and make the extension upper case
             if(extension == "QMOD")
             {
                 await AttemptInstallMod(path);
             }
             else
             {
-                FileCopyTypeInfo copyPath;
-                if(fileCopyPaths.TryGetValue(extension, out copyPath))
+                if(fileCopyPaths.TryGetValue(extension, out FileCopyTypeInfo copyPath))
                 {
                     await AttemptFileCopy(path, copyPath.DestinationPath);
                 }

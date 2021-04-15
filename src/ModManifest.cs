@@ -11,13 +11,9 @@ using System.Threading.Tasks;
 namespace QuestPatcher {
     public class DependencyInfo {
         public string Id { get; set; }
-
         public string Version { get; set; }
-
         public SemVer.Range ParsedVersion { get; set; }
-
         public string? DownloadIfMissing { get; set; } = null;
-
         public void ParseRange()
         {
             ParsedVersion = SemVer.Range.Parse(Version);
@@ -36,21 +32,15 @@ namespace QuestPatcher {
         public string _QPVersion { get; set; }
         public string Name { get; set; }
         public string Id { get; set; }
-
         public string Author { get; set; }
-
         public string Version { get; set; }
-
         public SemVer.Version ParsedVersion { get; private set; }
-
         public string PackageId { get; set; }
         public string PackageVersion { get; set; }
-
         public bool IsLibrary { get; set; }
 
         public List<string> ModFiles { get; set; } = new List<string>();
         public List<string> LibraryFiles { get; set; } = new List<string>();
-
         public List<FileCopyInfo> FileCopies { get; set; } = new List<FileCopyInfo>();
 
         public List<DependencyInfo> Dependencies { get; set; } = new List<DependencyInfo>();
@@ -95,7 +85,8 @@ namespace QuestPatcher {
                 throw new FormatException(validity.Message); // Unfortunately the message is always null, still trying to figure out why . . .
             }
 
-            JsonSerializerOptions options = new JsonSerializerOptions {
+            JsonSerializerOptions options = new()
+            {
                 PropertyNameCaseInsensitive = true
             };
 
