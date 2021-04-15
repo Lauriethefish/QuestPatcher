@@ -14,10 +14,10 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
-   </ItemGroup>
-   <ItemGroup>
-	    <EmbeddedResource Include="resources/qmod.schema.json" />
-      <EmbeddedResource Include="resources/file-copy-paths.json" />
-      <EmbeddedResource Include="resources/default-config.json" />
-   </ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="resources/qmod.schema.json" />
+    <EmbeddedResource Include="resources/file-copy-paths.json" />
+    <EmbeddedResource Include="resources/default-config.json" />
+  </ItemGroup>
 </Project>
