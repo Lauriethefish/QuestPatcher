@@ -44,15 +44,20 @@ namespace QuestPatcher {
 
         // Loads the copied manifests from the folder /sdcard/QuestPatcher/{app-id}/installedMods as installed mods.
         public async Task LoadModsFromQuest() {
-            string modsNonSplit;
+            List<string> manifestPaths;
+            List<string> modFilePaths;
+            List<string> libraryFilePaths;
             try
             {
-                await debugBridge.RunCommandAsync("shell mkdir -p \"" + INSTALLED_MODS_PATH + "\"");
+                await debugBridge.RunCommandAsync($"shell mkdir -p \"{INSTALLED_MODS_PATH}\"");
                 await debugBridge.RunCommandAsync("shell mkdir -p \"sdcard/Android/data/{app-id}/files/mods\"");
                 await debugBridge.RunCommandAsync("shell mkdir -p \"sdcard/Android/data/{app-id}/files/libs\"");
 
                 // List the manifests in the installed mods directory for this app
-                modsNonSplit = await debugBridge.RunCommandAsync("shell ls -R \"" + INSTALLED_MODS_PATH + "\"");
+                manifestPaths = await debugBridge.ListDirectory(INSTALLED_MODS_PATH);
+                modFilePaths = await debugBridge.ListDirectory("sdcard/Android/data/{app-id}/files/mods/", false);
+                libraryFilePaths = await debugBridge.ListDirectory("sdcard/Android/data/{app-id}/files/libs/", false);
+
             }
             catch (Exception ex)
             {
@@ -61,21 +66,20 @@ namespace QuestPatcher {
                 return;
             }
 
-            // Remove unnecessary things that ADB adds
-            string[] rawPaths = modsNonSplit.Split("\n");
-            List<string> parsedPaths = new List<string>();
-            for(int i = 0; i < rawPaths.Length; i++) {
-                if(i == 0 || i == rawPaths.Length - 1) {continue;}
-
-                parsedPaths.Add(INSTALLED_MODS_PATH + rawPaths[i].Replace("\r", "")); // Remove carriage returns
-            }
-
-            foreach (string path in parsedPaths) {
+            foreach (string path in manifestPaths) {
                 string contents = await debugBridge.RunCommandAsync($"shell cat \"{path}\"");
 
                 try
                 {
+
                     ModManifest manifest = await ModManifest.Load(contents);
+                    // If the mod is not correctly installed, due to a deleted SO file due to an app reinstall, delete the manifest and don't display the mod as installed
+                    if(!VerifyModInstallation(manifest, modFilePaths, libraryFilePaths))
+                    {
+                        await debugBridge.RunCommandAsync($"shell rm {path}");
+                        continue;
+                    }
+
                     AddManifest(manifest);
                 }
                 catch (Exception ex)
@@ -84,6 +88,33 @@ namespace QuestPatcher {
                     logger.Verbose(ex.ToString());
                 }
             }
+        }
+
+        // Checks that all of the mod files and library files of manifest are correctly copied to the quest
+        // This is used to remove mods after the app is reinstalled - without it, they would show as installed since the manifest still exists in /sdcard/QuestPatcher/{app-id}/installedMods/
+        // When really they're not installed
+        private bool VerifyModInstallation(ModManifest manifest, List<string> modFilePaths, List<string> libraryFilePaths)
+        {
+            logger.Debug($"Checking validity of installed mod {manifest.Id}");
+            foreach(string modFile in manifest.ModFiles) {
+                if (!modFilePaths.Contains(modFile))
+                {
+                    logger.Debug($"Mod not valid! Missing mod file {modFile}");
+                    return false;
+                }
+            }
+
+            foreach(string libraryFile in manifest.LibraryFiles)
+            {
+                if(!libraryFilePaths.Contains(libraryFile))
+                {
+                    logger.Debug($"Mod not valid! Missing library file {libraryFile}");
+                    return false;
+                }
+            }
+
+            logger.Debug("Mod installation is valid");
+            return true;
         }
 
         // Attempts to download the specified DeependencyInfo
@@ -119,7 +150,7 @@ namespace QuestPatcher {
                 {
                     logger.Warning($"Dependency with ID {dependency.Id} is already installed but with an incorrect version ({existing.Version} does not intersect {dependency.Version}). QuestPatcher will attempt to upgrade the dependency");
                 }   else    {
-                    throw new ModInstallException($"Dependency with ID { dependency.Id } is already installed but with an incorrect version({existing.Version} does not intersect {dependency.Version}). Upgrading was not possible as there was no download link provided");
+                    throw new ModInstallException($"Dependency with ID {dependency.Id} is already installed but with an incorrect version({existing.Version} does not intersect {dependency.Version}). Upgrading was not possible as there was no download link provided");
                 }
             }   else if(!hasDownloadLink)
             {

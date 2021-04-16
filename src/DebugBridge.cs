@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Globalization;
 using System.Net;
+using System.Collections.Generic;
 using Serilog.Core;
 using Avalonia.Interactivity;
 using System.ComponentModel;
@@ -231,6 +232,33 @@ namespace QuestPatcher
                 UseShellExecute = true,
                 Verb = "open"
             });
+        }
+
+        // Returns a list of all the files in the directory path on the quest
+        // If fullPath is false, only the file name and extension will be returned
+        public async Task<List<string>> ListDirectory(string path, bool fullPath = true)
+        {
+            string filesNonSplit = await RunCommandAsync($"shell ls -R \"{path}\"");
+
+            // Remove unnecessary things that ADB adds
+            string[] rawPaths = filesNonSplit.Split("\n");
+            List<string> parsedPaths = new List<string>();
+            for (int i = 0; i < rawPaths.Length; i++)
+            {
+                if (i == 0 || i == rawPaths.Length - 1) { continue; }
+
+                string withoutCarriageReturn = rawPaths[i].Replace("\r", "");
+                if (fullPath)
+                {
+                    parsedPaths.Add(path + withoutCarriageReturn);
+                }
+                else
+                {
+                    parsedPaths.Add(withoutCarriageReturn);
+                }
+            }
+
+            return parsedPaths;
         }
     }
 }
