@@ -40,6 +40,7 @@ namespace QuestPatcher
         private string HandlePlaceholders(string command)
         {
             command = command.Replace("{app-id}", window.Config.AppId);
+            command = command.Replace("[app-id]", window.Config.AppId);
             return command;
         }
 

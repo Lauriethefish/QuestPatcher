@@ -62,7 +62,7 @@ namespace QuestPatcher
             {
                 if(packageMapElement.TryGetProperty(AppInfo.GameVersion, out JsonElement packageVersionElement)) {
                     logger.Information("Successfully found unstripped libunity.so");
-                    string libUnityUrl = "https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/" + packageVersionElement.GetString() + ".so";
+                    string libUnityUrl = $"https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/{packageVersionElement.GetString()}.so";
                     await DownloadFile(libUnityUrl, "libunity.so", true);
                     return true;
                 }   else    {
@@ -104,7 +104,7 @@ namespace QuestPatcher
         // Invokes a JAR in the tools directory with name jarName and args args.
         // Returns the error output and the standard output concatenated together when the proces exits.
         public async Task<string> InvokeJarAsync(string jarName, string args) {
-            string command = "-Xmx1024m -jar \"" + TOOLS_PATH + "/" + jarName + "\" " + args;
+            string command = $"-Xmx1024m -jar \"{TOOLS_PATH}/{jarName}\" {args}";
 
             string result = await InvokeJavaAsync(command);
             if(result.Contains("corrupt"))
@@ -130,7 +130,7 @@ namespace QuestPatcher
                 string extension = Path.GetExtension(fileName).ToUpper();
                 if (extension == ".JAR")
                 {
-                    logger.Information("Deleting JAR " + fileName);
+                    logger.Information($"Deleting JAR {fileName}");
                     File.Delete(fileName);
                 }
             }
@@ -156,8 +156,8 @@ namespace QuestPatcher
             string output = await process.StandardOutput.ReadToEndAsync();
             string errorOutput = await process.StandardError.ReadToEndAsync();
 
-            logger.Verbose("Standard output: " + output);
-            logger.Verbose("Error output: " + errorOutput);
+            logger.Verbose($"Standard output: {output}");
+            logger.Verbose($"Error output: {errorOutput}");
 
             await process.WaitForExitAsync();
 
@@ -214,7 +214,7 @@ namespace QuestPatcher
         private void CopyLibraryFile(string name, bool failOnExists)
         {
             logger.Information($"Copying library {name} . . .");
-            string destPath = TEMP_PATH + "app/" + LIB_PATH + name;
+            string destPath = $"{TEMP_PATH}app/{LIB_PATH}{name}";
             if(File.Exists(destPath) && failOnExists)
             {
                 throw new PatchingException("Your game is already modded!");
@@ -239,7 +239,7 @@ namespace QuestPatcher
             logger.Information("Pulling APK from Quest to check if modded . . .");
             string appPath = await debugBridge.RunCommandAsync("shell pm path {app-id}");
             appPath = appPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", ""); // Remove the "package:" from the start and the new line from the end
-            await debugBridge.RunCommandAsync("pull \"" + appPath + "\" \"" + TEMP_PATH + "/unmodded.apk\"");
+            await debugBridge.RunCommandAsync($"pull \"{appPath}\" \"{TEMP_PATH}/unmodded.apk\"");
 
             // Unfortunately apktool doesn't extract the tag file, so we manually open the APK
             ZipArchive apkArchive = ZipFile.OpenRead(TEMP_PATH + "unmodded.apk");
@@ -253,7 +253,7 @@ namespace QuestPatcher
 
             AppInfo = new AppInfo(isModded, gameVersion);
             logger.Information(AppInfo.IsModded ? "APK is modded" : "App is not modded");
-            logger.Information("APK version: \"" + AppInfo.GameVersion + "\"");
+            logger.Information($"APK version: \"{AppInfo.GameVersion}\"");
         }
 
         // Patches the app, including modding the manifest, and adding unstripped libunity and the modloader.
@@ -265,16 +265,16 @@ namespace QuestPatcher
 
             // Decompile the APK using apktool. We have to do this to read the manifest since it's AXML, which is nasty
             logger.Information("Decompiling APK . . .");
-            string cmd = "d -f -o \"" + TEMP_PATH + "app\" \"" + TEMP_PATH + "unmodded.apk\"";
+            string cmd = $"d -f -o \"{TEMP_PATH}app\" \"{TEMP_PATH}unmodded.apk\"";
             await InvokeJarAsync("apktool.jar", cmd);
 
             logger.Information("Decompiled APK");
 
             // Add permissions to access (read/write) external files.
             logger.Information("Modding manifest . . .");
-            string oldManifest = File.ReadAllText(TEMP_PATH + "app/AndroidManifest.xml");
+            string oldManifest = File.ReadAllText($"{TEMP_PATH}app/AndroidManifest.xml");
             string newManifest = ModifyManifest(oldManifest);
-            File.WriteAllText(TEMP_PATH + "app/AndroidManifest.xml", newManifest);
+            File.WriteAllText($"{TEMP_PATH}app/AndroidManifest.xml", newManifest);
 
             // Add the modloader, and the modified libmain.so that loads it.
             logger.Information("Adding library files . . .");
@@ -287,20 +287,20 @@ namespace QuestPatcher
 
             // Recompile the modified APK using apktool
             logger.Information("Compiling modded APK . . .");
-            cmd = "b -f -o \"" + TEMP_PATH + "modded.apk\" \"" + TEMP_PATH + "app\"";
+            cmd = $"b -f -o \"{TEMP_PATH}modded.apk\" \"{TEMP_PATH}app\"";
             await InvokeJarAsync("apktool.jar", cmd);
 
             logger.Information("Adding tag . . .");
-            ZipArchive apkArchive = ZipFile.Open(TEMP_PATH + "modded.apk", ZipArchiveMode.Update);
+            ZipArchive apkArchive = ZipFile.Open($"{TEMP_PATH}modded.apk", ZipArchiveMode.Update);
             apkArchive.CreateEntry("modded");
             apkArchive.Dispose();
 
             // Sign it so that Android will install it
             logger.Information("Signing the modded APK . . .");
-            cmd = "--apks \"" + TEMP_PATH + "modded.apk\"";
+            cmd = $"--apks \"{TEMP_PATH}modded.apk\"";
             await InvokeJarAsync("uber-apk-signer.jar", cmd);
 
-            File.Move(TEMP_PATH + "modded-aligned-debugSigned.apk", TEMP_PATH + "modded-and-signed.apk");
+            File.Move($"{TEMP_PATH}modded-aligned-debugSigned.apk", $"{TEMP_PATH}modded-and-signed.apk");
 
             // Uninstall the original app with ADB first, ADB doesn't have a better way of doing this
             logger.Information("Uninstalling unmodded app . . .");
@@ -309,7 +309,7 @@ namespace QuestPatcher
             
             // Install the modified APK
             logger.Information("Installing modded app . . .");
-            output = await debugBridge.RunCommandAsync("install \"" + TEMP_PATH + "modded-and-signed.apk\"");
+            output = await debugBridge.RunCommandAsync($"install \"{TEMP_PATH}modded-and-signed.apk\"");
             logger.Information(output);
 
             logger.Information("Modding complete!");
