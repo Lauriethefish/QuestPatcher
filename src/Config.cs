@@ -76,6 +76,5 @@ namespace QuestPatcher
     public class Config
     {
         public string AppId { get; set; } // Default is gorilla tag
-        public bool DarkMode { get; set; } // Default is disabled
     }
 }
