@@ -150,7 +150,7 @@ namespace QuestPatcher {
                 {
                     logger.Warning($"Dependency with ID {dependency.Id} is already installed but with an incorrect version ({existing.Version} does not intersect {dependency.Version}). QuestPatcher will attempt to upgrade the dependency");
                 }   else    {
-                    throw new ModInstallException($"Dependency with ID {dependency.Id} is already installed but with an incorrect version({existing.Version} does not intersect {dependency.Version}). Upgrading was not possible as there was no download link provided");
+                    throw new ModInstallException($"Dependency with ID {dependency.Id} is already installed but with an incorrect version ({existing.Version} does not intersect {dependency.Version}). Upgrading was not possible as there was no download link provided");
                 }
             }   else if(!hasDownloadLink)
             {
