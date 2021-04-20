@@ -10,7 +10,3 @@ It uses Sc2ad's [QuestLoader](https://github.com/sc2ad/QuestLoader/) for loading
 See `resources/qmod.schema.json` for the `mod.json` that QMODs must contain, alongside their mod files.
 
 **NOTE:** To mod other games, hit `Change App` inside the QuestPatcher Window.
-
-## TODO
-- Add cyclic dependency detection.
-- Add support for automatically updating a dependency when it is installed, but the installed version is wrong. This would only happen if all mods that rely on that dependency have version ranges that intersect the new version.
