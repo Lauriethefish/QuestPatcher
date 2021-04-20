@@ -42,8 +42,8 @@ namespace QuestPatcher
         // This also makes sure that we're always using the latest version of the modloader (QuestLoader)
         private async Task DownloadToolsFiles()
         {
-            await DownloadFileIfNotExists("https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader.so", "libmodloader.so");
-            await DownloadFileIfNotExists("https://github.com/RedBrumbler/QuestAppPatcher/blob/master/extraFiles/libmain.so?raw=true", "libmain.so");
+            await DownloadFileIfNotExists("https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader64.so", "libmodloader.so");
+            await DownloadFileIfNotExists("https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain64.so", "libmain.so");
             await DownloadFileIfNotExists("https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar", "uber-apk-signer.jar");
             await DownloadFileIfNotExists("https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar", "apktool.jar");
         }
