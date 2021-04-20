@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" MaxWidth="600" MinWidth="600" MaxHeight="400" MinHeight="400"
         x:Class="QuestPatcher.MainWindow"
-        Title="QuestPatcher v1.3.0">
+        Title="QuestPatcher v1.3.1">
   <StackPanel Orientation="Vertical">
     <StackPanel Name="nonEditAppIdPanel" Orientation="Horizontal" HorizontalAlignment="Center">
       <TextBlock Padding="13" Name="welcomeText">You are modding</TextBlock>
