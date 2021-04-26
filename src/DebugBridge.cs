@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Serilog.Core;
 using Avalonia.Interactivity;
 using System.ComponentModel;
+using System.Text;
 
 namespace QuestPatcher
 {
@@ -50,7 +51,7 @@ namespace QuestPatcher
             return compareInfo.IndexOf(str, lookingFor, CompareOptions.IgnoreCase) >= 0;
         }
 
-        private Process createStartInfo(string command)
+        private Process CreateStartInfo(string command)
         {
             Process process = new Process();
             process.StartInfo.FileName = (adbOnPath ? "" : window.DATA_PATH + "platform-tools/") + (OperatingSystem.IsWindows() ? "adb.exe" : "adb");
@@ -59,6 +60,7 @@ namespace QuestPatcher
             process.StartInfo.RedirectStandardError = true;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
+            process.EnableRaisingEvents = true;
 
             return process;
         }
@@ -68,19 +70,40 @@ namespace QuestPatcher
         // Task will complete once this command exits.
         public async Task<string> RunCommandAsync(string command)
         {
-            Process process = createStartInfo(command);
+            Process process = CreateStartInfo(command);
 
             logger.Verbose("Executing ADB command: adb " + process.StartInfo.Arguments);
 
             process.Start();
 
-            string errorOutput = await process.StandardError.ReadToEndAsync();
-            string output = await process.StandardOutput.ReadToEndAsync();
+            StringBuilder outputBuilder = new StringBuilder();
+            StringBuilder errorOutputBuilder = new StringBuilder();
+
+            process.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args)
+            {
+                if (args.Data != null)
+                {
+                    outputBuilder.AppendLine(args.Data);
+                }
+            };
+
+            process.ErrorDataReceived += delegate (object sender, DataReceivedEventArgs args)
+            {
+                if (args.Data != null)
+                {
+                    errorOutputBuilder.AppendLine(args.Data);
+                }
+            };
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            await process.WaitForExitAsync();
+
+            string output = outputBuilder.ToString();
+            string errorOutput = errorOutputBuilder.ToString();
 
             logger.Verbose("Standard output: " + output);
             logger.Verbose("Error output: " + errorOutput);
-
-            await process.WaitForExitAsync();
 
             if (ContainsIgnoreCase(output, "error") || ContainsIgnoreCase(output, "failed"))
             {
@@ -199,8 +222,7 @@ namespace QuestPatcher
 
             TextWriter outputWriter = new StreamWriter(File.OpenWrite(ADB_LOG_PATH));
 
-            logcatProcess = createStartInfo("logcat");
-            logcatProcess.EnableRaisingEvents = true;
+            logcatProcess = CreateStartInfo("logcat");
 
             // Redirect standard output to the ADB log file
             logcatProcess.OutputDataReceived += delegate (object sender, DataReceivedEventArgs args)   {
