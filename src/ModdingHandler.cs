@@ -178,7 +178,8 @@ namespace QuestPatcher
             const string READ_PERMISSIONS = "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>";
 
             // Required for Apps that target Android 10 API Level 29 or higher as that uses scoped storage see: https://developer.android.com/training/data-storage/use-cases#opt-out-scoped-storage
-            const string LegacyExternalStorage = "<application android:requestLegacyExternalStorage = \"true\"";
+            const string LegacyExternalStorage = "android:requestLegacyExternalStorage = \"true\"";
+            const string ApplicationDebuggable = "android:debuggable = \"true\"";
 
             const string ApplicationStr = "<application";
 
@@ -202,7 +203,13 @@ namespace QuestPatcher
             if (!manifest.Contains(LegacyExternalStorage))
             {
                 logger.Debug("Adding legacy storage support . . .");
-                manifest = manifest.Replace(ApplicationStr, LegacyExternalStorage);
+                manifest = manifest.Replace(ApplicationStr, $"{ApplicationStr} {LegacyExternalStorage}");
+            }
+
+            if (!manifest.Contains(ApplicationDebuggable))
+            {
+                logger.Debug("Adding debuggable flag . . .");
+                manifest = manifest.Replace(ApplicationStr, $"{ApplicationStr} {ApplicationDebuggable}");
             }
 
             newManifest += manifest[(newLineIndex + 1)..];
