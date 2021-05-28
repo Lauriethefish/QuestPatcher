@@ -12,6 +12,8 @@ This branch is the rewrite/remake of QuestPatcher.
 - Improve ease of use and error messages
 - Improve code quality.
 - Separate core functionality from UI to allow another type of interface to be created in the future. A CLI, for example.
+- Allow customisation of patching permissions. For instance, allow or disallow debugging and hand tracking permissions.
+- Add support for 32 bit quest apps. (`armeabi-v7a`) 
 
 ## TODO
 - Finish UI for viewing installed cosmetics.
