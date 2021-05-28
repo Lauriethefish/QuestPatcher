@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="QuestPatcher.Views.Modding.ModView">
+  <DockPanel Height="100">
+    <Image DockPanel.Dock="Left" Source="{Binding CoverImage}" Width="177.778" Stretch="UniformToFill" Grid.Column="0" Grid.Row="0"/>
+    <Panel Margin="10">
+      <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Spacing="5">
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <TextBlock Text="{Binding Name}"/>
+          <TextBlock Text="{Binding Version}" FontSize="10" VerticalAlignment="Bottom"/>
+        </StackPanel>
+        <TextBlock Text="{Binding Description}" FontSize="10"/>
+      </StackPanel>
+      <TextBlock Text="{Binding Author}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+      <Button VerticalAlignment="Bottom" HorizontalAlignment="Left" FontSize="13" IsEnabled="{Binding Locker.IsFree}" Command="{Binding OnDelete}">Delete</Button>
+      <ToggleSwitch VerticalAlignment="Bottom" HorizontalAlignment="Right" OffContent="Disabled" OnContent="Enabled" IsChecked="{Binding IsInstalled}" IsEnabled="{Binding Locker.IsFree}" />
+    </Panel>
+  </DockPanel>
+</UserControl>

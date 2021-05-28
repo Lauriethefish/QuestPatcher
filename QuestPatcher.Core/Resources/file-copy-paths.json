@@ -1,0 +1,28 @@
+﻿{
+  "com.AnotherAxiom.GorillaTag": [
+    {
+      "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/GorillaCosmetics/Hats/",
+      "nameSingular": "Gorilla Tag hat",
+      "namePlural": "Gorilla Tag hats",
+      "supportedExtensions": [ "hat" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/MonkeMapLoader/CustomMaps/",
+      "nameSingular": "Gorilla Tag map",
+      "namePlural": "Gorilla Tag maps",
+      "supportedExtensions": [ "gtmap" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/GorillaCosmetics/Materials/",
+      "nameSingular": "Gorilla Tag material",
+      "namePlural": "Gorilla Tag Materials",
+      "supportedExtensions": [ "gmat" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/MonkeSkies/",
+      "nameSingular": "MonkeSkies background",
+      "namePlural": "MonkeSkies backgrounds",
+      "supportedExtensions": [ "png", "jpg", "jpeg" ]
+    }
+  ]
+}

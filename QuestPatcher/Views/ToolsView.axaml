@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="QuestPatcher.Views.ToolsView">
+  <Grid Margin="20 0 20 20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="70*"/>
+      <RowDefinition Height="30*"/>
+      <RowDefinition />
+    </Grid.RowDefinitions>
+    <StackPanel Grid.Row="0" Spacing="10">
+      <StackPanel Orientation="Horizontal" Spacing="15">
+        <TextBlock FontSize="20">Tools</TextBlock>
+        <TextBlock FontSize="10" VerticalAlignment="Bottom" FontWeight="Light">Useful for troubleshooting issues and managing your install.</TextBlock>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Command="{Binding UninstallApp}" IsEnabled="{Binding Locker.IsFree}">Uninstall App</Button>
+        <TextBlock VerticalAlignment="Center" FontSize="12">Uninstalls your selected app.</TextBlock>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Command="{Binding OpenLogsFolder}">Open Logs Folder</Button>
+        <TextBlock VerticalAlignment="Center" FontSize="12">Opens the folder where QP stores logs.</TextBlock>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button IsEnabled="{Binding Locker.IsAdbAvailable}" Command="{Binding ToggleAdbLog}" Content="{Binding AdbButtonText}"/>
+        <TextBlock VerticalAlignment="Center" FontSize="12">
+          Starts an ADB log - you must keep your quest plugged in while you use this.
+Useful for debugging mods not loading or other crashes.
+        </TextBlock>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Command="{Binding QuickFix}" IsEnabled="{Binding Locker.IsFree}">Quick Fix</Button>
+        <TextBlock VerticalAlignment="Center" FontSize="12">Clears cached QuestPatcher &amp; apktool data - try this if something isn't working.</TextBlock>
+      </StackPanel>
+    </StackPanel>
+    <StackPanel Grid.Row="1" Margin="0 20 0 0" Spacing="10">
+      <StackPanel Orientation="Horizontal" Spacing="20">
+        <TextBlock FontSize="20">Options</TextBlock>
+        <TextBlock FontSize="10" VerticalAlignment="Bottom" FontWeight="Light">QuestPatcher Settings.</TextBlock>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <ToggleButton IsChecked="{Binding Config.PauseBeforeCompile}">Pause after Patching</ToggleButton>
+        <TextBlock VerticalAlignment="Center" FontSize="12">Shows a prompt after patching the APK, but before recompiling.
+Useful to manually modify the APK during testing.</TextBlock>
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Command="{Binding ChangeApp}">Change App</Button>
+        <TextBlock VerticalAlignment="Center" FontSize="12">
+          Allows you to select a different application to mod
+        </TextBlock>
+      </StackPanel>
+    </StackPanel>
+    <ProgressBar Grid.Row="2" Width="500" Margin="0 15 0 0" IsIndeterminate="True" IsVisible="{Binding !Locker.IsFree}" HorizontalAlignment="Center" />
+  </Grid>
+</UserControl>

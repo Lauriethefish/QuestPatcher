@@ -1,0 +1,391 @@
+﻿
+using Serilog.Core;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Threading.Tasks;
+using System.Linq;
+
+namespace QuestPatcher.Core
+{
+    /// <summary>
+    /// Thrown whenever the standard or error output of ADB contains "failed" or "error"
+    /// </summary>
+    public class AdbException : Exception
+    {
+        public AdbException(string message) : base(message) { }
+    }
+
+    public enum DisconnectionType
+    {
+        NoDevice,
+        MultipleDevices,
+        DeviceOffline,
+        Unauthorized
+    }
+
+    public static class ContainsExtensions
+    {
+        public static bool ContainsIgnoreCase(this string str, string other)
+        {
+            return str.IndexOf(other, 0, StringComparison.CurrentCultureIgnoreCase) != -1;
+        }
+    }
+
+    /// <summary>
+    /// Abstraction over using ADB to interact with the Quest.
+    /// </summary>
+    public class AndroidDebugBridge
+    {
+        /// <summary>
+        /// Words that will cause running an ADB command to throw an exception if found in the output
+        /// </summary>
+        private static readonly string[] _failedWords = new string[]
+        {
+            "error",
+            "failed"
+        };
+
+        /// <summary>
+        /// Package names that will not be included in the apps to patch list
+        /// </summary>
+        private static readonly string[] _defaultPackagePrefixes = new string[]
+        {
+            "com.oculus",
+            "com.android",
+            "android",
+            "com.qualcomm",
+            "com.facebook",
+            "oculus",
+            "com.weloveoculus.BMBF"
+        };
+
+        public event EventHandler? StoppedLogging;
+
+        private readonly Logger _logger;
+        private readonly ExternalFilesDownloader _filesDownloader;
+        private readonly Func<DisconnectionType, Task> _onDisconnect;
+        private readonly string _adbExecutableName = OperatingSystem.IsWindows() ? "adb.exe" : "adb";
+
+        private string? _adbPath;
+        private Process? _logcatProcess;
+
+        public AndroidDebugBridge(Logger logger, ExternalFilesDownloader filesDownloader, Func<DisconnectionType, Task> onDisconnect)
+        {
+            _logger = logger;
+            _filesDownloader = filesDownloader;
+            _onDisconnect = onDisconnect;
+        }
+
+        /// <summary>
+        /// Scans str for keywords that would suggest that it failed. If there are any, this will throw AdbException
+        /// </summary>
+        /// <param name="str">The string to scan</param>
+        private static void ThrowIfFailed(string str)
+        {
+            foreach(string failedMsg in _failedWords)
+            {
+                if(str.ContainsIgnoreCase(failedMsg))
+                {
+                    throw new AdbException(str);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Uses chmod to make ADB executable, only necessary on mac and linux
+        /// </summary>
+        private async Task MakeAdbExecutable()
+        {
+            Process process = new();
+
+            string command = $"chmod +x {_adbPath}";
+
+            process.StartInfo.FileName = "/bin/bash";
+            process.StartInfo.Arguments = "-c \" " + command.Replace("\"", "\\\"") + " \"";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.Start();
+
+            await process.WaitForExitAsync();
+        }
+
+        /// <summary>
+        /// Checks if ADB is on PATH, and downloads it if not
+        /// </summary>
+        public async Task PrepareAdbPath()
+        {
+            try
+            {
+                await ProcessUtil.InvokeAndCaptureOutput(_adbExecutableName, "-version");
+                // If the ADB EXE is already on PATH, we can just use that
+                _adbPath = _adbExecutableName;
+                _logger.Information("Located ADB install on PATH");
+            }
+            catch (Win32Exception) // Thrown if the file we attempted to execute does not exist (on mac & linux as well, despite saying Win32)
+            {
+                // Otherwise, we download the tool and make it executable (only necessary on mac & linux)
+                _adbPath = await _filesDownloader.GetFileLocation(ExternalFileType.PlatformTools); // Download ADB if it hasn't been already
+
+                if(OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+                {
+                    await MakeAdbExecutable();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Runs <code>adb (command)</code> and returns the result.
+        /// AdbException is thrown if the result contains "failed" or "error"
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public async Task<ProcessOutput> RunCommand(string command)
+        {
+            if(_adbPath == null)
+            {
+                await PrepareAdbPath();
+            }
+            Debug.Assert(_adbPath != null);
+
+            _logger.Debug($"Executing ADB command: adb {command}");
+            while (true)
+            {
+                ProcessOutput output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, command);
+                _logger.Verbose($"Standard output: {output.StandardOutput}");
+                if (output.ErrorOutput.Length > 0)
+                {
+                    _logger.Verbose($"Error output: {output.ErrorOutput}");
+                }
+
+                // We repeatedly prompt the user to plug in their quest if it is not plugged in, or the device is offline, or if there are multiple devices
+                if (output.ErrorOutput.Contains("no devices/emulators found"))
+                {
+                    await _onDisconnect(DisconnectionType.NoDevice);
+                }
+                else if(output.ErrorOutput.Contains("device offline"))
+                {
+                    await _onDisconnect(DisconnectionType.DeviceOffline);
+                }   else if(output.ErrorOutput.Contains("multiple devices"))
+                {
+                    await _onDisconnect(DisconnectionType.MultipleDevices);
+                }   else if(output.ErrorOutput.Contains("unauthorized"))
+                {
+                    await _onDisconnect(DisconnectionType.Unauthorized);
+                }
+                else
+                {
+                    // Check the output for errors
+                    ThrowIfFailed(output.StandardOutput);
+                    ThrowIfFailed(output.ErrorOutput);
+
+                    return output;
+                }
+            }
+        }
+
+        public async Task DownloadFile(string name, string destination)
+        {
+            await RunCommand($"pull \"{FixPath(name)}\" \"{destination}\"");
+        }
+
+        public async Task UploadFile(string name, string destination)
+        {
+            await RunCommand($"push \"{name}\" \"{FixPath(destination)}\"");
+        }
+
+        /// <summary>
+        /// ADB does not like backward slashes in upload/download paths.
+        /// This fixes the paths to not contain these slashes.
+        /// The backslashes are added by Path.Combine on the windows side
+        /// </summary>
+        /// <param name="path">The path to fix</param>
+        /// <returns>The fixed path</returns>
+        private static string FixPath(string path)
+        {
+            return path.Replace('\\', '/');
+        }
+
+        public async Task DownloadApk(string packageId, string destination)
+        {
+            // Pull the path of the app from the Android package manager, then remove the formatting that ADB adds
+            string rawAppPath = (await RunCommand($"shell pm path {packageId}")).StandardOutput;
+            string appPath = rawAppPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", "");
+
+            await DownloadFile(appPath, destination);
+        }
+
+        public async Task UninstallApp(string packageId)
+        {
+            await RunCommand($"uninstall {packageId}");
+        }
+
+        public async Task<bool> IsPackageInstalled(string packageId)
+        {
+            string result = (await RunCommand($"shell pm list packages {packageId}")).StandardOutput; // List packages with the specified ID
+            return result.Contains(packageId); // The result is "package:packageId", so we check if the packageId is within that result. If it isn't the result will be empty, so this will return false
+        }
+
+        public async Task<List<string>> ListPackages()
+        {
+            string output = (await RunCommand($"shell pm list packages")).StandardOutput;
+            List<string> result = new();
+            foreach(string package in output.Split("\n"))
+            {
+                string trimmed = package.Trim();
+                if(trimmed.Length == 0) { continue; }
+                result.Add(trimmed[8..]); // Remove the "package:" from the package ID
+            }
+
+            return result;
+        }
+
+        public async Task<List<string>> ListNonDefaultPackages()
+        {
+            return (await ListPackages()).Where(packageId => !_defaultPackagePrefixes.Where(defaultPackageId => packageId.StartsWith(defaultPackageId)).Any()).ToList();
+        }
+
+        public async Task<string> GetPackageVersion(string packageId)
+        {
+            return (await RunCommand($"shell dumpsys \"package {packageId} | grep versionName\"")).StandardOutput.Remove(0, 16).Trim();
+        }
+
+        public async Task InstallApp(string apkPath)
+        {
+            await RunCommand($"install \"{apkPath}\"");
+        }
+
+        public async Task CreateDirectory(string path)
+        {
+            await RunCommand($"shell mkdir -p \"{FixPath(path)}\"");
+        }
+
+        public async Task RemoveFile(string path)
+        {
+            await RunCommand($"shell rm \"{FixPath(path)}\"");
+        }
+
+        public async Task RemoveDirectory(string path)
+        {
+            await RunCommand($"shell rm -r \"{FixPath(path)}\"");
+        }
+
+        public async Task CopyFile(string path, string destination)
+        {
+            await RunCommand($"shell cp \"{FixPath(path)}\" \"{FixPath(destination)}\"");
+        }
+
+        public async Task ExtractArchive(string path, string outputFolder)
+        {
+            await CreateDirectory(outputFolder);
+            await RunCommand($"shell unzip \"{path}\" -o -d \"{outputFolder}\"");
+        }
+
+        public async Task<List<string>> ListDirectoryFiles(string path, bool onlyFileName = false)
+        {
+            path = FixPath(path);
+            string filesNonSplit = (await RunCommand($"shell \"ls -p \\\"{path}\\\" | grep -v /\"")).StandardOutput;
+
+            return ParsePaths(filesNonSplit, path, onlyFileName);
+        }
+
+        public async Task<List<string>> ListDirectoryFolders(string path, bool onlyFolderName = false)
+        {
+            path = FixPath(path);
+            string foldersNonSplit = (await RunCommand($"shell \"ls -p \\\"{path}\\\" | grep /\"")).StandardOutput;
+
+            return ParsePaths(foldersNonSplit, path, onlyFolderName);
+        }
+
+        private static List<string> ParsePaths(string str, string path, bool onlyNames)
+        {
+            // Remove unnecessary padding that ADB adds to get purely the paths
+            string[] rawPaths = str.Split("\n");
+            List<string> parsedPaths = new();
+            for (int i = 0; i < rawPaths.Length - 1; i++)
+            {
+                string currentPath = rawPaths[i].Replace("\r", "");
+                if (currentPath[^1] == ':') // Directories within this one that aren't the first index lead to this
+                {
+                    break;
+                }
+
+                if (onlyNames)
+                {
+                    parsedPaths.Add(currentPath);
+                }
+                else
+                {
+                    parsedPaths.Add(Path.Combine(path, currentPath));
+                }
+            }
+
+            return parsedPaths;
+        }
+
+        /// <summary>
+        /// Starts an ADB log, saved to logFile as the logs are received
+        /// </summary>
+        /// <param name="logFile">The file to save the log to. Will be overwritten if it exists</param>
+        public async Task StartLogging(string logFile)
+        {
+            if (_adbPath == null)
+            {
+                await PrepareAdbPath();
+            }
+            Debug.Assert(_adbPath != null);
+
+            TextWriter outputWriter = new StreamWriter(File.OpenWrite(logFile));
+
+            // We can't just use RunCommand, that would be very inefficient as we'd store the whole log in memory before saving
+            // Instead, we redirect the standard output to the file as it is written
+            _logcatProcess = new Process();
+            ProcessStartInfo startInfo = _logcatProcess.StartInfo;
+            startInfo.FileName = _adbPath;
+            startInfo.Arguments = "logcat";
+            startInfo.RedirectStandardOutput = true;
+            startInfo.UseShellExecute = false;
+            startInfo.CreateNoWindow = true;
+
+            _logcatProcess.EnableRaisingEvents = true;
+
+            _logcatProcess.OutputDataReceived += (sender, args) =>
+            {
+                // Sometimes ADB attempts to send data after the process exists for whatever reason, so we need to handle that
+                try
+                {
+                    if (args.Data != null) { outputWriter.WriteLine(args.Data); }
+                }
+                catch (ObjectDisposedException)
+                {
+                    _logger.Debug("ADB attempted to send data after it was closed");
+                }
+            };
+
+            _logcatProcess.Start();
+            _logcatProcess.BeginOutputReadLine();
+
+            _logcatProcess.Exited += (sender, args) =>
+            {
+                outputWriter.Close();
+                StoppedLogging?.Invoke(this, args); // Used to tell the UI to change back to normal instead of "Stop ADB log"
+            };
+        }
+
+        /// <summary>
+        /// Stops the currently running logcat, if there is one
+        /// </summary>
+        public void StopLogging()
+        {
+            _logcatProcess?.Kill();
+        }
+
+        public async Task KillServer()
+        {
+            await RunCommand($"kill-server");
+        }
+    }
+}
