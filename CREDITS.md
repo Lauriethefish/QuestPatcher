@@ -4,3 +4,5 @@
 - [Bobbie](https://github.com/legoandmars) for the [logo](https://raw.githubusercontent.com/Lauriethefish/QuestPatcher/rewrite/QuestPatcher/Assets/questpatcher-logo.ico).
 - [Marcus Zhou](https://github.com/SuperMarcus) for the code for patching with debugging support.
 - [Raemien](https://github.com/Raemien) for the code for patching with hand tracking permissions.
+
+- [Avalonia controls gallery](https://github.com/AvaloniaUI/XamlControlsGallery), for the great [sidebar styling](https://github.com/AvaloniaUI/XamlControlsGallery/blob/master/XamlControlsGallery/Styles/SideBar.xaml).
