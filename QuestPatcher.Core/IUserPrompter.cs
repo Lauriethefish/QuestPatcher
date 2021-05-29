@@ -11,8 +11,6 @@ namespace QuestPatcher.Core
     {
         Task<bool> PromptAppNotInstalled();
 
-        Task PromptMissingJava();
-
         Task<bool> PromptAdbDisconnect(DisconnectionType type);
 
         Task<bool> PromptUnstrippedUnityUnavailable();

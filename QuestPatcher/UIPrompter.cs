@@ -57,35 +57,6 @@ namespace QuestPatcher
             return builder.OpenDialogue(_mainWindow);
         }
 
-        public async Task PromptMissingJava()
-        {
-            DialogBuilder builder = new()
-            {
-                Title = "Java Not Installed",
-                Text = "Java is not installed on your computer. QuestPatcher requires Java to decompile and sign the APK",
-                HideCancelButton = true
-            };
-            builder.OkButton.Text = "Close QuestPatcher";
-
-            builder.WithButtons(
-                new ButtonInfo
-                {
-                    Text = "Download Java",
-                    OnClick = () =>
-                    {
-                        ProcessStartInfo psi = new()
-                        {
-                            FileName = "https://java.com/",
-                            UseShellExecute = true
-                        };
-                        Process.Start(psi);
-                    }
-                }
-            );
-
-            await builder.OpenDialogue(_mainWindow);
-        }
-
         public Task<bool> PromptAdbDisconnect(DisconnectionType type)
         {
             DialogBuilder builder = new();
