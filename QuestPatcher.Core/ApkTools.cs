@@ -39,6 +39,7 @@ namespace QuestPatcher.Core
             try
             {
                 string javaVersion = (await InvokeJava("-version")).ErrorOutput;
+                _logger.Information("Located Java install on PATH");
                 _logger.Debug($"Java version: {javaVersion}");
                 return true;
             }
