@@ -73,8 +73,7 @@ namespace QuestPatcher.Core.Modding
             DateTime beforeStart = DateTime.UtcNow;
             _logger.Information("Loading mods . . .");
 
-            await Task.WhenAll(_debugBridge.CreateDirectory(InstalledModsPath), _debugBridge.CreateDirectory(ModsPath), _debugBridge.CreateDirectory(LibsPath));
-
+            await CreateModsDirectories();
             _logger.Debug("Listing files in mods, libs and installedMods . . .");
             Task<List<string>> modFoldersTask = _debugBridge.ListDirectoryFolders(InstalledModsPath, false);
             Task<List<string>> modFilesTask = _debugBridge.ListDirectoryFiles(ModsPath, true);
@@ -95,6 +94,14 @@ namespace QuestPatcher.Core.Modding
             await Task.WhenAll(loadTasks);
 
             _logger.Information($"{AllMods.Count} mods loaded in {(DateTime.UtcNow - beforeStart).TotalMilliseconds}ms!");
+        }
+
+        /// <summary>
+        /// Creates the mods, libs and installedMods folders for the current app if they do not already exist
+        /// </summary>
+        private Task CreateModsDirectories()
+        {
+            return Task.WhenAll(_debugBridge.CreateDirectory(InstalledModsPath), _debugBridge.CreateDirectory(ModsPath), _debugBridge.CreateDirectory(LibsPath));
         }
 
         /// <summary>
@@ -426,6 +433,7 @@ namespace QuestPatcher.Core.Modding
             {
                 installedInBranch = new List<string>();
             }
+            await CreateModsDirectories();
 
             _logger.Information($"Installing mod {mod.Id}");
 
@@ -473,6 +481,7 @@ namespace QuestPatcher.Core.Modding
         public async Task UninstallMod(Mod mod)
         {
             _logger.Information($"Uninstalling mod {mod.Id} . . .");
+            await CreateModsDirectories();
 
             // Remove mod SOs so that the mod will not load
             foreach (string modFilePath in mod.ModFiles)
