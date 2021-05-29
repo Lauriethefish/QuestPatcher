@@ -13,7 +13,7 @@ namespace QuestPatcher.Core
     {
         private readonly Logger _logger;
         private readonly ExternalFilesDownloader _filesDownloader;
-        private readonly string _javaExecutableName;
+        private string _javaExecutableName;
 
         public ApkTools(Logger logger, ExternalFilesDownloader filesDownloader)
         {
@@ -34,7 +34,7 @@ namespace QuestPatcher.Core
             return await InvokeJava($"-jar {path} {args}");
         }
 
-        public async Task<bool> IsJavaInstalled()
+        public async Task<bool> PrepareJavaInstall()
         {
             try
             {
@@ -44,6 +44,8 @@ namespace QuestPatcher.Core
             }
             catch (Win32Exception) // Thrown if the executable is missing, even on Linux. Slight .NET quirk.
             {
+                // Download Java if it is not installed
+                _javaExecutableName = await _filesDownloader.GetFileLocation(ExternalFileType.Jre);
                 return false;
             }
         }

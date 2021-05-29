@@ -108,12 +108,7 @@ namespace QuestPatcher.Core
         {
             HasLoaded = false;
             _logger.Information("Starting QuestPatcher . . .");
-            if (!await _apkTools.IsJavaInstalled())
-            {
-                await _prompter.PromptMissingJava();
-                ExitApplication();
-            }
-            _logger.Information("Java is installed");
+            await _apkTools.PrepareJavaInstall();
 
             if(!await _androidDebugBridge.IsPackageInstalled(AppId))
             {
@@ -143,6 +138,28 @@ namespace QuestPatcher.Core
             {
                 ExitApplication();
             }
+        }
+
+        /// <summary>
+        /// Clears cached QuestPatcher files, and deletes APKtool temporary files.
+        /// This really shouldn't be necessary, but often fixes issues.
+        /// The "partially extracted download" or "partially downloaded file" causing issues shouldn't be a thing with the new file download system, however this is here just in case it still is.
+        /// </summary>
+        public async Task QuickFix()
+        {
+            _logger.Information("Deleting apktool temp files . . .");
+            // Apktool temporary files sometimes get corrupted, so we delete them
+            string apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "apktool");
+            if (Directory.Exists(apkToolFilesPath))
+            {
+                Directory.Delete(apkToolFilesPath, true);
+            }
+
+            await _androidDebugBridge.KillServer(); // Allow ADB to be deleted
+                                             // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side
+            await _filesDownloader.ClearCache();
+            await _androidDebugBridge.PrepareAdbPath(); // Redownload ADB if necessary
+            await _apkTools.PrepareJavaInstall(); // Redownload Java if necessary
         }
     }
 }

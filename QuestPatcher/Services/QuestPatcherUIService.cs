@@ -61,7 +61,7 @@ namespace QuestPatcher.Services
                     new PatchingViewModel(Config, _operationLocker, _patchingManager, window, _logger, ExitApplication),
                     new ManageModsViewModel(_modManager, _patchingManager, window, _operationLocker, _browseManager),
                     _loggingViewModel,
-                    new ToolsViewModel(Config, _operationLocker, window, _specialFolders, _logger, _patchingManager, _filesDownloader, _androidDebugBridge, this),
+                    new ToolsViewModel(Config, _operationLocker, window, _specialFolders, _logger, _patchingManager, _androidDebugBridge, this),
                     Config,
                     _patchingManager,
                     _browseManager,

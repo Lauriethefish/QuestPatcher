@@ -17,7 +17,8 @@ namespace QuestPatcher.Core
         Main64,
         UberApkSigner,
         ApkTool,
-        PlatformTools
+        PlatformTools,
+        Jre,
     }
 
     /// <summary>
@@ -32,7 +33,7 @@ namespace QuestPatcher.Core
         {
             /// <summary>
             /// Name of the file when saved.
-            /// Tools folder relative if RequiresExtraction is true, otherwise data folder relative.
+            /// Tools folder relative if RequiresExtraction is true, otherwise extraction folder relative.
             /// 
             /// If RequiresExtraction is true, this should be the name of a file within the ZIP
             /// </summary>
@@ -69,7 +70,9 @@ namespace QuestPatcher.Core
             public string LinuxDownloadUrl { get; set; } = "";
             public string MacDownloadUrl { get; set; } = "";
 
-            public bool RequiresExtraction { get; set; } = false; // Will be extracted at the data path
+            public string Name => ExtractionFolder ?? SaveName;
+
+            public string? ExtractionFolder { get; set; }
         }
 
         private readonly Dictionary<ExternalFileType, FileInfo> _fileTypes = new()
@@ -126,11 +129,22 @@ namespace QuestPatcher.Core
                 ExternalFileType.PlatformTools,
                 new FileInfo
                 {
-                    SaveName = "platform-tools/adb.exe", // Purely used to check if the download finished in the case of upgrading from a version where completedDownloads.dat is not a thing.
+                    SaveName = "platform-tools/adb.exe",
                     WindowsDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
                     LinuxDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
                     MacDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
-                    RequiresExtraction = true
+                    ExtractionFolder = "platform-tools"
+                }
+            },
+            {
+                ExternalFileType.Jre,
+                new FileInfo
+                {
+                    SaveName = "jdk-11.0.11+9-jre/bin/java.exe",
+                    WindowsDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.11_9.zip",
+                    LinuxDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_linux_hotspot_11.0.11_9.tar.gz",
+                    MacDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_mac_hotspot_11.0.11_9.tar.gz",
+                    ExtractionFolder = "openjre"
                 }
             }
         };
@@ -142,8 +156,6 @@ namespace QuestPatcher.Core
         private readonly SpecialFolders _specialFolders;
         private readonly Logger _logger;
         private readonly WebClient _webClient = new();
-
-        private bool _downloadsFileMissing;
 
         public ExternalFilesDownloader(SpecialFolders specialFolders, Logger logger)
         {
@@ -158,11 +170,9 @@ namespace QuestPatcher.Core
                 {
                     _fullyDownloaded.Add(Enum.Parse<ExternalFileType>(fileType));
                 }
-                _downloadsFileMissing = false;
             }
             catch (FileNotFoundException)
             {
-                _downloadsFileMissing = true;
                 _fullyDownloaded = new();
             }
         }
@@ -170,13 +180,12 @@ namespace QuestPatcher.Core
         private async Task SaveFullyDownloaded()
         {
             await File.WriteAllLinesAsync(_fullyDownloadedPath, _fullyDownloaded.ConvertAll(fileType => fileType.ToString()));
-            _downloadsFileMissing = false;
         }
 
         private async Task DownloadFile(ExternalFileType fileType, FileInfo fileInfo, string saveLocation)
         {
-            _logger.Information($"Downloading {(fileInfo.RequiresExtraction ? Path.GetDirectoryName(fileInfo.SaveName) : fileInfo.SaveName)} . . .");
-            if (fileInfo.RequiresExtraction)
+            _logger.Information($"Downloading {fileInfo.Name} . . .");
+            if (fileInfo.ExtractionFolder != null)
             {
                 using Stream stream = _webClient.OpenRead(fileInfo.PlatformSpecificUrl); // Temporarily download the archive in order to extract it
 
@@ -184,8 +193,10 @@ namespace QuestPatcher.Core
                 _logger.Information("Extracting . . .");
                 await Task.Run(() =>
                 {
+                    string extractFolder = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder); 
+
                     ZipArchive archive = new(stream);
-                    archive.ExtractToDirectory(_specialFolders.DataFolder, true);
+                    archive.ExtractToDirectory(extractFolder, true);
                 });
             }
             else
@@ -203,12 +214,25 @@ namespace QuestPatcher.Core
         public async Task<string> GetFileLocation(ExternalFileType fileType)
         {
             FileInfo fileInfo = _fileTypes[fileType];
-            // The save location is data folder relative if requires extraction, otherwise it is tools folder relative
-            string saveLocation = Path.Combine(fileInfo.RequiresExtraction ? _specialFolders.DataFolder : _specialFolders.ToolsFolder, fileInfo.SaveName);
 
-            // If the downloads file existed upon startup, we redownload if the file is missing in the downloads file.
-            // Otherwise, we only redownload if the file is missing, which is not ideal.
-            if(!_downloadsFileMissing && !_fullyDownloaded.Contains(fileType) || (_downloadsFileMissing && !File.Exists(fileInfo.SaveName)))
+            // Remove .exe on non-windows
+            if(Path.GetExtension(fileInfo.SaveName) == ".exe" && !OperatingSystem.IsWindows())
+            {
+                fileInfo.SaveName = fileInfo.SaveName[^4..];
+            }
+
+            // The save location is relative to the extract folder if requires extraction, otherwise it's just relative to the tools folder
+            string saveLocation;
+            if (fileInfo.ExtractionFolder == null)
+            {
+                saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.SaveName);
+            }
+            else
+            {
+                saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder, fileInfo.SaveName);
+            }
+
+            if(!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation))
             {
                 await DownloadFile(fileType, fileInfo, saveLocation);
             }
@@ -216,6 +240,10 @@ namespace QuestPatcher.Core
             return saveLocation;
         }
 
+        /// <summary>
+        /// Clears all downloaded files.
+        /// Used in quick fix in case the files are corrupted
+        /// </summary>
         public async Task ClearCache()
         {
             _logger.Information("Clearing downloaded file cache . . .");
@@ -224,25 +252,6 @@ namespace QuestPatcher.Core
                 _logger.Debug($"Deleting {_specialFolders.ToolsFolder} . . .");
                 Directory.Delete(_specialFolders.ToolsFolder, true); // Also deletes the saved downloaded files file
                 _fullyDownloaded.Clear();
-
-                foreach (FileInfo fileInfo in _fileTypes.Values)
-                {
-                    // RequiresExtraction files are expected to be a folder in the data folder and the SaveName's folder should be the path of this folder
-                    // TODO: RequiresExtraction files should probably be in the ToolsFolder as well, this just hasn't been done to avoid downloading platform-tools multiple times if somebody is upgrading from an older version
-                    if (fileInfo.RequiresExtraction)
-                    {
-                        string? relativeName = Path.GetDirectoryName(fileInfo.SaveName);
-                        Debug.Assert(relativeName != null);
-
-                        string absolutePath = Path.Combine(_specialFolders.DataFolder, relativeName);
-                        _logger.Debug($"Deleting {absolutePath} . . .");
-                        if (Directory.Exists(absolutePath))
-                        {
-                            Directory.Delete(absolutePath, true);
-                        }
-                    }
-                }
-
             });
             _logger.Information("Recreating tools folder . . .");
             Directory.CreateDirectory(_specialFolders.ToolsFolder);

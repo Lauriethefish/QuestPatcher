@@ -27,11 +27,10 @@ namespace QuestPatcher.ViewModels
         private readonly SpecialFolders _specialFolders;
         private readonly Logger _logger;
         private readonly PatchingManager _patchingManager;
-        private readonly ExternalFilesDownloader _filesDownloader;
         private readonly AndroidDebugBridge _debugBridge;
         private readonly QuestPatcherUIService _uiService;
 
-        public ToolsViewModel(Config config, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, ExternalFilesDownloader filesDownloader, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService)
+        public ToolsViewModel(Config config, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService)
         {
             Config = config;
             Locker = locker;
@@ -40,7 +39,6 @@ namespace QuestPatcher.ViewModels
             _specialFolders = specialFolders;
             _logger = logger;
             _patchingManager = patchingManager;
-            _filesDownloader = filesDownloader;
             _debugBridge = debugBridge;
             _uiService = uiService;
 
@@ -97,18 +95,7 @@ namespace QuestPatcher.ViewModels
             Locker.StartOperation(true); // ADB is not available during a quick fix, as we redownload platform-tools
             try
             {
-                _logger.Information("Deleting apktool temp files . . .");
-                // Apktool temporary files sometimes get corrupted, so we delete them
-                string apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "apktool");
-                if(Directory.Exists(apkToolFilesPath))
-                {
-                    Directory.Delete(apkToolFilesPath, true);
-                }
-
-                await _debugBridge.KillServer(); // Allow ADB to be deleted
-                // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side
-                await _filesDownloader.ClearCache();
-                await _debugBridge.PrepareAdbPath(); // Redownload ADB if necessary
+                await _uiService.QuickFix();
                 _logger.Information("Done!");
             }
             catch (Exception ex)
