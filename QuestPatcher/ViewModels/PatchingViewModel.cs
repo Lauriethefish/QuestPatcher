@@ -60,20 +60,6 @@ namespace QuestPatcher.ViewModels
             {
                 await _patchingManager.PatchApp();
                 IsPatchingInProgress = false;
-
-                Debug.Assert(_patchingManager.InstalledApp != null);
-                if(_patchingManager.InstalledApp.IsModded)
-                {
-                    // Display a dialogue to give the user some info about what to expect next, and to avoid them pressing restore app by mistake
-                    _logger.Debug("Patching completed successfully, displaying info dialogue");
-                    DialogBuilder builder = new()
-                    {
-                        Title = "Patching Complete!",
-                        Text = "Your installation is now modded!\nYou can now access installed mods, cosmetics, etc.\n\nNOTE: If you see a restore app prompt inside your headset, just press close. The chance of getting banned for modding is virtually zero, so it's nothing to worry about.",
-                        HideCancelButton = true
-                    };
-                    await builder.OpenDialogue(_mainWindow);
-                }
             }
             catch (Exception ex)
             {
@@ -89,9 +75,24 @@ namespace QuestPatcher.ViewModels
 
                 await builder.OpenDialogue(_mainWindow);
                 _quit();
+                return;
             }   finally
             {
                 Locker.FinishOperation();
+            }
+
+            Debug.Assert(_patchingManager.InstalledApp != null); // Cannot get to this screen without having loaded the installed app
+            if (_patchingManager.InstalledApp.IsModded)
+            {
+                // Display a dialogue to give the user some info about what to expect next, and to avoid them pressing restore app by mistake
+                _logger.Debug("Patching completed successfully, displaying info dialogue");
+                DialogBuilder builder = new()
+                {
+                    Title = "Patching Complete!",
+                    Text = "Your installation is now modded!\nYou can now access installed mods, cosmetics, etc.\n\nNOTE: If you see a restore app prompt inside your headset, just press close. The chance of getting banned for modding is virtually zero, so it's nothing to worry about.",
+                    HideCancelButton = true
+                };
+                await builder.OpenDialogue(_mainWindow);
             }
         }
 
