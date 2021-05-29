@@ -24,10 +24,6 @@ namespace QuestPatcher.ViewModels
         public ToolsViewModel ToolsView { get; }
 
         public Config Config { get; }
-
-        public string ApkVersion => $"APK Version: {AppInfo.Version}";
-        public string ApkArchitecture => "APK Arch: " + (AppInfo.Is64Bit ? "64 Bit" : "32 Bit");
-
         public ApkInfo AppInfo
         {
             get
@@ -59,8 +55,6 @@ namespace QuestPatcher.ViewModels
                 {
                     this.RaisePropertyChanged(nameof(AppInfo));
                     this.RaisePropertyChanged(nameof(SelectedAppText));
-                    this.RaisePropertyChanged(nameof(ApkVersion));
-                    this.RaisePropertyChanged(nameof(ApkArchitecture));
                 }
             };
         }

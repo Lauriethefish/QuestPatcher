@@ -52,6 +52,6 @@ Useful to manually modify the APK during testing.</TextBlock>
         </TextBlock>
       </StackPanel>
     </StackPanel>
-    <ProgressBar Grid.Row="2" Width="500" Margin="0 15 0 0" IsIndeterminate="True" IsVisible="{Binding !Locker.IsFree}" HorizontalAlignment="Center" />
+    <UserControl Grid.Row="2" Width="500" Margin="0 15 0 0" Content="{Binding ProgressView}" HorizontalAlignment="Center" />
   </Grid>
 </UserControl>

@@ -40,8 +40,10 @@
     <StackPanel Margin="25" VerticalAlignment="Bottom" HorizontalAlignment="Left" Spacing="30">
       <ToggleSwitch IsChecked="{Binding Config.DisplayLogs}">Display Logs</ToggleSwitch>
       <StackPanel>
-        <TextBlock Text="{Binding ApkVersion}" FontWeight="Light" FontSize="12" />
+        <TextBlock Text="{Binding AppInfo.Version, StringFormat=APK Version: {0}}" FontWeight="Light" FontSize="12" />
         <TextBlock Text="{Binding ApkArchitecture}" FontWeight="Light" FontSize="12" />
+        <TextBlock Text="APK is 64 bit" IsVisible="{Binding AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
+        <TextBlock Text="APK is 32 bit" IsVisible="{Binding !AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
         <TextBlock Text="APK is modded" IsVisible="{Binding AppInfo.IsModded}" FontWeight="Light" FontSize="12" />
         <TextBlock Text="APK is not modded" IsVisible="{Binding !AppInfo.IsModded}" FontWeight="Light" FontSize="12" />
       </StackPanel>

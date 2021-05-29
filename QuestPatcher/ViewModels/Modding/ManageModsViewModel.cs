@@ -17,11 +17,11 @@ namespace QuestPatcher.ViewModels.Modding
 
         public ModListViewModel LibrariesList { get; }
 
-        public OperationLocker Locker { get; }
+        public ProgressViewModel ProgressView { get; }
 
-        public ManageModsViewModel(ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker, BrowseImportManager browseManager)
+        public ManageModsViewModel(ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker, ProgressViewModel progressView, BrowseImportManager browseManager)
         {
-            Locker = locker;
+            ProgressView = progressView;
             ModsList = new ModListViewModel("Mods", true, modManager.Mods, modManager, patchingManager, mainWindow, locker, browseManager);
             LibrariesList = new ModListViewModel("Libraries", false, modManager.Libraries, modManager, patchingManager, mainWindow, locker, browseManager);
         }

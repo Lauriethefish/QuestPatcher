@@ -1,10 +1,12 @@
 ﻿using Serilog.Core;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core
@@ -27,7 +29,7 @@ namespace QuestPatcher.Core
     /// 
     /// Uses a file called completedDownloads.dat to store which files have fully downloaded - this avoids files partially downloading becoming corrupted.
     /// </summary>
-    public class ExternalFilesDownloader
+    public class ExternalFilesDownloader : INotifyPropertyChanged
     {
         private class FileInfo
         {
@@ -149,6 +151,38 @@ namespace QuestPatcher.Core
             }
         };
 
+        /// <summary>
+        /// The name of the downloading file, or null if no file is downloading
+        /// </summary>
+        public string? DownloadingFileName
+        {
+            get => _downloadingFileName;
+            private set { if(_downloadingFileName != value) { _downloadingFileName = value; NotifyPropertyChanged(); } }
+        }
+        private string? _downloadingFileName;
+
+        /// <summary>
+        /// Current download progress as a percentage, or null if no file is downloading
+        /// </summary>
+        public double? DownloadProgress
+        {
+            get => _downloadProgress;
+            private set { if(_downloadProgress != value) { _downloadProgress = value; NotifyPropertyChanged(); } }
+        }
+        private double? _downloadProgress = 0;
+
+        /// <summary>
+        /// Whether the currently downloading file is now being extracted
+        /// </summary>
+        public bool IsExtracting
+        {
+            get => _isExtracting;
+            private set { if (_isExtracting != value) { _isExtracting = value; NotifyPropertyChanged(); } }
+        }
+        private bool _isExtracting;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         private readonly string _fullyDownloadedPath = "completedDownloads.dat"; // Path in tools where completed downloads are stored for error checking
 
         private readonly List<ExternalFileType> _fullyDownloaded = new();
@@ -175,6 +209,16 @@ namespace QuestPatcher.Core
             {
                 _fullyDownloaded = new();
             }
+
+            _webClient.DownloadProgressChanged += (sender, args) =>
+            {
+                // Manually calculate the progress for better precision than the provided integer percentage
+                DownloadProgress = ((double) args.BytesReceived / args.TotalBytesToReceive) * 100.0;
+            };
+        }
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private async Task SaveFullyDownloaded()
@@ -184,33 +228,53 @@ namespace QuestPatcher.Core
 
         private async Task DownloadFile(ExternalFileType fileType, FileInfo fileInfo, string saveLocation)
         {
-            _logger.Information($"Downloading {fileInfo.Name} . . .");
-            if (fileInfo.ExtractionFolder != null)
+            try
             {
-                using Stream stream = _webClient.OpenRead(fileInfo.PlatformSpecificUrl); // Temporarily download the archive in order to extract it
+                _logger.Information($"Downloading {fileInfo.Name} . . .");
+                DownloadProgress = 0.0;
+                DownloadingFileName = fileInfo.Name;
 
-                // There is no way to asynchronously ExtractToDirectory, so we use Task.Run to avoid blocking
-                _logger.Information("Extracting . . .");
-                await Task.Run(() =>
+                if (fileInfo.ExtractionFolder != null)
                 {
-                    string extractFolder = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder); 
+                    Uri uri = new(fileInfo.PlatformSpecificUrl);
+                    byte[] archiveData = await _webClient.DownloadDataTaskAsync(uri);
+                    using MemoryStream stream = new(archiveData); // Temporarily download the archive in order to extract it
 
-                    ZipArchive archive = new(stream);
-                    archive.ExtractToDirectory(extractFolder, true);
-                });
+                    // There is no way to asynchronously ExtractToDirectory, so we use Task.Run to avoid blocking
+                    _logger.Information("Extracting . . .");
+                    IsExtracting = true;
+                    await Task.Run(() =>
+                    {
+                        string extractFolder = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder);
+
+                        ZipArchive archive = new(stream);
+                        archive.ExtractToDirectory(extractFolder, true);
+                    });
+                }
+                else
+                {
+                    // Directly download the file to the tools folder
+                    await _webClient.DownloadFileTaskAsync(fileInfo.PlatformSpecificUrl, saveLocation);
+                }
+
+                // Write that the file has been fully downloaded
+                // This is used instead of just checking that it exists to avoid exiting part way through causing a corrupted file
+                _fullyDownloaded.Add(fileType);
+                await SaveFullyDownloaded();
             }
-            else
+            finally
             {
-                // Directly download the file to the tools folder
-                await _webClient.DownloadFileTaskAsync(fileInfo.PlatformSpecificUrl, saveLocation);
+                DownloadingFileName = null;
+                DownloadProgress = null;
+                IsExtracting = false;
             }
-
-            // Write that the file has been fully downloaded
-            // This is used instead of just checking that it exists to avoid exiting part way through causing a corrupted file
-            _fullyDownloaded.Add(fileType);
-            await SaveFullyDownloaded();
         }
 
+        /// <summary>
+        /// Finds the location of the specified file, and downloads/extracts it if it does not exist.
+        /// </summary>
+        /// <param name="fileType">The type of file to download</param>
+        /// <returns>The location of the file</returns>
         public async Task<string> GetFileLocation(ExternalFileType fileType)
         {
             FileInfo fileInfo = _fileTypes[fileType];
@@ -238,6 +302,29 @@ namespace QuestPatcher.Core
             }
 
             return saveLocation;
+        }
+
+        /// <summary>
+        /// Downloads the specified URL and saves the result to a file.
+        /// This is used for the download progress indicator - instead of just using a WebClient directly.
+        /// </summary>
+        /// <param name="url">The URL to download from</param>
+        /// <param name="fileName">The file name to use for the progress indicator</param>
+        public async Task DownloadUrl(string url, string saveName)
+        {
+            try
+            {
+                DownloadProgress = 0.0;
+                DownloadingFileName = Path.GetFileName(saveName);
+
+                Uri uri = new Uri(url);
+                await _webClient.DownloadFileTaskAsync(uri, saveName);
+            }
+            finally
+            {
+                DownloadingFileName = null;
+                DownloadProgress = null;
+            }
         }
 
         /// <summary>

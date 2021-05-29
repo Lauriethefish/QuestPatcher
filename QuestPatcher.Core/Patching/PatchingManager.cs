@@ -137,7 +137,7 @@ namespace QuestPatcher.Core.Patching
             }
 
             _logger.Information("Unstripped libunity found. Downloading . . .");
-            await client.DownloadFileTaskAsync($"https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/{correctVersion}.so", Path.Combine(libsPath, "libunity.so"));
+            await _filesDownloader.DownloadUrl($"https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/{correctVersion}.so", Path.Combine(libsPath, "libunity.so"));
             return true;
         }
 

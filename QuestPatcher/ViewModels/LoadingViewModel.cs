@@ -13,12 +13,14 @@ namespace QuestPatcher.ViewModels
 {
     public class LoadingViewModel : ViewModelBase
     {
-        public LoggingViewModel LoggingView { get; set; }
+        public ProgressViewModel ProgressView { get; }
+        public LoggingViewModel LoggingView { get; }
 
         public Config Config { get; }
 
-        public LoadingViewModel(LoggingViewModel loggingView, Config config)
+        public LoadingViewModel(ProgressViewModel progressView, LoggingViewModel loggingView, Config config)
         {
+            ProgressView = progressView;
             LoggingView = loggingView;
             Config = config;
         }

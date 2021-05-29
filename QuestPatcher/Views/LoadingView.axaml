@@ -17,7 +17,7 @@
         <Panel Margin="20" IsHitTestVisible="True">
           <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="5">
             <TextBlock TextAlignment="Center">QuestPatcher loading . . .</TextBlock>
-            <ProgressBar IsIndeterminate="True" Margin="0 40" />
+            <UserControl Content="{Binding ProgressView}" Padding="20"/>
             <UserControl Content="{Binding LoggingView}" Width="470" Height="200" IsVisible="{Binding Config.DisplayLogs}" />
           </StackPanel>
           <ToggleSwitch Content="Display Logs" HorizontalAlignment="Left" IsChecked="{Binding Config.DisplayLogs}" VerticalAlignment="Bottom"/>

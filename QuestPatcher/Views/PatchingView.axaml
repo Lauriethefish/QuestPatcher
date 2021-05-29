@@ -20,14 +20,14 @@
           <TextBlock TextAlignment="Center">This may take several minutes depending on your internet connection.</TextBlock>
           <TextBlock TextAlignment="Center">Make sure that your internet does not go offline during patching.</TextBlock>
         </StackPanel>
-        <Button Command="{Binding StartPatching}" IsEnabled="{Binding Locker.IsFree}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" FontSize="15" Padding="12">Patch my App!</Button>
+        <Button Command="{Binding StartPatching}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" FontSize="15" Padding="12">Patch my App!</Button>
       </StackPanel>
     </DockPanel>
 
     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 0 0" Spacing="10" IsVisible="{Binding IsPatchingInProgress}">
-      <TextBlock HorizontalAlignment="Center">Please wait while patching completes . . .</TextBlock>
-      <ProgressBar MinWidth="300" IsIndeterminate="True" />
-      <TextBlock HorizontalAlignment="Center" Text="{Binding PatchingStageText}"/>
+      <TextBlock HorizontalAlignment="Center" IsVisible="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNull}}">Please wait while patching completes . . .</TextBlock>
+      <UserControl Content="{Binding ProgressBarView}"/>
+      <TextBlock Text="{Binding PatchingStageText}" HorizontalAlignment="Center"/>
     </StackPanel>
   </Panel>
 </UserControl>

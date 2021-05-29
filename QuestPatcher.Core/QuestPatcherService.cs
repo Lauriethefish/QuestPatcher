@@ -156,7 +156,8 @@ namespace QuestPatcher.Core
             }
 
             await _androidDebugBridge.KillServer(); // Allow ADB to be deleted
-                                             // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side
+
+            // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side
             await _filesDownloader.ClearCache();
             await _androidDebugBridge.PrepareAdbPath(); // Redownload ADB if necessary
             await _apkTools.PrepareJavaInstall(); // Redownload Java if necessary

@@ -55,19 +55,20 @@ namespace QuestPatcher.Services
             window.Height = 550;
             _operationLocker = new();
             _browseManager = new(_otherFilesManager, _modManager, window, _logger, _patchingManager, _operationLocker);
-            
+
+            ProgressViewModel progressViewModel = new(_operationLocker, _filesDownloader);
             MainWindowViewModel mainWindowViewModel = new(
                 new LoadedViewModel(
-                    new PatchingViewModel(Config, _operationLocker, _patchingManager, window, _logger, ExitApplication),
-                    new ManageModsViewModel(_modManager, _patchingManager, window, _operationLocker, _browseManager),
+                    new PatchingViewModel(Config, _operationLocker, _patchingManager, window, _logger, ExitApplication, progressViewModel, _filesDownloader),
+                    new ManageModsViewModel(_modManager, _patchingManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
-                    new ToolsViewModel(Config, _operationLocker, window, _specialFolders, _logger, _patchingManager, _androidDebugBridge, this),
+                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, _specialFolders, _logger, _patchingManager, _androidDebugBridge, this),
                     Config,
                     _patchingManager,
                     _browseManager,
                     _logger
                 ),
-                new LoadingViewModel(_loggingViewModel, Config),
+                new LoadingViewModel(progressViewModel, _loggingViewModel, Config),
                 this
             );
             window.DataContext = mainWindowViewModel;
@@ -77,8 +78,11 @@ namespace QuestPatcher.Services
 
         private async void OnMainWindowOpen(object? sender, EventArgs args)
         {
+            Debug.Assert(_operationLocker != null); // Main window has been loaded, so this is assigned
             try
             {
+                // If were to add any buttons that were visible while loading, but should be disabled while loading, this would be useful. For now it's just used to make the progress bar show up
+                _operationLocker.StartOperation();
                 await RunStartup();
             }
             catch (Exception ex)
@@ -110,6 +114,9 @@ namespace QuestPatcher.Services
                     _logger.Error($"Exiting QuestPatcher due to unhandled load error: {ex}");
                     ExitApplication();
                 }
+            }   finally
+            {
+                _operationLocker.FinishOperation();
             }
         }
 

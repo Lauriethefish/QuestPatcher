@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QuestPatcher.Views.Modding.ManageModsView">
   <DockPanel Margin="20 0 20 20">
-    <ProgressBar DockPanel.Dock="Top" IsVisible="{Binding !Locker.IsFree}" IsIndeterminate="True" Margin="0 0 0 20" />
+    <UserControl DockPanel.Dock="Top" Margin="0 0 0 20" Content="{Binding ProgressView}" />
     <Grid RowDefinitions="*,*">
         <UserControl Content="{Binding ModsList}" Grid.Row="0" />
         <UserControl Content="{Binding LibrariesList}" Grid.Row="1" Margin="0 20 0 0" />

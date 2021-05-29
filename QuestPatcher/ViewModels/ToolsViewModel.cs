@@ -17,6 +17,8 @@ namespace QuestPatcher.ViewModels
     {
         public Config Config { get; }
 
+        public ProgressViewModel ProgressView { get; }
+
         public OperationLocker Locker { get; }
 
         public string AdbButtonText => _isAdbLogging ? "Stop ADB Log" : "Start ADB Log";
@@ -30,9 +32,10 @@ namespace QuestPatcher.ViewModels
         private readonly AndroidDebugBridge _debugBridge;
         private readonly QuestPatcherUIService _uiService;
 
-        public ToolsViewModel(Config config, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService)
+        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService)
         {
             Config = config;
+            ProgressView = progressView;
             Locker = locker;
 
             _mainWindow = mainWindow;

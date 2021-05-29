@@ -7,6 +7,7 @@ using System.Diagnostics;
 using QuestPatcher.Models;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
+using QuestPatcher.Core;
 
 namespace QuestPatcher.ViewModels
 {
@@ -21,15 +22,22 @@ namespace QuestPatcher.ViewModels
 
         public OperationLocker Locker { get; }
 
+        public ProgressViewModel ProgressBarView { get; }
+
+        public ExternalFilesDownloader FilesDownloader { get; }
+
         private readonly PatchingManager _patchingManager;
         private readonly Window _mainWindow;
         private readonly Logger _logger;
         private readonly Action _quit;
 
-        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, Logger logger, Action quit)
+        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, Logger logger, Action quit, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
         {
             Config = config;
             Locker = locker;
+            ProgressBarView = progressBarView;
+            FilesDownloader = filesDownloader;
+
             _patchingManager = patchingManager;
             _mainWindow = mainWindow;
             _logger = logger;
