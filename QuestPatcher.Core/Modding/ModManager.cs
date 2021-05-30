@@ -351,6 +351,24 @@ namespace QuestPatcher.Core.Modding
 
                     mod.CoverImage = memoryStream.ToArray();
                 }
+
+                // Check that the mod files in the manifest actually exist now, instead of just failing later when actually installing the mod
+                // This is done since mod file copies are batched and the error messages aren't as clear
+                _logger.Debug("Checking that mod contains the files stated in the manifest . . .");
+                foreach(string modFile in mod.ModFiles)
+                {
+                    if(archive.GetEntry(modFile) == null) { throw new InstallationException($"Missing mod file {modFile} stated in the manifest"); }
+                }
+
+                foreach (string libFile in mod.LibraryFiles)
+                {
+                    if (archive.GetEntry(libFile) == null) { throw new InstallationException($"Missing library file {libFile} stated in the manifest"); }
+                }
+
+                foreach(FileCopy fileCopy in mod.FileCopies)
+                {
+                    if(archive.GetEntry(fileCopy.Name) == null) { throw new InstallationException($"Missing file copy origin file {fileCopy.Name} stated in the manifest"); }
+                }
             }
             catch (InvalidDataException ex)
             {
