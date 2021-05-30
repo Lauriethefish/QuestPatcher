@@ -42,6 +42,7 @@ namespace QuestPatcher.Core.Modding
         private readonly AndroidDebugBridge _debugBridge;
         private readonly SpecialFolders _specialFolders;
         private readonly PatchingManager _patchingManager;
+        private readonly ExternalFilesDownloader _filesDownloader;
         private readonly Config _config;
         private readonly WebClient _webClient = new();
 
@@ -49,13 +50,14 @@ namespace QuestPatcher.Core.Modding
         private string ModsPath => $"/sdcard/Android/data/{_config.AppId}/files/mods/";
         private string LibsPath => $"/sdcard/Android/data/{_config.AppId}/files/libs/";
 
-        public ModManager(Logger logger, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, PatchingManager patchingManager, Config config)
+        public ModManager(Logger logger, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, PatchingManager patchingManager, Config config, ExternalFilesDownloader filesDownloader)
         {
             _logger = logger;
             _debugBridge = debugBridge;
             _specialFolders = specialFolders;
             _patchingManager = patchingManager;
             _config = config;
+            _filesDownloader = filesDownloader;
         }
 
         public void OnReload()
@@ -285,7 +287,7 @@ namespace QuestPatcher.Core.Modding
             try
             {
                 _logger.Information($"Downloading dependency {dependency.Id} . . .");
-                await _webClient.DownloadFileTaskAsync(dependency.DownloadIfMissing, downloadPath);
+                await _filesDownloader.DownloadUrl(dependency.DownloadIfMissing, downloadPath, dependency.Id);
                 installedDependency = await LoadMod(downloadPath); // Recreate the list since it needs to be individual to each branch
             }
             finally

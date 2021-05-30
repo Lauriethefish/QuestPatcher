@@ -50,7 +50,7 @@ namespace QuestPatcher.Core
             _apkTools = new ApkTools(_logger, _filesDownloader);
             _androidDebugBridge = new AndroidDebugBridge(_logger, _filesDownloader, OnAdbDisconnect);
             _patchingManager = new PatchingManager(_logger, Config, _androidDebugBridge, _apkTools, _specialFolders, _filesDownloader, _prompter, ExitApplication);
-            _modManager = new ModManager(_logger, _androidDebugBridge, _specialFolders, _patchingManager, Config);
+            _modManager = new ModManager(_logger, _androidDebugBridge, _specialFolders, _patchingManager, Config, _filesDownloader);
             _otherFilesManager = new OtherFilesManager(Config, _androidDebugBridge);
 
             _logger.Debug("QuestPatcherService constructed");
