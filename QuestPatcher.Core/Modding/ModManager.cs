@@ -324,7 +324,7 @@ namespace QuestPatcher.Core.Modding
             try
             {
                 using Stream modFileStream = File.OpenRead(path);
-                ZipArchive archive = new(modFileStream);
+                using ZipArchive archive = new(modFileStream);
                 ZipArchiveEntry? manifestEntry = archive.GetEntry("mod.json");
                 if (manifestEntry == null)
                 {
@@ -346,7 +346,7 @@ namespace QuestPatcher.Core.Modding
                     }
 
                     using Stream coverStream = coverEntry.Open();
-                    MemoryStream memoryStream = new();
+                    using MemoryStream memoryStream = new();
                     coverStream.CopyTo(memoryStream);
 
                     mod.CoverImage = memoryStream.ToArray();
