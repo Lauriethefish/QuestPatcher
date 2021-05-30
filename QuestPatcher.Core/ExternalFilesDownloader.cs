@@ -309,13 +309,14 @@ namespace QuestPatcher.Core
         /// This is used for the download progress indicator - instead of just using a WebClient directly.
         /// </summary>
         /// <param name="url">The URL to download from</param>
-        /// <param name="fileName">The file name to use for the progress indicator</param>
-        public async Task DownloadUrl(string url, string saveName)
+        /// <param name="saveName">Where to save the resultant file</param>
+        /// <param name="overrideFileName">Used instead of the file name of saveName as the DownloadingFileName</param>
+        public async Task DownloadUrl(string url, string saveName, string? overrideFileName = null)
         {
             try
             {
                 DownloadProgress = 0.0;
-                DownloadingFileName = Path.GetFileName(saveName);
+                DownloadingFileName = overrideFileName ?? Path.GetFileName(saveName);
 
                 Uri uri = new Uri(url);
                 await _webClient.DownloadFileTaskAsync(uri, saveName);
