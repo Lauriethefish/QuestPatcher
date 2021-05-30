@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text;
 
 namespace QuestPatcher.Core
 {
@@ -62,6 +63,12 @@ namespace QuestPatcher.Core
             "oculus",
             "com.weloveoculus.BMBF"
         };
+
+        /// <summary>
+        /// Command length limit used for batch commands to avoid errors.
+        /// This isn't based on any particular OS, I kept it fairly low so that it works everywhere
+        /// </summary>
+        private const int CommandLengthLimit = 8192;
 
         public event EventHandler? StoppedLogging;
 
@@ -276,6 +283,92 @@ namespace QuestPatcher.Core
         public async Task CopyFile(string path, string destination)
         {
             await RunCommand($"shell cp \"{FixPath(path)}\" \"{FixPath(destination)}\"");
+        }
+
+        /// <summary>
+        /// Executes the shell commands given using one ADB shell call, or multiple calls if there are too many for one call.
+        /// NOTE: The commands should use single ('here') quotes on arguments, since double quotes are used around the command.
+        /// </summary>
+        /// <param name="commands">The commands to execute</param>
+        public async Task RunShellCommands(List<string> commands)
+        {
+            if(commands.Count == 0) { return; } // Return blank output if no commands to avoid errors
+
+            const string initialCommmand = "shell \"";
+            List<string> awaitingRun = new();
+            StringBuilder result = new StringBuilder(initialCommmand);
+            for(int i = 0; i < commands.Count; i++)
+            {
+                result.Append(commands[i]); // Add the next command
+                // If the current batch command + the next command will be greater than our command length limit (or we're at the last command), we stop the current batch command and add the result to the list
+                if ((commands.Count - i >= 2 && result.Length + commands[i + 1].Length + 4 >= CommandLengthLimit) || i == commands.Count - 1)
+                {
+                    result.Append("\"");
+                    awaitingRun.Add(result.ToString());
+                    result = new StringBuilder(initialCommmand);
+                    continue;
+                }
+
+                // Otherwise, add an && for the next command
+                result.Append(" && ");
+            }
+
+            // Run all the queued commands
+            foreach(string command in awaitingRun)
+            {
+                await RunCommand(command);
+            }
+        }
+
+        /// <summary>
+        /// Copies multiple files all at once using && and one single adb shell call.
+        /// This makes copying files much faster, but lumps all of the errors together into one, i.e. if one file fails they all fail.
+        /// For mod installs, this is fine, because the existence of the files copied by the mod is verified way earlier when it is loaded
+        /// </summary>
+        /// <param name="paths">The paths to copy. Key is from, Value is to</param>
+        public async Task CopyFiles(List<KeyValuePair<string, string>> paths)
+        {
+            List<string> commands = new();
+
+            foreach(KeyValuePair<string, string> path in paths)
+            {
+                commands.Add($"cp '{FixPath(path.Key)}' '{FixPath(path.Value)}'");
+            }
+
+            await RunShellCommands(commands);
+        }
+
+        /// <summary>
+        /// Creates multiple directories using one ADB command.
+        /// Faster for quickly creating numbers of directories.
+        /// </summary>
+        /// <param name="paths">Paths of the directories to create</param>
+        public async Task CreateDirectories(List<string> paths)
+        {
+            List<string> commands = new();
+            foreach(string path in paths)
+            {
+                commands.Add($"mkdir -p '{FixPath(path)}'");
+            }
+
+            await RunShellCommands(commands);
+        }
+
+        /// <summary>
+        /// Deletes multiple files in one ADB command.
+        /// Faster for quickly removing lots of files.
+        /// </summary>
+        /// <param name="paths">Paths of the files to delete</param>
+        /// <returns></returns>
+        public async Task DeleteFiles(List<string> paths)
+        {
+            List<string> commands = new();
+            foreach (string path in paths)
+            {
+                commands.Add($"rm '{FixPath(path)}'");
+            }
+
+            await RunShellCommands(commands);
         }
 
         public async Task ExtractArchive(string path, string outputFolder)

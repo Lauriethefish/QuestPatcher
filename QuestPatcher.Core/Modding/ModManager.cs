@@ -101,9 +101,9 @@ namespace QuestPatcher.Core.Modding
         /// <summary>
         /// Creates the mods, libs and installedMods folders for the current app if they do not already exist
         /// </summary>
-        private Task CreateModsDirectories()
+        private async Task CreateModsDirectories()
         {
-            return Task.WhenAll(_debugBridge.CreateDirectory(InstalledModsPath), _debugBridge.CreateDirectory(ModsPath), _debugBridge.CreateDirectory(LibsPath));
+            await _debugBridge.CreateDirectories(new() { InstalledModsPath, ModsPath, LibsPath });
         }
 
         /// <summary>
@@ -452,23 +452,37 @@ namespace QuestPatcher.Core.Modding
 
             // Copy files to actually install the mod
 
+            List<KeyValuePair<string, string>> copyPaths = new();
+            List<string> directoriesToCreate = new()
+            {
+                ModsPath,
+                LibsPath
+            };
             foreach(string libraryPath in mod.LibraryFiles)
             {
-                _logger.Information($"Copying library file {libraryPath} . . .");
-                await _debugBridge.CopyFile(Path.Combine(extractPath, libraryPath), Path.Combine(LibsPath, Path.GetFileName(libraryPath)));
+                _logger.Information($"Starting library file copy {libraryPath} . . .");
+                copyPaths.Add(new(Path.Combine(extractPath, libraryPath), Path.Combine(LibsPath, Path.GetFileName(libraryPath))));
             }
 
             foreach(string modPath in mod.ModFiles)
             {
-                _logger.Information($"Copying mod file {modPath} . . .");
-                await _debugBridge.CopyFile(Path.Combine(extractPath, modPath), Path.Combine(ModsPath, Path.GetFileName(modPath)));
+                _logger.Information($"Starting mod file copy {modPath} . . .");
+                copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(ModsPath, Path.GetFileName(modPath))));
             }
 
             foreach (FileCopy fileCopy in mod.FileCopies)
             {
-                _logger.Information($"Copying file {fileCopy.Name} to {fileCopy.Destination}");
-                await _debugBridge.CopyFile(Path.Combine(extractPath, fileCopy.Name), fileCopy.Destination);
+                _logger.Information($"Starting file copy {fileCopy.Name} to {fileCopy.Destination}");
+                string? directoryName = Path.GetDirectoryName(fileCopy.Destination);
+                if(directoryName != null)
+                {
+                    directoriesToCreate.Add(directoryName);
+                }
+                copyPaths.Add(new(Path.Combine(extractPath, fileCopy.Name), fileCopy.Destination));
             }
+
+            await _debugBridge.CreateDirectories(directoriesToCreate);
+            await _debugBridge.CopyFiles(copyPaths);
 
             mod.IsInstalled = true;
             await SaveManifest(mod);
@@ -485,11 +499,12 @@ namespace QuestPatcher.Core.Modding
             _logger.Information($"Uninstalling mod {mod.Id} . . .");
             await CreateModsDirectories();
 
+            List<string> filesToRemove = new();
             // Remove mod SOs so that the mod will not load
             foreach (string modFilePath in mod.ModFiles)
             {
                 _logger.Information($"Removing mod file {modFilePath}");
-                await _debugBridge.RemoveFile(Path.Combine(ModsPath, Path.GetFileName(modFilePath)));
+                filesToRemove.Add(Path.Combine(ModsPath, Path.GetFileName(modFilePath)));
             }
 
             foreach (string libraryPath in mod.LibraryFiles)
@@ -509,15 +524,16 @@ namespace QuestPatcher.Core.Modding
                 if (!isUsedElsewhere)
                 {
                     _logger.Information("Removing library file " + libraryPath);
-                    await _debugBridge.RemoveFile(Path.Combine(LibsPath, Path.GetFileName(libraryPath)));
+                    filesToRemove.Add(Path.Combine(LibsPath, Path.GetFileName(libraryPath)));
                 }
             }
 
             foreach (FileCopy fileCopy in mod.FileCopies)
             {
                 _logger.Information("Removing copied file " + fileCopy.Destination);
-                await _debugBridge.RemoveFile(fileCopy.Destination);
+                filesToRemove.Add(fileCopy.Destination);
             }
+            await _debugBridge.DeleteFiles(filesToRemove);
 
             mod.IsInstalled = false;
             await SaveManifest(mod);
