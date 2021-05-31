@@ -11,12 +11,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using System.Linq;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Core;
-using Avalonia.Input;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
 
 namespace QuestPatcher.Services
 {
@@ -32,6 +28,7 @@ namespace QuestPatcher.Services
         private LoggingViewModel? _loggingViewModel;
         private OperationLocker? _operationLocker;
         private BrowseImportManager? _browseManager;
+        private OtherItemsViewModel? _otherItemsView;
 
         public QuestPatcherUIService(IClassicDesktopStyleApplicationLifetime appLifetime) : base(new UIPrompter())
         {
@@ -41,7 +38,7 @@ namespace QuestPatcher.Services
 
             _appLifetime.MainWindow = _mainWindow;
             UIPrompter prompter = (UIPrompter) _prompter;
-            prompter.Init(_mainWindow, Config, this, _patchingManager);
+            prompter.Init(_mainWindow, Config, this);
 
             _mainWindow.Opened += OnMainWindowOpen;
             _mainWindow.Closing += OnMainWindowClosing;
@@ -54,15 +51,18 @@ namespace QuestPatcher.Services
             window.Width = 900;
             window.Height = 550;
             _operationLocker = new();
+            _operationLocker.StartOperation(); // During loading, operations are ongoing and certain buttons should not be usable
             _browseManager = new(_otherFilesManager, _modManager, window, _logger, _patchingManager, _operationLocker);
-
             ProgressViewModel progressViewModel = new(_operationLocker, _filesDownloader);
+            _otherItemsView = new OtherItemsViewModel(_otherFilesManager, window, _logger, _browseManager, _operationLocker, progressViewModel);
+
             MainWindowViewModel mainWindowViewModel = new(
                 new LoadedViewModel(
                     new PatchingViewModel(Config, _operationLocker, _patchingManager, window, _logger, ExitApplication, progressViewModel, _filesDownloader),
                     new ManageModsViewModel(_modManager, _patchingManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
                     new ToolsViewModel(Config, progressViewModel, _operationLocker, window, _specialFolders, _logger, _patchingManager, _androidDebugBridge, this),
+                    _otherItemsView,
                     Config,
                     _patchingManager,
                     _browseManager,
@@ -81,9 +81,10 @@ namespace QuestPatcher.Services
             Debug.Assert(_operationLocker != null); // Main window has been loaded, so this is assigned
             try
             {
-                // If were to add any buttons that were visible while loading, but should be disabled while loading, this would be useful. For now it's just used to make the progress bar show up
-                _operationLocker.StartOperation();
                 await RunStartup();
+                // Files are not loaded during startup, since we need to check ADB status first
+                // So instead, we refresh the currently selected file copy after starting, if there is one
+                _otherItemsView?.RefreshFiles();
             }
             catch (Exception ex)
             {

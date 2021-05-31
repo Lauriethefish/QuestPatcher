@@ -3,28 +3,57 @@ using Newtonsoft.Json.Serialization;
 using QuestPatcher.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
 {
-    public class OtherFilesManager
+    public class OtherFilesManager : INotifyPropertyChanged
     {
-        public List<FileCopyType> CurrentDestinations { get => _copyIndex[_config.AppId]; }
+        public IReadOnlyList<FileCopyType> CurrentDestinations {
+            get
+            {
+                // If file copy types for this app are available in the index, return those
+                if(_copyIndex.TryGetValue(_config.AppId, out List<FileCopyType>? copyTypes))
+                {
+                    return copyTypes;
+                }
+                else
+                {
+                    // Otherwise, return a list of no types to avoid throwing exceptions/null
+                    return _noTypesAvailable;
+                }
+            }
+        }
+        private readonly List<FileCopyType> _noTypesAvailable = new();
 
         private readonly Dictionary<string, List<FileCopyType>> _copyIndex;
 
         private readonly Config _config;
         private readonly AndroidDebugBridge _debugBridge;
 
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+
         public OtherFilesManager(Config config, AndroidDebugBridge debugBridge)
         {
             _config = config;
             _debugBridge = debugBridge;
+
+            _config.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(_config.AppId))
+                {
+                    NotifyPropertyChanged(nameof(CurrentDestinations));
+                }
+            };
 
             // Load the file copy paths from resources
             // I put them in there to allow for easier changing, although it makes things a little messier in here
@@ -46,6 +75,11 @@ namespace QuestPatcher.Core.Modding
             var copyIndex = serializer.Deserialize<Dictionary<string, List<FileCopyType>>>(jsonReader);
             Debug.Assert(copyIndex != null);
             _copyIndex = copyIndex;
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>

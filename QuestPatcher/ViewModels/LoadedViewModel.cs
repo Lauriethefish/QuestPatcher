@@ -23,6 +23,8 @@ namespace QuestPatcher.ViewModels
 
         public ToolsViewModel ToolsView { get; }
 
+        public OtherItemsViewModel OtherItemsView { get; }
+
         public Config Config { get; }
         public ApkInfo AppInfo
         {
@@ -37,12 +39,13 @@ namespace QuestPatcher.ViewModels
         private readonly BrowseImportManager _browseManager;
         private readonly Logger _logger;
 
-        public LoadedViewModel(PatchingViewModel patchingView, ManageModsViewModel manageModsView, LoggingViewModel loggingView, ToolsViewModel toolsView, Config config, PatchingManager patchingManager, BrowseImportManager browseManager, Logger logger)
+        public LoadedViewModel(PatchingViewModel patchingView, ManageModsViewModel manageModsView, LoggingViewModel loggingView, ToolsViewModel toolsView, OtherItemsViewModel otherItemsView, Config config, PatchingManager patchingManager, BrowseImportManager browseManager, Logger logger)
         {
             PatchingView = patchingView;
             LoggingView = loggingView;
             ToolsView = toolsView;
             ManageModsView = manageModsView;
+            OtherItemsView = otherItemsView;
 
             Config = config;
             _patchingManager = patchingManager;

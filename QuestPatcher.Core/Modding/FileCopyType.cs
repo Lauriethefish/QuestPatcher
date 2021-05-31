@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
 {
-    public class FileCopyType
+    public class FileCopyType : INotifyPropertyChanged
     {
 #nullable disable
         /// <summary>
@@ -34,6 +36,41 @@ namespace QuestPatcher.Core.Modding
 
         public ObservableCollection<string> ExistingFiles { get; } = new();
 
+        /// <summary>
+        /// Whether the loading attempt has finished successfully or not.
+        /// </summary>
+        public bool HasLoaded
+        {
+            get => _hasLoaded;
+            private set
+            {
+                if(_hasLoaded != value)
+                {
+                    _hasLoaded = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+        private bool _hasLoaded = false;
+
+        /// <summary>
+        /// Whether or not the last loading attempt failed
+        /// </summary>
+        public bool LoadingFailed
+        {
+            get => _loadingFailed;
+            private set
+            {
+                if(_loadingFailed != value)
+                {
+                    _loadingFailed = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+        private bool _loadingFailed = false;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         private readonly AndroidDebugBridge _debugBridge;
 
@@ -43,18 +80,37 @@ namespace QuestPatcher.Core.Modding
             _debugBridge = debugBridge;
         }
 
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         /// <summary>
-        /// Loads the contents of this destination, replacing the old contents
+        /// Loads the contents of this destination, replacing the old contents.
         /// </summary>
         public async Task LoadContents()
         {
-            await _debugBridge.CreateDirectory(Path); // Create the destination if it does not exist
-
-            List<string> currentFiles = await _debugBridge.ListDirectoryFiles(Path);
-            ExistingFiles.Clear();
-            foreach(string file in currentFiles)
+            HasLoaded = false;
+            LoadingFailed = false;
+            try
             {
-                ExistingFiles.Add(file);
+                await _debugBridge.CreateDirectory(Path); // Create the destination if it does not exist
+
+                List<string> currentFiles = await _debugBridge.ListDirectoryFiles(Path);
+                ExistingFiles.Clear();
+                foreach (string file in currentFiles)
+                {
+                    ExistingFiles.Add(file);
+                }
+            }
+            catch(Exception)
+            {
+                LoadingFailed = true;
+                throw; // Rethrow for calling UI to handle if they want to
+            }
+            finally
+            {
+                HasLoaded = true;
             }
         }
 
@@ -70,6 +126,17 @@ namespace QuestPatcher.Core.Modding
 
             await _debugBridge.UploadFile(localPath, destinationPath);
             ExistingFiles.Add(destinationPath);
+        }
+
+        /// <summary>
+        /// Removes the copied file name and deletes it from the ExistingFiles list (no need to refresh the list to take effect)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public async Task RemoveFile(string name)
+        {
+            await _debugBridge.RemoveFile(name);
+            ExistingFiles.Remove(name);
         }
     }
 }

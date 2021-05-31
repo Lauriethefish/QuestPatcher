@@ -31,7 +31,9 @@
       <TabItem Header="Mod Management" IsVisible="{Binding AppInfo.IsModded}" IsSelected="{Binding AppInfo.IsModded}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <UserControl Content="{Binding ManageModsView}" />
       </TabItem>
-      <TabItem Header="Cosmetics &amp; other items" IsVisible="{Binding AppInfo.IsModded}"/>
+      <TabItem Header="Cosmetics &amp; other items" IsVisible="{Binding AppInfo.IsModded}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <UserControl Content="{Binding OtherItemsView}" />
+      </TabItem>
       <TabItem Header="Tools &amp; Options">
         <UserControl Content="{Binding ToolsView}" />
       </TabItem>
