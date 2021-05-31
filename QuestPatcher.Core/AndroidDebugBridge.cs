@@ -267,22 +267,22 @@ namespace QuestPatcher.Core
 
         public async Task CreateDirectory(string path)
         {
-            await RunCommand($"shell mkdir -p \"{FixPath(path)}\"");
+            await RunCommand($"shell \"mkdir -p '{FixPath(path)}'\"");
         }
 
         public async Task RemoveFile(string path)
         {
-            await RunCommand($"shell rm \"{FixPath(path)}\"");
+            await RunCommand($"shell \"rm '{FixPath(path)}'\"");
         }
 
         public async Task RemoveDirectory(string path)
         {
-            await RunCommand($"shell rm -r \"{FixPath(path)}\"");
+            await RunCommand($"shell \"rm -r '{FixPath(path)}'\"");
         }
 
         public async Task CopyFile(string path, string destination)
         {
-            await RunCommand($"shell cp \"{FixPath(path)}\" \"{FixPath(destination)}\"");
+            await RunCommand($"shell \"cp '{FixPath(path)}' '{FixPath(destination)}'\"");
         }
 
         /// <summary>
