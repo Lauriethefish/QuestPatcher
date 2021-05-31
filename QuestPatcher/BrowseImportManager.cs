@@ -27,6 +27,8 @@ namespace QuestPatcher
 
         private readonly FileDialogFilter _modsFilter = new();
 
+        private Queue<string>? _currentImportQueue;
+
         public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, Logger logger, PatchingManager patchingManager, OperationLocker locker)
         {
             _otherFilesManager = otherFilesManager;
@@ -132,27 +134,71 @@ namespace QuestPatcher
         /// <summary>
         /// Imports multiple files, and finds what type they are first.
         /// Will prompt the user with any errors while importing the files.
+        /// If a list of files is already importing, these files will be added to the queue
         /// </summary>
         /// <param name="files">The paths of the files to import</param>
         public async Task AttemptImportFiles(ICollection<string> files)
         {
+            bool queueExisted = _currentImportQueue != null;
+            if(_currentImportQueue == null)
+            {
+                _currentImportQueue = new Queue<string>();
+            }
+
+            // Append all files to the new or existing queue
+            _logger.Debug($"Enqueuing {files.Count} files");
+            foreach (string file in files)
+            {
+                _currentImportQueue.Enqueue(file);
+            }
+
+            // If a queue already existed, that will be processed with our enqueued files, so we can stop here
+            if (queueExisted)
+            {
+                _logger.Debug("Queue is already being processed");
+                return;
+            }
+
+            // Otherwise, we process the current queue
+            _logger.Debug("Processing queue . . .");
+
+            // Do nothing if attempting to import files when operations are ongoing that are not file imports
+            // TODO: Ideally this would wait until the lock is free and then continue
+            if(!_locker.IsFree)
+            {
+                _logger.Error("Failed to process files: Operations are still ongoing");
+                _currentImportQueue = null;
+                return;
+            }
             _locker.StartOperation();
             try
             {
-                await AttemptImportFilesInternal(files);
+                await ProcessImportQueue();
             }
             finally
             {
                 _locker.FinishOperation();
+                _currentImportQueue = null;
             }
         }
 
-        private async Task AttemptImportFilesInternal(ICollection<string> files)
+        /// <summary>
+        /// Processes the current import queue until it reaches zero in size.
+        /// Displays exceptions for any failed files
+        /// </summary>
+        private async Task ProcessImportQueue()
         {
+            if (_currentImportQueue == null)
+            {
+                throw new InvalidOperationException("Cannot process import queue if there is no import queue assigned");
+            }
+
             // Attempt to import each file, and catch the exceptions if any to display them below
             Dictionary<string, Exception> failedFiles = new();
-            foreach (string path in files)
+            int totalProcessed = 0; // We cannot know how many files were enqueued in total, so we keep track of that here
+            while(_currentImportQueue.TryDequeue(out string? path))
             {
+                totalProcessed++;
                 try
                 {
                     _logger.Information($"Importing {path} . . .");
@@ -163,12 +209,13 @@ namespace QuestPatcher
                     failedFiles[path] = ex;
                 }
             }
+            _currentImportQueue = null; // New files added should go to a new queue
+
+            _logger.Information($"{totalProcessed - failedFiles.Count}/{totalProcessed} files imported successfully");
 
             if (failedFiles.Count == 0) { return; }
 
             bool multiple = failedFiles.Count > 1;
-
-            _logger.Information($"{files.Count - failedFiles.Count}/{files.Count} files imported successfully");
 
             DialogBuilder builder = new()
             {
