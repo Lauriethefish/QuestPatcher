@@ -269,9 +269,10 @@ namespace QuestPatcher
             DialogBuilder builder = new()
             {
                 Title = "Multiple Import Options",
-                Text = $"{Path.GetFileName(path)} can be imported as multiple types of file. Please select what you would like it to be installed as."
+                Text = $"{Path.GetFileName(path)} can be imported as multiple types of file. Please select what you would like it to be installed as.",
+                HideOkButton = true,
+                HideCancelButton = true
             };
-            builder.HideOkButton = true;
 
             List<ButtonInfo> dialogButtons = new();
             foreach(FileCopyType copyType in copyTypes)
@@ -279,6 +280,7 @@ namespace QuestPatcher
                 dialogButtons.Add(new ButtonInfo
                 {
                     ReturnValue = true,
+                    CloseDialogue = true,
                     OnClick = () =>
                     {
                         selectedType = copyType;
@@ -286,6 +288,7 @@ namespace QuestPatcher
                     Text = copyType.NameSingular
                 });
             }
+            builder.WithButtons(dialogButtons);
 
             await builder.OpenDialogue(_mainWindow);
             return selectedType;
