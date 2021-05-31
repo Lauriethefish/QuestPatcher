@@ -16,9 +16,7 @@ This branch is the rewrite/remake of QuestPatcher.
 - Add support for 32 bit quest apps. (`armeabi-v7a`) 
 
 ## TODO
-- Finish UI for viewing installed cosmetics.
 - Add general import window with information about what kind of files QuestPatcher supports.
-- Finish this TODO list because I've totally forgotten things.
 
 Note that the rewrite is __incomplete__. It should only be used by developers for testing purposes, and it's in its early stages!
 
