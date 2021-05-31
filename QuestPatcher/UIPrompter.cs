@@ -15,18 +15,16 @@ namespace QuestPatcher
         private Window? _mainWindow;
         private Config? _config;
         private QuestPatcherUIService? _uiService;
-        private PatchingManager? _patchingManager;
 
         /// <summary>
         /// This exists instead of a constructor since the prompter must be immediately passed on QuestPatcherService's creation, so we initialise its members after the fact.
         /// Maybe there's a better workaround, but this works fine for now
         /// </summary>
-        public void Init(Window mainWindow, Config config, QuestPatcherUIService uiService, PatchingManager patchingManager)
+        public void Init(Window mainWindow, Config config, QuestPatcherUIService uiService)
         {
             _mainWindow = mainWindow;
             _config = config;
             _uiService = uiService;
-            _patchingManager = patchingManager;
         }
 
         public Task<bool> PromptAppNotInstalled()

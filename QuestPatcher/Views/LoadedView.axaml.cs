@@ -19,14 +19,12 @@ namespace QuestPatcher.Views
                 if (args.Property.Name == nameof(DataContext))
                 {
                     // We use as and null checks to not force LoadedViewModel to be the view model in the future
-                    LoadedViewModel? oldViewModel = args.OldValue as LoadedViewModel;
-                    if (oldViewModel != null)
+                    if (args.OldValue is LoadedViewModel oldViewModel)
                     {
                         RemoveHandler(DragDrop.DropEvent, oldViewModel.OnDragAndDrop);
                     }
 
-                    LoadedViewModel? newViewModel = args.NewValue as LoadedViewModel;
-                    if(newViewModel != null)
+                    if (args.NewValue is LoadedViewModel newViewModel)
                     {
                         AddHandler(DragDrop.DropEvent, newViewModel.OnDragAndDrop);
                     }

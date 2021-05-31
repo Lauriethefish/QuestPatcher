@@ -318,7 +318,7 @@ namespace QuestPatcher.Core
                 DownloadProgress = 0.0;
                 DownloadingFileName = overrideFileName ?? Path.GetFileName(saveName);
 
-                Uri uri = new Uri(url);
+                Uri uri = new(url);
                 await _webClient.DownloadFileTaskAsync(uri, saveName);
             }
             finally

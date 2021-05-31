@@ -44,7 +44,6 @@ namespace QuestPatcher.Core.Modding
         private readonly PatchingManager _patchingManager;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly Config _config;
-        private readonly WebClient _webClient = new();
 
         private string InstalledModsPath => $"/sdcard/QuestPatcher/{_config.AppId}/installedMods/";
         private string ModsPath => $"/sdcard/Android/data/{_config.AppId}/files/mods/";

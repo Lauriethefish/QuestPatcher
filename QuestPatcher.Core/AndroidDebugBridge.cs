@@ -296,14 +296,14 @@ namespace QuestPatcher.Core
 
             const string initialCommmand = "shell \"";
             List<string> awaitingRun = new();
-            StringBuilder result = new StringBuilder(initialCommmand);
+            StringBuilder result = new(initialCommmand);
             for(int i = 0; i < commands.Count; i++)
             {
                 result.Append(commands[i]); // Add the next command
                 // If the current batch command + the next command will be greater than our command length limit (or we're at the last command), we stop the current batch command and add the result to the list
                 if ((commands.Count - i >= 2 && result.Length + commands[i + 1].Length + 4 >= CommandLengthLimit) || i == commands.Count - 1)
                 {
-                    result.Append("\"");
+                    result.Append('\"');
                     awaitingRun.Add(result.ToString());
                     result = new StringBuilder(initialCommmand);
                     continue;
