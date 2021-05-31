@@ -2,12 +2,9 @@
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Core.Patching;
 using QuestPatcher.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QuestPatcher.ViewModels.Modding
 {
@@ -34,6 +31,12 @@ namespace QuestPatcher.ViewModels.Modding
             // I can't just use the mods directly because I want to add prompts for installing/uninstalling (e.g. incorrect game version)
             mods.CollectionChanged += (sender, args) =>
             {
+                if(args.Action == NotifyCollectionChangedAction.Reset)
+                {
+                    DisplayedMods.Clear();
+                    return;
+                }
+
                 if (args.NewItems != null)
                 {
                     foreach (Mod mod in args.NewItems)
