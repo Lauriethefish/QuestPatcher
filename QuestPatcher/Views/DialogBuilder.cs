@@ -76,7 +76,7 @@ namespace QuestPatcher.Views
 
         private string? _stackTrace;
 
-        private ButtonInfo[]? _extraButtons;
+        private IEnumerable<ButtonInfo>? _extraButtons;
         
         /// <summary>
         /// Will display the stack trace of the exception within the dialogue
@@ -89,10 +89,20 @@ namespace QuestPatcher.Views
         }
 
         /// <summary>
-        /// Adds extra buttons to the dialogue
+        /// Sets the extra buttons for the dialog (other than OK and Cancel)
         /// </summary>
-        /// <param name="buttons">The buttons to add</param>
+        /// <param name="buttons">The buttons to set</param>
         public DialogBuilder WithButtons(params ButtonInfo[] buttons)
+        {
+            _extraButtons = buttons;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the extra buttons for the dialog (other than OK and Cancel)
+        /// </summary>
+        /// <param name="buttons">The buttons to set</param>
+        public DialogBuilder WithButtons(IEnumerable<ButtonInfo> buttons)
         {
             _extraButtons = buttons;
             return this;
