@@ -328,7 +328,7 @@ namespace QuestPatcher.Core
             // Remove .exe on non-windows
             if(fileInfo.IsExecutable && _isUnix)
             {
-                fileInfo.SaveName = fileInfo.SaveName[^4..];
+                fileInfo.SaveName = fileInfo.SaveName[0..^4];
             }
 
             // The save location is relative to the extract folder if requires extraction, otherwise it's just relative to the tools folder
