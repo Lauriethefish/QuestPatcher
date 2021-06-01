@@ -103,24 +103,6 @@ namespace QuestPatcher.Core
         }
 
         /// <summary>
-        /// Uses chmod to make ADB executable, only necessary on mac and linux
-        /// </summary>
-        private async Task MakeAdbExecutable()
-        {
-            Process process = new();
-
-            string command = $"chmod +x {_adbPath}";
-
-            process.StartInfo.FileName = "/bin/bash";
-            process.StartInfo.Arguments = "-c \" " + command.Replace("\"", "\\\"") + " \"";
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
-            process.Start();
-
-            await process.WaitForExitAsync();
-        }
-
-        /// <summary>
         /// Checks if ADB is on PATH, and downloads it if not
         /// </summary>
         public async Task PrepareAdbPath()
@@ -136,11 +118,6 @@ namespace QuestPatcher.Core
             {
                 // Otherwise, we download the tool and make it executable (only necessary on mac & linux)
                 _adbPath = await _filesDownloader.GetFileLocation(ExternalFileType.PlatformTools); // Download ADB if it hasn't been already
-
-                if(OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-                {
-                    await MakeAdbExecutable();
-                }
             }
         }
 

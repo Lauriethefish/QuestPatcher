@@ -77,6 +77,11 @@ namespace QuestPatcher.Core
 
             public string Name => ExtractionFolder ?? SaveName;
 
+            /// <summary>
+            /// If this is true, the .exe suffix will be removed from the file if on Mac or Linux, and it will also be made executable with chmod.
+            /// </summary>
+            public bool IsExecutable { get; set; } = false;
+
             public string? ExtractionFolder { get; set; }
         }
 
@@ -138,7 +143,8 @@ namespace QuestPatcher.Core
                     WindowsDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
                     LinuxDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
                     MacDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
-                    ExtractionFolder = "platform-tools"
+                    ExtractionFolder = "platform-tools",
+                    IsExecutable = true
                 }
             },
             {
@@ -149,7 +155,8 @@ namespace QuestPatcher.Core
                     WindowsDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.11_9.zip",
                     LinuxDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_linux_hotspot_11.0.11_9.tar.gz",
                     MacDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_mac_hotspot_11.0.11_9.tar.gz",
-                    ExtractionFolder = "openjre"
+                    ExtractionFolder = "openjre",
+                    IsExecutable = true
                 }
             }
         };
@@ -193,6 +200,7 @@ namespace QuestPatcher.Core
         private readonly SpecialFolders _specialFolders;
         private readonly Logger _logger;
         private readonly WebClient _webClient = new();
+        private readonly bool _isUnix = OperatingSystem.IsMacOS() || OperatingSystem.IsLinux();
 
         public ExternalFilesDownloader(SpecialFolders specialFolders, Logger logger)
         {
@@ -271,6 +279,12 @@ namespace QuestPatcher.Core
                     await _webClient.DownloadFileTaskAsync(url, saveLocation);
                 }
 
+                // chmod to make the downloaded executable actually usable if on mac or linux
+                if(_isUnix && fileInfo.IsExecutable)
+                {
+                    await MakeExecutable(saveLocation);
+                }
+
                 // Write that the file has been fully downloaded
                 // This is used instead of just checking that it exists to avoid exiting part way through causing a corrupted file
                 _fullyDownloaded.Add(fileType);
@@ -285,6 +299,24 @@ namespace QuestPatcher.Core
         }
 
         /// <summary>
+        /// Uses chmod to make a downloaded file executable. Only necessary on Mac and Linux.
+        /// </summary>
+        private async Task MakeExecutable(string path)
+        {
+            Process process = new();
+
+            string command = $"chmod +x {path}";
+
+            process.StartInfo.FileName = "/bin/bash";
+            process.StartInfo.Arguments = "-c \" " + command.Replace("\"", "\\\"") + " \"";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.Start();
+
+            await process.WaitForExitAsync();
+        }
+
+        /// <summary>
         /// Finds the location of the specified file, and downloads/extracts it if it does not exist.
         /// </summary>
         /// <param name="fileType">The type of file to download</param>
@@ -294,7 +326,7 @@ namespace QuestPatcher.Core
             FileInfo fileInfo = _fileTypes[fileType];
 
             // Remove .exe on non-windows
-            if(Path.GetExtension(fileInfo.SaveName) == ".exe" && !OperatingSystem.IsWindows())
+            if(fileInfo.IsExecutable && _isUnix)
             {
                 fileInfo.SaveName = fileInfo.SaveName[^4..];
             }
