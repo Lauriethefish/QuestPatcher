@@ -33,7 +33,7 @@ namespace QuestPatcher
 
             DialogBuilder builder = new()
             {
-                Title = "App Uninstalled",
+                Title = "App Not Installed",
                 Text = $"The selected app - {_config.AppId} - is not installed",
                 HideCancelButton = true
             };
