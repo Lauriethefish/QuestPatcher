@@ -106,6 +106,30 @@ namespace QuestPatcher.Core.Modding
         }
 
         /// <summary>
+        /// QuestPatcher used to just push the manifests of installs mods to /sdcard/QuestPatcher/installedMods, and didn't support mod toggling.
+        /// With the system of pushing manifests, toggling cannot be supported since the mod files aren't available after the mod is turned off.
+        /// While technically we could display old mods in UI as only uninstallable, with no togglging, this would be quite a lot of effort, and it isn't worth it.
+        /// We could also detect old mods and libs that are installed and construct the full mod that way. However, the libs may be missing or overwritten with different versions (especially for unversioned libs) so this would be unreliable.
+        /// File copies such as build in maps would also be deleted.
+        /// 
+        /// So instead, we just remove the old manifests and wipe the mod files to treat them as uninstalled.
+        /// This works fine, and a UI window is shown to explain to users.
+        /// </summary>
+        /// <returns>True if old mods were found and deleted, false otherwise</returns>
+        public async Task<bool> DetectAndRemoveOldMods()
+        {
+            List<string> manifests = await _debugBridge.ListDirectoryFiles(InstalledModsPath);
+            if(manifests.Count == 0) { return false; }
+
+            _logger.Information("Upgrading from older QuestPatcher version! Removing old mods . . .");
+            await _debugBridge.DeleteFiles(manifests);
+            await _debugBridge.RemoveDirectory(ModsPath);
+            await _debugBridge.RemoveDirectory(LibsPath);
+
+            return true;
+        }
+
+        /// <summary>
         /// Attempts to load the manifest from the quest and will check that the mod files were actually copied correctly.
         /// Adds the mod to the installed list if so, does nothing if not.
         /// </summary>

@@ -138,5 +138,20 @@ namespace QuestPatcher
 
             return builder.OpenDialogue(_mainWindow);
         }
+
+        public Task PromptUpgradeFromOld()
+        {
+            DialogBuilder builder = new()
+            {
+                Title = "Upgrading from QuestPatcher 1",
+                Text = "It looks as though you've previously used QuestPatcher 1.\n\n" +
+                    "Note that your mods from QuestPatcher 1 will be removed - this is deliberate as QuestPatcher 2 reworks mod installing to allow toggling of mods! " +
+                    "To get your mods back, just reinstall them.\n\n" + 
+                    "NOTE: All save data, custom maps and cosmetics will remain safe!",
+                HideCancelButton = true
+            };
+
+            return builder.OpenDialogue(_mainWindow);
+        }
     }
 }

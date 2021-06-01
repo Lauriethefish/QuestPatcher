@@ -121,9 +121,37 @@ namespace QuestPatcher.Core
             }
             Logger.Information("App is installed");
 
+            await MigrateOldFiles();
+
             await PatchingManager.LoadInstalledApp();
             await ModManager.LoadInstalledMods();
             HasLoaded = true;
+        }
+
+        /// <summary>
+        /// Migrates old mods and displays the migration prompt if there were mods to migrate.
+        /// Also deletes the old platform-tools folder to save space, since this has now been moved.
+        /// </summary>
+        private async Task MigrateOldFiles()
+        {
+            string oldPlatformToolsPath = Path.Combine(SpecialFolders.DataFolder, "platform-tools");
+            if (Directory.Exists(oldPlatformToolsPath))
+            {
+                Logger.Information("Deleting old platform-tools . . .");
+                try
+                {
+                    Directory.Delete(oldPlatformToolsPath, true);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warning($"Failed to delete QP1 platform-tools: {ex}");
+                }
+            }
+
+            if(await ModManager.DetectAndRemoveOldMods())
+            {
+                await Prompter.PromptUpgradeFromOld();
+            }
         }
 
         /// <summary>

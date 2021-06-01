@@ -18,5 +18,7 @@ namespace QuestPatcher.Core
         Task<bool> Prompt32Bit();
 
         Task<bool> PromptPauseBeforeCompile();
+
+        Task PromptUpgradeFromOld();
     }
 }
