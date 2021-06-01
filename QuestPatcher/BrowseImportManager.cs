@@ -18,6 +18,13 @@ namespace QuestPatcher
     /// </summary>
     public class BrowseImportManager
     {
+        private struct FileImportInfo
+        {
+            public string Path { get; set;  }
+
+            public FileCopyType? PreferredCopyType { get; set; }
+        }
+
         private readonly OtherFilesManager _otherFilesManager;
         private readonly ModManager _modManager;
         private readonly Window _mainWindow;
@@ -27,7 +34,7 @@ namespace QuestPatcher
 
         private readonly FileDialogFilter _modsFilter = new();
 
-        private Queue<string>? _currentImportQueue;
+        private Queue<FileImportInfo>? _currentImportQueue;
 
         public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, Logger logger, PatchingManager patchingManager, OperationLocker locker)
         {
@@ -109,7 +116,7 @@ namespace QuestPatcher
         {
             OpenFileDialog dialog = ConstructDialog();
             dialog.Filters.Add(GetCosmeticFilter(cosmeticType));
-            await ShowDialogAndHandleResult(dialog);
+            await ShowDialogAndHandleResult(dialog, cosmeticType);
         }
 
         private static OpenFileDialog ConstructDialog()
@@ -120,7 +127,7 @@ namespace QuestPatcher
             };
         }
 
-        private async Task ShowDialogAndHandleResult(OpenFileDialog dialog)
+        private async Task ShowDialogAndHandleResult(OpenFileDialog dialog, FileCopyType? knownFileCopyType = null)
         {
             string[] files = await dialog.ShowAsync(_mainWindow);
             if (files == null)
@@ -128,7 +135,7 @@ namespace QuestPatcher
                 return;
             }
 
-            await AttemptImportFiles(files);
+            await AttemptImportFiles(files, knownFileCopyType);
         }
 
         /// <summary>
@@ -137,19 +144,24 @@ namespace QuestPatcher
         /// If a list of files is already importing, these files will be added to the queue
         /// </summary>
         /// <param name="files">The paths of the files to import</param>
-        public async Task AttemptImportFiles(ICollection<string> files)
+        /// <param name="preferredCopyType">File copy type that will be used if there are multiple copy types for one of these files. If null or not valid for the item, a dialog will be displayed allowing the user to choose</param>
+        public async Task AttemptImportFiles(ICollection<string> files, FileCopyType? preferredCopyType = null)
         {
             bool queueExisted = _currentImportQueue != null;
             if(_currentImportQueue == null)
             {
-                _currentImportQueue = new Queue<string>();
+                _currentImportQueue = new Queue<FileImportInfo>();
             }
 
             // Append all files to the new or existing queue
             _logger.Debug($"Enqueuing {files.Count} files");
             foreach (string file in files)
             {
-                _currentImportQueue.Enqueue(file);
+                _currentImportQueue.Enqueue(new FileImportInfo
+                {
+                    Path = file,
+                    PreferredCopyType = preferredCopyType
+                });
             }
 
             // If a queue already existed, that will be processed with our enqueued files, so we can stop here
@@ -196,13 +208,14 @@ namespace QuestPatcher
             // Attempt to import each file, and catch the exceptions if any to display them below
             Dictionary<string, Exception> failedFiles = new();
             int totalProcessed = 0; // We cannot know how many files were enqueued in total, so we keep track of that here
-            while(_currentImportQueue.TryDequeue(out string? path))
+            while(_currentImportQueue.TryDequeue(out FileImportInfo importInfo))
             {
+                string path = importInfo.Path;
                 totalProcessed++;
                 try
                 {
                     _logger.Information($"Importing {path} . . .");
-                    await ImportUnknownFile(path);
+                    await ImportUnknownFile(path, importInfo.PreferredCopyType);
                 }
                 catch (Exception ex)
                 {
@@ -260,7 +273,8 @@ namespace QuestPatcher
         /// Throws an exception if the file cannot be installed by QuestPatcher.
         /// </summary>
         /// <param name="path">The path of file to import</param>
-        private async Task ImportUnknownFile(string path)
+        /// <param name="preferredCopyType">File copy type that will be used if there are multiple copy types for this file. If null, a dialog will be displayed allowing the user to choose</param>
+        private async Task ImportUnknownFile(string path, FileCopyType? preferredCopyType)
         {
             string extension = Path.GetExtension(path).ToLower();
 
@@ -272,7 +286,19 @@ namespace QuestPatcher
             }
 
             // Attempt to copy the file to the quest as a map, hat or similar
-            List<FileCopyType> copyTypes = _otherFilesManager.GetFileCopyTypes(extension);
+            List<FileCopyType> copyTypes;
+            if (preferredCopyType == null || !preferredCopyType.SupportedExtensions.Contains(extension[1..])) 
+            {
+                copyTypes = _otherFilesManager.GetFileCopyTypes(extension);
+            }
+            else
+            {
+                // If we already know the file copy type
+                // e.g. from dragging into a particular part of the UI, or for browsing for a particular file type,
+                // we don't need to prompt on which file copy type to use
+                copyTypes = new() { preferredCopyType };
+            }
+
             if(copyTypes.Count > 0)
             {
                 FileCopyType copyType;
