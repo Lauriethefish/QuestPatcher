@@ -1,4 +1,6 @@
-﻿using Serilog.Core;
+﻿using ICSharpCode.SharpZipLib.Tar;
+using ICSharpCode.SharpZipLib.Zip;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,6 +9,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core
@@ -234,27 +237,38 @@ namespace QuestPatcher.Core
                 DownloadProgress = 0.0;
                 DownloadingFileName = fileInfo.Name;
 
+                string url = fileInfo.PlatformSpecificUrl;
                 if (fileInfo.ExtractionFolder != null)
                 {
-                    Uri uri = new(fileInfo.PlatformSpecificUrl);
+                    Uri uri = new(url);
                     byte[] archiveData = await _webClient.DownloadDataTaskAsync(uri);
                     using MemoryStream stream = new(archiveData); // Temporarily download the archive in order to extract it
 
-                    // There is no way to asynchronously ExtractToDirectory, so we use Task.Run to avoid blocking
+                    // There is no way to asynchronously ExtractToDirectory (or ExtractContents with TAR archives), so we use Task.Run to avoid blocking
                     _logger.Information("Extracting . . .");
                     IsExtracting = true;
                     await Task.Run(() =>
                     {
                         string extractFolder = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder);
 
-                        ZipArchive archive = new(stream);
-                        archive.ExtractToDirectory(extractFolder, true);
+                        if(url.EndsWith(".tar.gz")) {
+                            GZipStream zipStream = new(stream, CompressionMode.Decompress);
+
+                            TarArchive archive = TarArchive.CreateInputTarArchive(zipStream, Encoding.UTF8);
+                            archive.SetKeepOldFiles(false);
+                            archive.ExtractContents(extractFolder, false);
+                        }
+                        else
+                        {
+                            ZipArchive archive = new(stream);
+                            archive.ExtractToDirectory(extractFolder, true);
+                        }
                     });
                 }
                 else
                 {
                     // Directly download the file to the tools folder
-                    await _webClient.DownloadFileTaskAsync(fileInfo.PlatformSpecificUrl, saveLocation);
+                    await _webClient.DownloadFileTaskAsync(url, saveLocation);
                 }
 
                 // Write that the file has been fully downloaded
