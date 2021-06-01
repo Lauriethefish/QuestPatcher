@@ -31,7 +31,14 @@ namespace QuestPatcher.Core
         {
             string path = await _filesDownloader.GetFileLocation(type); // Downloads the file if it hasn't been already
 
-            return await InvokeJava($"-jar {path} {args}");
+            ProcessOutput output = await InvokeJava($"-jar {path} {args}");
+            _logger.Verbose($"Standard output: {output.StandardOutput}");
+            if (output.ErrorOutput.Length > 0)
+            {
+                _logger.Verbose($"Error output: {output.ErrorOutput}");
+            }
+
+            return output;
         }
 
         public async Task<bool> PrepareJavaInstall()
