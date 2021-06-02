@@ -15,9 +15,6 @@ This branch is the rewrite/remake of QuestPatcher.
 - Allow customisation of patching permissions. For instance, allow or disallow debugging and hand tracking permissions.
 - Add support for 32 bit quest apps. (`armeabi-v7a`) 
 
-## TODO
-- Add general import window with information about what kind of files QuestPatcher supports.
-
 Note that the rewrite is __incomplete__. It should only be used by developers for testing purposes, and it's in its early stages!
 
 See `QuestPatcher.Core/Resources/qmod.schema.json` for the `mod.json` that QMODs must contain, alongside their mod files.
