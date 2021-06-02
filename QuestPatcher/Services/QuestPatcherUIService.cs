@@ -42,7 +42,7 @@ namespace QuestPatcher.Services
             UIPrompter prompter = (UIPrompter) Prompter;
             prompter.Init(_mainWindow, Config, this);
 
-            _mainWindow.Opened += OnMainWindowOpen;
+            _mainWindow.Opened += async (sender, args) => await LoadAndHandleErrors();
             _mainWindow.Closing += OnMainWindowClosing;
         }
 
@@ -78,7 +78,7 @@ namespace QuestPatcher.Services
             return window;
         }
 
-        private async void OnMainWindowOpen(object? sender, EventArgs args)
+        private async Task LoadAndHandleErrors()
         {
             Debug.Assert(_operationLocker != null); // Main window has been loaded, so this is assigned
             if (_operationLocker.IsFree) // Necessary since the operation may have started earlier if this is the first load. Otherwise, we need to start the operation on subsequent loads
@@ -177,11 +177,11 @@ namespace QuestPatcher.Services
             else
             {
                 Config.AppId = viewModel.SelectedApp;
-                Reload();
+                await Reload();
             }
         }
 
-        public void Reload()
+        public async Task Reload()
         {
             if (_loggingViewModel != null)
             {
@@ -190,7 +190,7 @@ namespace QuestPatcher.Services
 
             ModManager.OnReload();
             PatchingManager.ResetInstalledApp();
-            OnMainWindowOpen(this, new EventArgs());
+            await LoadAndHandleErrors();
         }
 
         protected override void SetLoggingOptions(LoggerConfiguration configuration)
