@@ -30,6 +30,8 @@ namespace QuestPatcher.Services
         private BrowseImportManager? _browseManager;
         private OtherItemsViewModel? _otherItemsView;
 
+        private bool _isShuttingDown = false;
+
         public QuestPatcherUIService(IClassicDesktopStyleApplicationLifetime appLifetime) : base(new UIPrompter())
         {
             _appLifetime = appLifetime;
@@ -51,7 +53,7 @@ namespace QuestPatcher.Services
             window.Width = 900;
             window.Height = 550;
             _operationLocker = new();
-            _operationLocker.StartOperation(); // During loading, operations are ongoing and certain buttons should not be usable
+            _operationLocker.StartOperation(); // Still loading
             _browseManager = new(OtherFilesManager, ModManager, window, Logger, PatchingManager, _operationLocker);
             ProgressViewModel progressViewModel = new(_operationLocker, FilesDownloader);
             _otherItemsView = new OtherItemsViewModel(OtherFilesManager, window, Logger, _browseManager, _operationLocker, progressViewModel);
@@ -79,6 +81,10 @@ namespace QuestPatcher.Services
         private async void OnMainWindowOpen(object? sender, EventArgs args)
         {
             Debug.Assert(_operationLocker != null); // Main window has been loaded, so this is assigned
+            if (_operationLocker.IsFree) // Necessary since the operation may have started earlier if this is the first load. Otherwise, we need to start the operation on subsequent loads
+            {
+                _operationLocker.StartOperation();
+            }
             try
             {
                 await RunStartup();
@@ -126,7 +132,7 @@ namespace QuestPatcher.Services
             Debug.Assert(_operationLocker != null);
 
             // Closing while operations are in progress is a bad idea, so we warn the user
-            if (!_operationLocker.IsFree)
+            if (!_operationLocker.IsFree && !_isShuttingDown)
             {
                 // We must set this to true at first, even if the user might press OK later.
                 // This is since the caller of the event will not wait for our async handler to finish
@@ -206,6 +212,7 @@ namespace QuestPatcher.Services
 
         protected override void ExitApplication()
         {
+            _isShuttingDown = true;
             _appLifetime.Shutdown();
         }
     }
