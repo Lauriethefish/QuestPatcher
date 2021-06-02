@@ -5,7 +5,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QuestPatcher.Views.Modding.ModView">
   <DockPanel Height="100">
-    <Image DockPanel.Dock="Left" Source="{Binding CoverImage}" Width="177.778" Stretch="UniformToFill" Grid.Column="0" Grid.Row="0"/>
+    <Panel Width="177.778" DockPanel.Dock="Left">
+      <Image Source="{Binding CoverImage}" Stretch="UniformToFill" IsVisible="{Binding CoverImage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <Image DockPanel.Dock="Left" Source="/Assets/questpatcher-logo.ico" Width="50" IsVisible="{Binding CoverImage, Converter={x:Static ObjectConverters.IsNull}}" />
+    </Panel>
     <Panel Margin="10">
       <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Spacing="5">
         <StackPanel Orientation="Horizontal" Spacing="5">
