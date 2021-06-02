@@ -134,18 +134,29 @@ namespace QuestPatcher.Core
         /// </summary>
         private async Task MigrateOldFiles()
         {
-            string oldPlatformToolsPath = Path.Combine(SpecialFolders.DataFolder, "platform-tools");
-            if (Directory.Exists(oldPlatformToolsPath))
+            Logger.Information("Deleting old files. . .");
+            try
             {
-                Logger.Information("Deleting old platform-tools . . .");
-                try
+                string oldPlatformToolsPath = Path.Combine(SpecialFolders.DataFolder, "platform-tools");
+                if (Directory.Exists(oldPlatformToolsPath))
                 {
                     Directory.Delete(oldPlatformToolsPath, true);
                 }
-                catch (Exception ex)
+
+                string oldLogPath = Path.Combine(SpecialFolders.DataFolder, "log.log");
+                string oldAdbLogPath = Path.Combine(SpecialFolders.DataFolder, "adb.log");
+                if (File.Exists(oldLogPath))
                 {
-                    Logger.Warning($"Failed to delete QP1 platform-tools: {ex}");
+                    File.Delete(oldLogPath);
                 }
+                if (File.Exists(oldAdbLogPath))
+                {
+                    File.Delete(oldAdbLogPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning($"Failed to delete QP1 files: {ex}");
             }
 
             if(await ModManager.DetectAndRemoveOldMods())
