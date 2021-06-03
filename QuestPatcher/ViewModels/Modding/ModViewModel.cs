@@ -58,7 +58,7 @@ namespace QuestPatcher.ViewModels.Modding
             _patchingManager = patchingManager;
             _mainWindow = mainWindow;
 
-            inner.PropertyChanged += (sender, args) =>
+            inner.PropertyChanged += (_, args) =>
             {
                 if (!_isToggling)
                 {
@@ -198,22 +198,27 @@ namespace QuestPatcher.ViewModels.Modding
 
         public async void OnDelete()
         {
-            // Always uninstall mods before deleting
-            if (Inner.IsInstalled)
-            {
-                if (!await UninstallSafely())
-                {
-                    return;
-                }
-            }
-
+            Locker.StartOperation();
             try
             {
+                // Always uninstall mods before deleting
+                if (Inner.IsInstalled)
+                {
+                    if (!await UninstallSafely())
+                    {
+                        return;
+                    }
+                }
+
                 await _modManager.UnloadMod(Inner);
             }
             catch (Exception ex)
             {
                 await ShowFailDialog("Failed to delete mod", ex);
+            }
+            finally
+            {
+                Locker.FinishOperation();
             }
         }
 
