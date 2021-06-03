@@ -9,7 +9,7 @@
     <viewModels:ToolsViewModel />
   </Design.DataContext>
   <DockPanel VerticalAlignment="Stretch" Margin="20 0 20 20" HorizontalAlignment="Stretch">
-    <StackPanel DockPanel.Dock="Top" Spacing="50">
+    <StackPanel DockPanel.Dock="Top">
       <StackPanel Spacing="10">
         <StackPanel Orientation="Horizontal" Spacing="15">
           <TextBlock FontSize="20">Tools</TextBlock>
