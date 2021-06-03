@@ -2,7 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QuestPatcher
+namespace QuestPatcher.Core
 {
     public struct ProcessOutput
     {
@@ -17,15 +17,15 @@ namespace QuestPatcher
         /// Waits until the process exits before the task completes.
         /// </summary>
         /// <param name="fileName">File name of the application to call</param>
-        /// <param name="args">Arguments to pass</param>
+        /// <param name="arguments">Arguments to pass</param>
         /// <returns>The standard and error output of the process</returns>
-        public static async Task<ProcessOutput> InvokeAndCaptureOutput(string fileName, string args)
+        public static async Task<ProcessOutput> InvokeAndCaptureOutput(string fileName, string arguments)
         {
             Process process = new();
 
             ProcessStartInfo startInfo = process.StartInfo;
             startInfo.FileName = fileName;
-            startInfo.Arguments = args;
+            startInfo.Arguments = arguments;
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
             startInfo.UseShellExecute = false;
@@ -38,12 +38,12 @@ namespace QuestPatcher
             StringBuilder standardOutputBuilder = new();
             StringBuilder errorOutputBuilder = new();
 
-            process.OutputDataReceived += (sender, args) =>
+            process.OutputDataReceived += (_, args) =>
             {
                 if (args.Data != null) { standardOutputBuilder.AppendLine(args.Data); }
             };
 
-            process.ErrorDataReceived += (sender, args) =>
+            process.ErrorDataReceived += (_, args) =>
             {
                 if (args.Data != null) { errorOutputBuilder.AppendLine(args.Data); }
             };

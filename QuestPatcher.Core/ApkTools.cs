@@ -1,7 +1,6 @@
 ﻿using Serilog.Core;
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core
@@ -41,20 +40,18 @@ namespace QuestPatcher.Core
             return output;
         }
 
-        public async Task<bool> PrepareJavaInstall()
+        public async Task PrepareJavaInstall()
         {
             try
             {
                 string javaVersion = (await InvokeJava("-version")).ErrorOutput;
                 _logger.Information("Located Java install on PATH");
                 _logger.Debug($"Java version: {javaVersion}");
-                return true;
             }
             catch (Win32Exception) // Thrown if the executable is missing, even on Linux. Slight .NET quirk.
             {
                 // Download Java if it is not installed
                 _javaExecutableName = await _filesDownloader.GetFileLocation(ExternalFileType.Jre);
-                return false;
             }
         }
 

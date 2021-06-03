@@ -150,23 +150,23 @@ namespace QuestPatcher.Core.Patching
         private string PatchManifest(string manifest)
         {
 
-            // This is futureproofing as in Android 11 WRITE and READ is replaced by MANAGE.
+            // This is future-proofing as in Android 11 WRITE and READ is replaced by MANAGE.
             // Otherwise storage access would be limited to scoped-storage like an app-specific directory or a public shared directory.
             // Can be removed until any device updates to Android 11, however it's best to keep for compatability.
 
-            const string ReadPermissions = "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>";
-            const string WritePermissions = "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>";
-            const string ManagePermissions = "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\"/>";
+            const string readPermissions = "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>";
+            const string writePermissions = "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>";
+            const string managePermissions = "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\"/>";
 
             // Required for Apps that target Android 10 API Level 29 or higher as that uses scoped storage see: https://developer.android.com/training/data-storage/use-cases#opt-out-scoped-storage
-            const string LegacyExternalStorage = "android:requestLegacyExternalStorage = \"true\"";
-            const string ApplicationDebuggable = "android:debuggable = \"true\"";
+            const string legacyExternalStorage = "android:requestLegacyExternalStorage = \"true\"";
+            const string applicationDebuggable = "android:debuggable = \"true\"";
 
             // Hand tracking features and permissions
-            const string OvrFeatureHandTracking = "<uses-feature android:name=\"oculus.software.handtracking\" android:required=\"false\"/>";
-            const string OvrPermissionHandTracking = "<uses-permission android:name=\"oculus.permission.handtracking\"/>\n<uses-permission android:name=\"com.oculus.permission.HAND_TRACKING\"/>";
+            const string ovrFeatureHandTracking = "<uses-feature android:name=\"oculus.software.handtracking\" android:required=\"false\"/>";
+            const string ovrPermissionHandTracking = "<uses-permission android:name=\"oculus.permission.handtracking\"/>\n<uses-permission android:name=\"com.oculus.permission.HAND_TRACKING\"/>";
 
-            const string ApplicationStr = "<application";
+            const string applicationStr = "<application";
 
             int newLineIndex = manifest.IndexOf('\n');
             string newManifest = manifest.Substring(0, newLineIndex) + "\n";
@@ -174,25 +174,25 @@ namespace QuestPatcher.Core.Patching
             if (_config.PatchingPermissions.ExternalFiles)
             {
                 _logger.Information("Adding storage permissions . . .");
-                if (!manifest.Contains(ReadPermissions))
+                if (!manifest.Contains(readPermissions))
                 {
-                    newManifest += "    " + ReadPermissions + "\n";
+                    newManifest += "    " + readPermissions + "\n";
                 }
 
-                if (!manifest.Contains(WritePermissions))
+                if (!manifest.Contains(writePermissions))
                 {
-                    newManifest += "    " + WritePermissions + "\n";
+                    newManifest += "    " + writePermissions + "\n";
                 }
 
-                if (!manifest.Contains(ManagePermissions))
+                if (!manifest.Contains(managePermissions))
                 {
-                    newManifest += "    " + ManagePermissions + "\n";
+                    newManifest += "    " + managePermissions + "\n";
                 }
 
-                if (!manifest.Contains(LegacyExternalStorage))
+                if (!manifest.Contains(legacyExternalStorage))
                 {
                     _logger.Debug("Adding legacy storage support . . .");
-                    manifest = manifest.Replace(ApplicationStr, $"{ApplicationStr} {LegacyExternalStorage}");
+                    manifest = manifest.Replace(applicationStr, $"{applicationStr} {legacyExternalStorage}");
                 }
             }
             else
@@ -202,24 +202,24 @@ namespace QuestPatcher.Core.Patching
 
             if (_config.PatchingPermissions.Debuggable)
             {
-                if (!manifest.Contains(ApplicationDebuggable))
+                if (!manifest.Contains(applicationDebuggable))
                 {
                     _logger.Information("Adding debuggable flag . . .");
-                    manifest = manifest.Replace(ApplicationStr, $"{ApplicationStr} {ApplicationDebuggable}");
+                    manifest = manifest.Replace(applicationStr, $"{applicationStr} {applicationDebuggable}");
                 }
             }
 
             if(_config.PatchingPermissions.HandTracking)
             {
                 _logger.Information("Adding hand tracking . . .");
-                if (!manifest.Contains(OvrFeatureHandTracking))
+                if (!manifest.Contains(ovrFeatureHandTracking))
                 {
-                    newManifest += "    " + OvrFeatureHandTracking + "\n";
+                    newManifest += "    " + ovrFeatureHandTracking + "\n";
                 }
 
-                if (!manifest.Contains(OvrPermissionHandTracking))
+                if (!manifest.Contains(ovrPermissionHandTracking))
                 {
-                    newManifest += "    " + OvrPermissionHandTracking + "\n";
+                    newManifest += "    " + ovrPermissionHandTracking + "\n";
                 }
             }
 

@@ -6,12 +6,8 @@ namespace QuestPatcher.Core.Models
     public class ApkInfo : INotifyPropertyChanged
     {
         public string Version { get;  }
-        public bool IsModded
-        {
-            get
-            {
-                return _isModded;
-            }
+        public bool IsModded {
+            get => _isModded;
             set
             {
                 if(_isModded != value)

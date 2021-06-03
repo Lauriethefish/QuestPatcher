@@ -1,17 +1,13 @@
-﻿using Newtonsoft.Json;
-using QuestPatcher.Core.Models;
+﻿using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
 using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
@@ -76,7 +72,7 @@ namespace QuestPatcher.Core.Modding
 
             await CreateModsDirectories();
             _logger.Debug("Listing files in mods, libs and installedMods . . .");
-            Task<List<string>> modFoldersTask = _debugBridge.ListDirectoryFolders(InstalledModsPath, false);
+            Task<List<string>> modFoldersTask = _debugBridge.ListDirectoryFolders(InstalledModsPath);
             Task<List<string>> modFilesTask = _debugBridge.ListDirectoryFiles(ModsPath, true);
             Task<List<string>> libFilesTask = _debugBridge.ListDirectoryFiles(LibsPath, true);
 
@@ -264,7 +260,7 @@ namespace QuestPatcher.Core.Modding
         private async Task PrepareDependency(Dependency dependency, List<string> installedInBranch)
         {
             _logger.Debug($"Preparing dependency of {dependency.Id} version {dependency.Version}");
-            int existingIndex = installedInBranch.FindIndex((string downloadedDep) => downloadedDep == dependency.Id);
+            int existingIndex = installedInBranch.FindIndex(downloadedDep => downloadedDep == dependency.Id);
             if (existingIndex != -1)
             {
                 string dependMessage = "";

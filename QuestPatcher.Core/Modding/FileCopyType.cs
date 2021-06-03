@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
@@ -51,7 +49,7 @@ namespace QuestPatcher.Core.Modding
                 }
             }
         }
-        private bool _hasLoaded = false;
+        private bool _hasLoaded;
 
         /// <summary>
         /// Whether or not the last loading attempt failed
@@ -68,7 +66,7 @@ namespace QuestPatcher.Core.Modding
                 }
             }
         }
-        private bool _loadingFailed = false;
+        private bool _loadingFailed;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

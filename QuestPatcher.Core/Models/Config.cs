@@ -8,10 +8,7 @@ namespace QuestPatcher.Core.Models
         private string _appId = "";
         public string AppId
         {
-            get
-            {
-                return _appId;
-            }
+            get => _appId;
             set
             {
                 if (value != _appId)
@@ -27,10 +24,7 @@ namespace QuestPatcher.Core.Models
         [DefaultValue(false)]
         public bool DisplayLogs
         {
-            get
-            {
-                return _displayLogs;
-            }
+            get => _displayLogs;
             set
             {
                 if (value != _displayLogs)
@@ -44,10 +38,7 @@ namespace QuestPatcher.Core.Models
         [DefaultValue(null)]
         public PatchingPermissions PatchingPermissions
         {
-            get
-            {
-                return _patchingPermissions;
-            }
+            get => _patchingPermissions;
             set
             {
                 // Used to get round default JSON values not being able to be objects. We instead set it to null by default then have the default backing field set to the default value
@@ -64,10 +55,7 @@ namespace QuestPatcher.Core.Models
         [DefaultValue(false)]
         public bool ShowPatchingOptions
         {
-            get
-            {
-                return _showPatchingOptions;
-            }
+            get => _showPatchingOptions;
             set
             {
                 if(value != _showPatchingOptions)
@@ -82,10 +70,7 @@ namespace QuestPatcher.Core.Models
         [DefaultValue(false)]
         public bool PauseBeforeCompile
         {
-            get
-            {
-                return _pauseBeforeCompile;
-            }
+            get => _pauseBeforeCompile;
             set
             {
                 if(value != _pauseBeforeCompile)

@@ -1,17 +1,13 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using QuestPatcher.Core.Models;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
 {
@@ -25,11 +21,8 @@ namespace QuestPatcher.Core.Modding
                 {
                     return copyTypes;
                 }
-                else
-                {
-                    // Otherwise, return a list of no types to avoid throwing exceptions/null
-                    return _noTypesAvailable;
-                }
+                // Otherwise, return a list of no types to avoid throwing exceptions/null
+                return _noTypesAvailable;
             }
         }
         private readonly List<FileCopyType> _noTypesAvailable = new();
@@ -37,7 +30,6 @@ namespace QuestPatcher.Core.Modding
         private readonly Dictionary<string, List<FileCopyType>> _copyIndex;
 
         private readonly Config _config;
-        private readonly AndroidDebugBridge _debugBridge;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -45,9 +37,8 @@ namespace QuestPatcher.Core.Modding
         public OtherFilesManager(Config config, AndroidDebugBridge debugBridge)
         {
             _config = config;
-            _debugBridge = debugBridge;
 
-            _config.PropertyChanged += (sender, args) =>
+            _config.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(_config.AppId))
                 {
@@ -70,7 +61,7 @@ namespace QuestPatcher.Core.Modding
                 },
             };
             // File copies require a debug bridge reference, so we use a converter to pass this in
-            serializer.Converters.Add(new FileCopyConverter(_debugBridge));
+            serializer.Converters.Add(new FileCopyConverter(debugBridge));
 
             var copyIndex = serializer.Deserialize<Dictionary<string, List<FileCopyType>>>(jsonReader);
             Debug.Assert(copyIndex != null);

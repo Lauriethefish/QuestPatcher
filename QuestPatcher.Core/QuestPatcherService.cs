@@ -19,7 +19,6 @@ namespace QuestPatcher.Core
     {
         protected SpecialFolders SpecialFolders { get; }
         protected Logger Logger { get; }
-        protected ConfigManager ConfigManager { get; }
         protected PatchingManager PatchingManager { get; }
         protected ModManager ModManager { get; }
         protected AndroidDebugBridge DebugBridge { get; }
@@ -27,23 +26,23 @@ namespace QuestPatcher.Core
         protected OtherFilesManager OtherFilesManager { get; }
         protected IUserPrompter Prompter { get; }
 
-        protected Config Config => ConfigManager.Config;
-        protected string AppId => ConfigManager.Config.AppId;
-
+        protected Config Config => _configManager.Config;
+        
         private readonly ApkTools _apkTools;
+        private readonly ConfigManager _configManager;
 
-        public bool HasLoaded { get => hasLoaded; private set { if(hasLoaded != value) { hasLoaded = value; NotifyPropertyChanged(); } } }
-        private bool hasLoaded = false;
+        public bool HasLoaded { get => _hasLoaded; private set { if(_hasLoaded != value) { _hasLoaded = value; NotifyPropertyChanged(); } } }
+        private bool _hasLoaded;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public QuestPatcherService(IUserPrompter prompter)
+        protected QuestPatcherService(IUserPrompter prompter)
         {
             Prompter = prompter;
             SpecialFolders = new SpecialFolders(); // Load QuestPatcher application folders
 
             Logger = SetupLogging();
-            ConfigManager = new ConfigManager(Logger, SpecialFolders);
+            _configManager = new ConfigManager(Logger, SpecialFolders);
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders, Logger);
             _apkTools = new ApkTools(Logger, FilesDownloader);
             DebugBridge = new AndroidDebugBridge(Logger, FilesDownloader, OnAdbDisconnect);
@@ -61,7 +60,7 @@ namespace QuestPatcher.Core
 
         /// <summary>
         /// Sets up basic logging to the logs folder and the console.
-        /// Also calls the subclass to allow inheriters to add extra logging options
+        /// Also calls the subclass to allow inheritors to add extra logging options
         /// </summary>
         private Logger SetupLogging()
         {
@@ -90,7 +89,7 @@ namespace QuestPatcher.Core
         public void CleanUp()
         {
             Logger.Debug("Closing QuestPatcher . . .");
-            ConfigManager.SaveConfig();
+            _configManager.SaveConfig();
             try
             {
                 Directory.Delete(SpecialFolders.TempFolder, true);
@@ -102,13 +101,13 @@ namespace QuestPatcher.Core
             Logger.Debug("Goodbye!");
         }
 
-        public async Task RunStartup()
+        protected async Task RunStartup()
         {
             HasLoaded = false;
             Logger.Information("Starting QuestPatcher . . .");
             await _apkTools.PrepareJavaInstall();
 
-            if(!await DebugBridge.IsPackageInstalled(AppId))
+            if(!await DebugBridge.IsPackageInstalled(Config.AppId))
             {
                 if (await Prompter.PromptAppNotInstalled())
                 {
@@ -196,8 +195,8 @@ namespace QuestPatcher.Core
 
             // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side
             await FilesDownloader.ClearCache();
-            await DebugBridge.PrepareAdbPath(); // Redownload ADB if necessary
-            await _apkTools.PrepareJavaInstall(); // Redownload Java if necessary
+            await DebugBridge.PrepareAdbPath(); // Re-download ADB if necessary
+            await _apkTools.PrepareJavaInstall(); // Re-download Java if necessary
         }
     }
 }

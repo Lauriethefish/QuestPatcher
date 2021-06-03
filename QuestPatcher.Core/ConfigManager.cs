@@ -10,7 +10,7 @@ namespace QuestPatcher.Core
 {
     public class ConfigManager
     {
-        private static readonly JsonSerializer _serializer = new();
+        private static readonly JsonSerializer Serializer = new();
 
         public Config Config
         {
@@ -60,7 +60,7 @@ namespace QuestPatcher.Core
             // Load the config
             using (StreamReader streamReader = new(_configPath))
             using (JsonTextReader reader = new(streamReader)) {
-                _config = _serializer.Deserialize<Config>(reader);
+                _config = Serializer.Deserialize<Config>(reader);
             }
 
             // In the past, an appId.txt file was used to store the app ID
@@ -79,7 +79,7 @@ namespace QuestPatcher.Core
             _logger.Information("Saving config file . . .");
             using StreamWriter streamWriter = new(_configPath);
             using JsonTextWriter writer = new(streamWriter);
-            _serializer.Serialize(writer, _config);
+            Serializer.Serialize(writer, _config);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using ICSharpCode.SharpZipLib.Tar;
-using ICSharpCode.SharpZipLib.Zip;
 using Serilog.Core;
 using System;
 using System.Collections.Generic;
@@ -68,7 +67,7 @@ namespace QuestPatcher.Core
                     }
                 }
             }
-            public string? DownloadUrl { get; set; } = null;
+            public string? DownloadUrl { get; set; }
 
             // Platform specific download URLs, used if DownloadUrl is null
             public string WindowsDownloadUrl { get; set; } = "";
@@ -80,7 +79,7 @@ namespace QuestPatcher.Core
             /// <summary>
             /// If this is true, the .exe suffix will be removed from the file if on Mac or Linux, and it will also be made executable with chmod.
             /// </summary>
-            public bool IsExecutable { get; set; } = false;
+            public bool IsExecutable { get; set; }
 
             public string? ExtractionFolder { get; set; }
         }
@@ -193,7 +192,7 @@ namespace QuestPatcher.Core
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private readonly string _fullyDownloadedPath = "completedDownloads.dat"; // Path in tools where completed downloads are stored for error checking
+        private readonly string _fullyDownloadedPath; // Path in tools where completed downloads are stored for error checking
 
         private readonly List<ExternalFileType> _fullyDownloaded = new();
 
@@ -221,7 +220,7 @@ namespace QuestPatcher.Core
                 _fullyDownloaded = new();
             }
 
-            _webClient.DownloadProgressChanged += (sender, args) =>
+            _webClient.DownloadProgressChanged += (_, args) =>
             {
                 // Manually calculate the progress for better precision than the provided integer percentage
                 DownloadProgress = ((double) args.BytesReceived / args.TotalBytesToReceive) * 100.0;

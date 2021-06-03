@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -157,10 +156,7 @@ namespace QuestPatcher.Core.Modding
         /// </summary>
         public bool IsInstalled
         {
-            get
-            {
-                return _isInstalled;
-            }
+            get => _isInstalled;
             set
             {
                 if(value != _isInstalled)
@@ -171,7 +167,7 @@ namespace QuestPatcher.Core.Modding
             }
         }
 
-        private bool _isInstalled = false;
+        private bool _isInstalled;
 
 #nullable enable
 
@@ -210,7 +206,7 @@ namespace QuestPatcher.Core.Modding
         }
 
         private static JSchema? _schema;
-        private static readonly JsonSerializer _serializer = new()
+        private static readonly JsonSerializer Serializer = new()
         {
             Formatting = Formatting.Indented,
             NullValueHandling = NullValueHandling.Ignore,
@@ -241,7 +237,7 @@ namespace QuestPatcher.Core.Modding
                 Schema = Schema
             };
 
-            Mod? mod = _serializer.Deserialize<Mod>(validatingReader);
+            Mod? mod = Serializer.Deserialize<Mod>(validatingReader);
             if(mod == null)
             {
                 throw new NullReferenceException("No mod was contained within the mod manifest!");
@@ -257,7 +253,7 @@ namespace QuestPatcher.Core.Modding
         public void Save(StreamWriter output)
         {
             using JsonWriter writer = new JsonTextWriter(output);
-            _serializer.Serialize(writer, this);
+            Serializer.Serialize(writer, this);
         }
     }
 }

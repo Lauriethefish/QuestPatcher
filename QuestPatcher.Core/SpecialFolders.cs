@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace QuestPatcher
+namespace QuestPatcher.Core
 {
     /// <summary>
     /// Manages where QuestPatcher application data, and temporary files, are stored.

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
@@ -44,7 +43,7 @@ namespace QuestPatcher.Core
         /// <summary>
         /// Words that will cause running an ADB command to throw an exception if found in the output
         /// </summary>
-        private static readonly string[] _failedWords = new string[]
+        private static readonly string[] FailedWords =
         {
             "error",
             "failed"
@@ -53,7 +52,7 @@ namespace QuestPatcher.Core
         /// <summary>
         /// Package names that will not be included in the apps to patch list
         /// </summary>
-        private static readonly string[] _defaultPackagePrefixes = new string[]
+        private static readonly string[] DefaultPackagePrefixes =
         {
             "com.oculus",
             "com.android",
@@ -93,7 +92,7 @@ namespace QuestPatcher.Core
         /// <param name="str">The string to scan</param>
         private static void ThrowIfFailed(string str)
         {
-            foreach(string failedMsg in _failedWords)
+            foreach(string failedMsg in FailedWords)
             {
                 if(str.ContainsIgnoreCase(failedMsg))
                 {
@@ -229,7 +228,7 @@ namespace QuestPatcher.Core
 
         public async Task<List<string>> ListNonDefaultPackages()
         {
-            return (await ListPackages()).Where(packageId => !_defaultPackagePrefixes.Where(defaultPackageId => packageId.StartsWith(defaultPackageId)).Any()).ToList();
+            return (await ListPackages()).Where(packageId => !DefaultPackagePrefixes.Where(defaultPackageId => packageId.StartsWith(defaultPackageId)).Any()).ToList();
         }
 
         public async Task<string> GetPackageVersion(string packageId)
@@ -422,7 +421,7 @@ namespace QuestPatcher.Core
 
             _logcatProcess.EnableRaisingEvents = true;
 
-            _logcatProcess.OutputDataReceived += (sender, args) =>
+            _logcatProcess.OutputDataReceived += (_, args) =>
             {
                 // Sometimes ADB attempts to send data after the process exists for whatever reason, so we need to handle that
                 try
@@ -438,7 +437,7 @@ namespace QuestPatcher.Core
             _logcatProcess.Start();
             _logcatProcess.BeginOutputReadLine();
 
-            _logcatProcess.Exited += (sender, args) =>
+            _logcatProcess.Exited += (_, args) =>
             {
                 outputWriter.Close();
                 StoppedLogging?.Invoke(this, args); // Used to tell the UI to change back to normal instead of "Stop ADB log"
