@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using QuestPatcher.Models;
 using QuestPatcher.ViewModels;
@@ -30,7 +29,7 @@ namespace QuestPatcher.Services
         private BrowseImportManager? _browseManager;
         private OtherItemsViewModel? _otherItemsView;
 
-        private bool _isShuttingDown = false;
+        private bool _isShuttingDown;
 
         public QuestPatcherUIService(IClassicDesktopStyleApplicationLifetime appLifetime) : base(new UIPrompter())
         {
@@ -42,7 +41,7 @@ namespace QuestPatcher.Services
             UIPrompter prompter = (UIPrompter) Prompter;
             prompter.Init(_mainWindow, Config, this);
 
-            _mainWindow.Opened += async (sender, args) => await LoadAndHandleErrors();
+            _mainWindow.Opened += async (_, _) => await LoadAndHandleErrors();
             _mainWindow.Closing += OnMainWindowClosing;
         }
 
@@ -103,7 +102,7 @@ namespace QuestPatcher.Services
                 builder.OkButton.ReturnValue = false;
                 builder.WithException(ex);
                 builder.WithButtons(
-                    new ButtonInfo()
+                    new ButtonInfo
                     {
                         Text = "Change App",
                         CloseDialogue = true,
@@ -131,24 +130,24 @@ namespace QuestPatcher.Services
         {
             Debug.Assert(_operationLocker != null);
 
-            // Closing while operations are in progress is a bad idea, so we warn the user
-            if (!_operationLocker.IsFree && !_isShuttingDown)
-            {
-                // We must set this to true at first, even if the user might press OK later.
-                // This is since the caller of the event will not wait for our async handler to finish
-                args.Cancel = true;
-                DialogBuilder builder = new()
-                {
-                    Title = "Operations still in progress!",
-                    Text = "QuestPatcher still has ongoing operations. Closing QuestPatcher before these finish may lead to corruption of your install!"
-                };
-                builder.OkButton.Text = "Close Anyway";
+            // Avoid showing this prompt if not in an operation, or if we are closing the window from exiting the application
+            if (_operationLocker.IsFree || _isShuttingDown) return;
 
-                // Now we can exit the application if the user decides to
-                if (await builder.OpenDialogue(_mainWindow))
-                {
-                    ExitApplication();
-                }
+            // Closing while operations are in progress is a bad idea, so we warn the user
+            // We must set this to true at first, even if the user might press OK later.
+            // This is since the caller of the event will not wait for our async handler to finish
+            args.Cancel = true;
+            DialogBuilder builder = new()
+            {
+                Title = "Operations still in progress!",
+                Text = "QuestPatcher still has ongoing operations. Closing QuestPatcher before these finish may lead to corruption of your install!"
+            };
+            builder.OkButton.Text = "Close Anyway";
+
+            // Now we can exit the application if the user decides to
+            if (await builder.OpenDialogue(_mainWindow))
+            {
+                ExitApplication();
             }
         }
 
@@ -181,7 +180,7 @@ namespace QuestPatcher.Services
             }
         }
 
-        public async Task Reload()
+        private async Task Reload()
         {
             if (_loggingViewModel != null)
             {
@@ -196,7 +195,6 @@ namespace QuestPatcher.Services
         protected override void SetLoggingOptions(LoggerConfiguration configuration)
         {
             configuration.MinimumLevel.Verbose()
-                .WriteTo.Console(LogEventLevel.Verbose)
                 .WriteTo.File(Path.Combine(SpecialFolders.LogsFolder, "log.log"), LogEventLevel.Verbose, "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.Sink(
                 new StringDelegateSink((str) =>

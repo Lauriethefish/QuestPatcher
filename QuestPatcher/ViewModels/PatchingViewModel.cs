@@ -14,7 +14,7 @@ namespace QuestPatcher.ViewModels
     public class PatchingViewModel : ViewModelBase
     {
         public bool IsPatchingInProgress { get => _isPatchingInProgress; set { if(_isPatchingInProgress != value) { this.RaiseAndSetIfChanged(ref _isPatchingInProgress, value); } } }
-        private bool _isPatchingInProgress = false;
+        private bool _isPatchingInProgress;
 
         public string PatchingStageText { get; private set; } = "";
 
@@ -43,7 +43,7 @@ namespace QuestPatcher.ViewModels
             _logger = logger;
             _quit = quit;
 
-            _patchingManager.PropertyChanged += (sender, args) =>
+            _patchingManager.PropertyChanged += (_, args) =>
             {
                 if(args.PropertyName == nameof(_patchingManager.PatchingStage))
                 {

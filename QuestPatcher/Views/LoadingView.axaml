@@ -2,9 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QuestPatcher.Views.LoadingView">
-    <DockPanel HorizontalAlignment="Stretch">
+  <Design.DataContext>
+    <viewModels:LoadingViewModel />
+  </Design.DataContext>
+  
+  <DockPanel HorizontalAlignment="Stretch">
       <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="30">
         <ExperimentalAcrylicBorder.Material>
           <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />

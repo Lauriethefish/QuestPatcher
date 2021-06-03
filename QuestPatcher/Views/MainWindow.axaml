@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:QuestPatcher.ViewModels"
+        xmlns:viewModels="using:QuestPatcher.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -9,7 +9,6 @@
         Height="550"
         MinHeight="550"
         MinWidth="875"
-        xmlns:views="clr-namespace:QuestPatcher.Views"
         x:Class="QuestPatcher.Views.MainWindow"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/questpatcher-logo.ico"
@@ -18,6 +17,10 @@
         Foreground="{StaticResource SystemBaseHighColor}"
         ExtendClientAreaToDecorationsHint="true"
         ExtendClientAreaTitleBarHeightHint="-1">
+  
+  <Design.DataContext>
+    <viewModels:MainWindowViewModel />
+  </Design.DataContext>
 
   <DockPanel>
     <Panel DockPanel.Dock="Bottom" IsHitTestVisible="True">

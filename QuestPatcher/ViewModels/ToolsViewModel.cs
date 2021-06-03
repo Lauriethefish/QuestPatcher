@@ -45,7 +45,7 @@ namespace QuestPatcher.ViewModels
             _debugBridge = debugBridge;
             _uiService = uiService;
 
-            _debugBridge.StoppedLogging += (sender, args) =>
+            _debugBridge.StoppedLogging += (_, _) =>
             {
                 _logger.Information("ADB log exited");
                 _isAdbLogging = false;

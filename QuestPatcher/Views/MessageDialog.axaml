@@ -12,7 +12,7 @@
       <ExperimentalAcrylicBorder.Material>
         <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
       </ExperimentalAcrylicBorder.Material>
-      <TextBlock Name="titleText" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline"/>
+      <TextBlock Name="TitleText" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline"/>
     </ExperimentalAcrylicBorder>
 
     <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10">
@@ -21,9 +21,9 @@
       </ExperimentalAcrylicBorder.Material>
 
       <StackPanel Orientation="Vertical" Spacing="15">
-        <TextBlock Name="messageText" TextAlignment="Center" FontSize="14" MaxWidth="450" TextWrapping="Wrap"/>
-        <TextBox Name="stackTraceText" FontSize="12" IsReadOnly="true" MaxWidth="450" MaxHeight="300" MinHeight="120" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Name="buttonsPanel" />
+        <TextBlock Name="MessageText" TextAlignment="Center" FontSize="14" MaxWidth="450" TextWrapping="Wrap"/>
+        <TextBox Name="StackTraceText" FontSize="12" IsReadOnly="true" MaxWidth="450" MaxHeight="300" MinHeight="120" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Name="ButtonsPanel" />
       </StackPanel>
     </ExperimentalAcrylicBorder>
   </DockPanel>

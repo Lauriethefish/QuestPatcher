@@ -4,9 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QuestPatcher.Views.OtherItemsView"
-             xmlns:local="clr-namespace:QuestPatcher;assembly=QuestPatcher">
+             xmlns:local="clr-namespace:QuestPatcher;assembly=QuestPatcher"
+             xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels">
+  <Design.DataContext>
+    <viewModels:OtherItemsViewModel />
+  </Design.DataContext>
+  
   <UserControl.Resources>
-    <local:FileNameConverter x:Key="fileNameConverter"/>
+    <local:FileNameConverter x:Key="FileNameConverter"/>
   </UserControl.Resources>
   
   <Panel>
@@ -45,7 +50,7 @@
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <Panel>
-                  <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="{Binding, Converter={StaticResource fileNameConverter}}" />
+                  <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="{Binding ., Converter={StaticResource FileNameConverter}}" />
                   <Button HorizontalAlignment="Right" VerticalAlignment="Center" Click="FileDeleteBtn_Click">Delete</Button>
                 </Panel>
               </DataTemplate>

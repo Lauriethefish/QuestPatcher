@@ -29,7 +29,7 @@ namespace QuestPatcher.ViewModels.Modding
             // There's probably a better way to create my ModViewModel for the mods in this ObservableCollection
             // If there if, please tell me/PR it.
             // I can't just use the mods directly because I want to add prompts for installing/uninstalling (e.g. incorrect game version)
-            mods.CollectionChanged += (sender, args) =>
+            mods.CollectionChanged += (_, args) =>
             {
                 if(args.Action == NotifyCollectionChangedAction.Reset)
                 {
@@ -48,7 +48,7 @@ namespace QuestPatcher.ViewModels.Modding
                 {
                     foreach (Mod mod in args.OldItems)
                     {
-                        DisplayedMods.Remove(DisplayedMods.Where((modView) => modView.Inner == mod).Single());
+                        DisplayedMods.Remove(DisplayedMods.Single(modView => modView.Inner == mod));
                     }
                 }
             };

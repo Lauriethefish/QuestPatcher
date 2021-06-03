@@ -54,15 +54,15 @@ namespace QuestPatcher.ViewModels
             _browseManager = browseManager;
 
             // Whenever the App ID changes, reset the selected file copy to the first in this list
-            filesManager.PropertyChanged += (sender, args) => {
+            filesManager.PropertyChanged += (_, args) => {
                 if (args.PropertyName == nameof(filesManager.CurrentDestinations)) { OnCurrentDestinationsChanged(); }
             };
 
-            locker.PropertyChanged += (sender, args) =>
+            locker.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(locker.IsFree)) { this.RaisePropertyChanged(nameof(CanDeleteSelectedFiles)); }
             };
-            SelectedFiles.CollectionChanged += (sender, args) =>
+            SelectedFiles.CollectionChanged += (_, args) =>
             {
                 this.RaisePropertyChanged(nameof(CanDeleteSelectedFiles));
             };

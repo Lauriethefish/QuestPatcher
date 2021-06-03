@@ -13,10 +13,10 @@ namespace QuestPatcher.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public LoadedViewModel LoadedView { get; set; }
-        public LoadingViewModel LoadingView { get; set; }
+        public LoadedViewModel LoadedView { get; }
+        public LoadingViewModel LoadingView { get; }
 
-        public QuestPatcherService MainService { get; set; }
+        public QuestPatcherService MainService { get; }
 
         public MainWindowViewModel(LoadedViewModel loadedView, LoadingViewModel loadingView, QuestPatcherService mainService)
         {

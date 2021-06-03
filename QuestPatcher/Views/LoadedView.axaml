@@ -2,9 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="550"
              x:Class="QuestPatcher.Views.LoadedView"
              DragDrop.AllowDrop="True">
+  <Design.DataContext>
+    <viewModels:LoadedViewModel />  
+  </Design.DataContext>
+  
   <Panel>
     <DockPanel HorizontalAlignment="Stretch">
       <ExperimentalAcrylicBorder DockPanel.Dock="Left" Width="240">
@@ -43,7 +48,6 @@
       <ToggleSwitch IsChecked="{Binding Config.DisplayLogs}">Display Logs</ToggleSwitch>
       <StackPanel>
         <TextBlock Text="{Binding AppInfo.Version, StringFormat=APK Version: {0}}" FontWeight="Light" FontSize="12" />
-        <TextBlock Text="{Binding ApkArchitecture}" FontWeight="Light" FontSize="12" />
         <TextBlock Text="APK is 64 bit" IsVisible="{Binding AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
         <TextBlock Text="APK is 32 bit" IsVisible="{Binding !AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
         <TextBlock Text="APK is modded" IsVisible="{Binding AppInfo.IsModded}" FontWeight="Light" FontSize="12" />

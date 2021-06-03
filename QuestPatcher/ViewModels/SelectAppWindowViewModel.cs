@@ -1,7 +1,4 @@
-﻿using QuestPatcher.Models;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using ReactiveUI;
 using Avalonia.Controls;
 

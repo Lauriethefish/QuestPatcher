@@ -52,7 +52,7 @@ namespace QuestPatcher.ViewModels
             _browseManager = browseManager;
             _logger = logger;
 
-            _patchingManager.PropertyChanged += (sender, args) =>
+            _patchingManager.PropertyChanged += (_, args) =>
             {
                 if(args.PropertyName == nameof(_patchingManager.InstalledApp) && _patchingManager.InstalledApp != null)
                 {
@@ -83,7 +83,6 @@ namespace QuestPatcher.ViewModels
             catch (COMException)
             {
                 _logger.Error("Failed to parse dragged items");
-                return;
             }
         }
     }

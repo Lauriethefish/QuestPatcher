@@ -2,18 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
              mc:Ignorable="d"
              d:DesignWidth="600"
              x:Class="QuestPatcher.Views.LoggingView">
-  <DockPanel>
-    <TextBlock DockPanel.Dock="Top" TextDecorations="Underline" HorizontalAlignment="Center">Modding Log</TextBlock>
-    <TextBox ScrollViewer.VerticalScrollBarVisibility="Visible"
-             ScrollViewer.HorizontalScrollBarVisibility="Auto"
-             TextWrapping="Wrap"
-             IsReadOnly="True"
-             Margin="10"
-             FontSize="12"
-             Name="loggingBox"
-             Text="{Binding LoggedText}"/>
+    <Design.DataContext>
+        <viewModels:LoggingViewModel />
+    </Design.DataContext>
+    
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" TextDecorations="Underline" HorizontalAlignment="Center">Modding Log</TextBlock>
+        <TextBox ScrollViewer.VerticalScrollBarVisibility="Visible"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 TextWrapping="Wrap"
+                 IsReadOnly="True"
+                 Margin="10"
+                 FontSize="12"
+                 Name="LoggingBox"
+                 Text="{Binding LoggedText}"/>
    </DockPanel>
 </UserControl>

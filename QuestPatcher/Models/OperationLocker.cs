@@ -1,12 +1,6 @@
-﻿using Avalonia.Controls;
-using QuestPatcher.Views;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QuestPatcher.Models
 {
@@ -20,10 +14,7 @@ namespace QuestPatcher.Models
     {
         public bool IsFree
         {
-            get
-            {
-                return _isFree;
-            }
+            get => _isFree;
             private set
             {
                 if(_isFree != value)
@@ -38,10 +29,7 @@ namespace QuestPatcher.Models
 
         public bool IsAdbAvailable
         {
-            get
-            {
-                return _isAdbAvailable;
-            }
+            get => _isAdbAvailable;
             private set
             {
                 if(_isAdbAvailable != value)

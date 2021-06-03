@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
@@ -16,9 +15,9 @@ namespace QuestPatcher.Views
         public string Text { get; set; } = "";
 
         /// <summary>
-        /// Value to complete the Task<bool> from opening the message box with.
+        /// Value to complete the Task from opening the message box with.
         /// </summary>
-        public bool ReturnValue { get; set; } = false;
+        public bool ReturnValue { get; set; }
 
         /// <summary>
         /// Called open clicking the button.
@@ -30,7 +29,7 @@ namespace QuestPatcher.Views
         /// Whether to close the dialogue when the button is clicked.
         /// If this is false, the task will not complete when this button is pressed
         /// </summary>
-        public bool CloseDialogue { get; set; } = false;
+        public bool CloseDialogue { get; set; }
 
         /// <summary>
         /// Colour of the button
@@ -60,7 +59,7 @@ namespace QuestPatcher.Views
             CloseDialogue = true
         };
 
-        public bool HideOkButton { get; set; } = false;
+        public bool HideOkButton { get; set; }
 
         /// <summary>
         /// The default cancel button.
@@ -72,7 +71,7 @@ namespace QuestPatcher.Views
             CloseDialogue = true
         };
 
-        public bool HideCancelButton { get; set; } = false;
+        public bool HideCancelButton { get; set; }
 
         private string? _stackTrace;
 
@@ -82,30 +81,27 @@ namespace QuestPatcher.Views
         /// Will display the stack trace of the exception within the dialogue
         /// </summary>
         /// <param name="ex">The exception to display</param>
-        public DialogBuilder WithException(Exception ex)
+        public void WithException(Exception ex)
         {
             _stackTrace = ex.ToString();
-            return this;
         }
 
         /// <summary>
         /// Sets the extra buttons for the dialog (other than OK and Cancel)
         /// </summary>
         /// <param name="buttons">The buttons to set</param>
-        public DialogBuilder WithButtons(params ButtonInfo[] buttons)
+        public void WithButtons(params ButtonInfo[] buttons)
         {
             _extraButtons = buttons;
-            return this;
         }
 
         /// <summary>
         /// Sets the extra buttons for the dialog (other than OK and Cancel)
         /// </summary>
         /// <param name="buttons">The buttons to set</param>
-        public DialogBuilder WithButtons(IEnumerable<ButtonInfo> buttons)
+        public void WithButtons(IEnumerable<ButtonInfo> buttons)
         {
             _extraButtons = buttons;
-            return this;
         }
 
         /// <summary>
@@ -132,15 +128,15 @@ namespace QuestPatcher.Views
         public Task<bool> OpenDialogue(Window? parentWindow = null, bool centerWithinWindow = true)
         {
             MessageDialog dialogue = new();
-            TextBlock messageText = dialogue.FindControl<TextBlock>("messageText");
+            TextBlock messageText = dialogue.FindControl<TextBlock>("MessageText");
             messageText.Text = Text ?? "Placeholder Text";
 
-            TextBlock titleText = dialogue.FindControl<TextBlock>("titleText");
+            TextBlock titleText = dialogue.FindControl<TextBlock>("TitleText");
             titleText.Text = Title ?? "Placeholder Text";
 
             dialogue.Title = Title ?? "Placeholder Text";
 
-            TextBox stackTraceText = dialogue.FindControl<TextBox>("stackTraceText");
+            TextBox stackTraceText = dialogue.FindControl<TextBox>("StackTraceText");
             if(_stackTrace == null)
             {
                 stackTraceText.IsVisible = false;
@@ -150,7 +146,7 @@ namespace QuestPatcher.Views
                 stackTraceText.Text = _stackTrace;
             }
 
-            StackPanel buttonsPanel = dialogue.FindControl<StackPanel>("buttonsPanel");
+            StackPanel buttonsPanel = dialogue.FindControl<StackPanel>("ButtonsPanel");
             // Add the extra buttons if they have been set
             List<ButtonInfo> allButtons = _extraButtons != null ? new(_extraButtons) : new();
 
@@ -167,7 +163,7 @@ namespace QuestPatcher.Views
                     button.Background = buttonInfo.Color;
                 }
 
-                button.Click += (sender, args) =>
+                button.Click += (_, _) =>
                 {
                     buttonInfo.OnClick?.Invoke();
 
@@ -184,7 +180,7 @@ namespace QuestPatcher.Views
                 buttonsPanel.Children.Add(button);
             }
 
-            dialogue.Closed += (sender, args) => 
+            dialogue.Closed += (_, _) => 
             {
                 if(!completionSource.Task.IsCompleted)
                 {

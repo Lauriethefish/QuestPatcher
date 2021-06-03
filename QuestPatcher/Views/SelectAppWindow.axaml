@@ -2,16 +2,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220" Width="430" Height="180"
         x:Class="QuestPatcher.Views.SelectAppWindow"
         Icon="/Assets/questpatcher-logo.ico"
         Title="Change Selected App" CanResize="False">
-  <DockPanel>
+  <Design.DataContext>
+    <viewModels:SelectAppWindowViewModel />
+  </Design.DataContext>
+  
+    <DockPanel>
     <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="7">
       <ExperimentalAcrylicBorder.Material>
         <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
       </ExperimentalAcrylicBorder.Material>
-      <TextBlock Name="titleText" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline"/>
+      <TextBlock Padding="8" HorizontalAlignment="Center" TextDecorations="Underline"/>
     </ExperimentalAcrylicBorder>
 
     <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10">
@@ -29,7 +34,7 @@
         </StackPanel>
         
         <StackPanel Spacing="10" IsVisible="{Binding !IsLoading}">
-          <ComboBox x:Name="fontComboBox" Items="{Binding InstalledApps}" SelectedItem="{Binding SelectedApp}" SelectedIndex="0" Width="350" HorizontalAlignment="Center"/>
+          <ComboBox Items="{Binding InstalledApps}" SelectedItem="{Binding SelectedApp}" SelectedIndex="0" Width="350" HorizontalAlignment="Center"/>
           <Button Command="{Binding ConfirmNewApp}" HorizontalAlignment="Center" HorizontalContentAlignment="Center">Confirm new App</Button>
         </StackPanel>
       </StackPanel>

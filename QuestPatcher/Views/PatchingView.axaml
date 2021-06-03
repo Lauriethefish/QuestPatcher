@@ -2,8 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QuestPatcher.Views.PatchingView">
+  <Design.DataContext>
+    <viewModels:PatchingViewModel />
+  </Design.DataContext>
+  
   <Panel>
     <DockPanel IsVisible="{Binding !IsPatchingInProgress}">
       <Panel Margin="20" DockPanel.Dock="Top">

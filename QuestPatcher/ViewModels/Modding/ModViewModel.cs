@@ -3,7 +3,6 @@ using Avalonia.Media.Imaging;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using QuestPatcher.Views;
@@ -49,7 +48,7 @@ namespace QuestPatcher.ViewModels.Modding
         private readonly PatchingManager _patchingManager;
         private readonly Window _mainWindow;
 
-        private bool _isToggling = false; // Used to temporarily display the mod with the new toggle value until the toggle succeeds or fails
+        private bool _isToggling; // Used to temporarily display the mod with the new toggle value until the toggle succeeds or fails
 
         public ModViewModel(Mod inner, ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker)
         {
@@ -70,7 +69,8 @@ namespace QuestPatcher.ViewModels.Modding
                 }
             };
 
-            // Load the cover image, and just silently fail if loading it fails
+            // Load the cover image, and just silently fail if loading it fails.
+            // It shouldn't fail unless the mod has a corrupt cover image. No cover image or missing cover image is handled separately
             if (inner.CoverImage != null)
             {
                 try
@@ -105,7 +105,11 @@ namespace QuestPatcher.ViewModels.Modding
             }
         }
 
-        private async Task<bool> InstallSafely()
+        /// <summary>
+        /// Installs the inner mod, and handles any errors.
+        /// Also shows an outdated prompt for mods which aren't for the installed app version.
+        /// </summary>
+        private async Task InstallSafely()
         {
             Debug.Assert(_patchingManager.InstalledApp != null);
             // Check game version, and prompt if it is incorrect to avoid users installing mods that may crash their game
@@ -120,22 +124,24 @@ namespace QuestPatcher.ViewModels.Modding
 
                 if(!await builder.OpenDialogue(_mainWindow))
                 {
-                    return false;
+                    return;
                 }
             }
 
             try
             {
                 await _modManager.InstallMod(Inner);
-                return true;
             }
             catch (Exception ex)
             {
                 await ShowFailDialog("Failed to install mod", ex);
-                return false;
             }
         }
 
+        /// <summary>
+        /// Uninstalls the mod, and handles any errors with exception dialogs
+        /// </summary>
+        /// <returns></returns>
         private async Task<bool> UninstallSafely()
         {
             List<Mod> dependingOn = _modManager.FindModsDependingOn(Inner, true);
