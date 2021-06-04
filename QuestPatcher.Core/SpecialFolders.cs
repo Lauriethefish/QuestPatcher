@@ -41,7 +41,10 @@ namespace QuestPatcher.Core
         /// </summary>
         public SpecialFolders()
         {
-            DataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "QuestPatcher");
+            // Make sure to create the AppData folder if it does not exist
+            string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create);
+            
+            DataFolder = Path.Combine(appDataPath, "QuestPatcher");
             Directory.CreateDirectory(DataFolder);
 
             LogsFolder = Path.Combine(DataFolder, "logs");

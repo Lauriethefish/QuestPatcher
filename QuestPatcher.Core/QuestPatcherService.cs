@@ -185,7 +185,7 @@ namespace QuestPatcher.Core
         {
             Logger.Information("Deleting apktool temp files . . .");
             // Apktool temporary files sometimes get corrupted, so we delete them
-            string apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "apktool");
+            string apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "apktool");
             if (Directory.Exists(apkToolFilesPath))
             {
                 Directory.Delete(apkToolFilesPath, true);
