@@ -40,6 +40,11 @@ namespace QuestPatcher.Views
     public class DialogBuilder
     {
         /// <summary>
+        /// Used for the very important text.
+        /// </summary>
+        private static readonly Random Random = new();
+        
+        /// <summary>
         /// Title of the dialogue window
         /// </summary>
         public string? Title { get; set; }
@@ -124,6 +129,7 @@ namespace QuestPatcher.Views
         /// Opens the dialogue.
         /// </summary>
         /// <param name="parentWindow">The window to prevent clicking while the dialogue is open</param>
+        /// <param name="centerWithinWindow">Whether the dialogue within the parent window. Does nothing if parentWindow is null</param>
         /// <returns>A task which will complete with false if the dialogue is closed, or any other return value specified inside your buttons when they are clicked</returns>
         public Task<bool> OpenDialogue(Window? parentWindow = null, bool centerWithinWindow = true)
         {
@@ -180,6 +186,20 @@ namespace QuestPatcher.Views
                 buttonsPanel.Children.Add(button);
             }
 
+            // Make sure to only show the normal button pretty rarely
+            Button normalButton = dialogue.FindControl<Button>("NormalButton");
+            if (Random.Next(5) == 0)
+            {
+                normalButton.IsVisible = true;
+                normalButton.Click += (_, _) =>
+                {
+                    // Show the important facts window
+                    Window factsWindow = new FactsWindow();
+                    factsWindow.ShowDialog(dialogue);
+                    CenterWindow(factsWindow, parentWindow ?? dialogue);
+                };
+            }
+
             dialogue.Closed += (_, _) => 
             {
                 if(!completionSource.Task.IsCompleted)
@@ -202,7 +222,7 @@ namespace QuestPatcher.Views
             {
                 dialogue.Show();
             }
-
+            
             // This task will complete when a button is clicked that is set to complete the task
             return completionSource.Task;
         }

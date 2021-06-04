@@ -7,24 +7,20 @@
         CanResize="False"
         x:Class="QuestPatcher.Views.MessageDialog"
         Icon="/Assets/questpatcher-logo.ico">
-  <DockPanel>
-    <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="20">
-      <ExperimentalAcrylicBorder.Material>
-        <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
-      </ExperimentalAcrylicBorder.Material>
-      <TextBlock Name="TitleText" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline"/>
-    </ExperimentalAcrylicBorder>
-
-    <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10">
-      <ExperimentalAcrylicBorder.Material>
-        <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
-      </ExperimentalAcrylicBorder.Material>
-
-      <StackPanel Orientation="Vertical" Spacing="15">
+  <ExperimentalAcrylicBorder DockPanel.Dock="Bottom">
+    <ExperimentalAcrylicBorder.Material>
+      <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
+    </ExperimentalAcrylicBorder.Material>
+    <DockPanel>
+      <Panel DockPanel.Dock="Top">
+        <TextBlock Name="TitleText" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline" Margin="0 10 0 0"/>
+        <Button IsVisible="False" Content="william gay" Name="NormalButton" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="5" Padding="0" Background="#00000000"/>
+      </Panel>
+      <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Spacing="15" Margin="10 0 10 10">
         <TextBlock Name="MessageText" TextAlignment="Center" FontSize="14" MaxWidth="450" TextWrapping="Wrap"/>
         <TextBox Name="StackTraceText" FontSize="12" IsReadOnly="true" MaxWidth="450" MaxHeight="300" MinHeight="120" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Name="ButtonsPanel" />
       </StackPanel>
-    </ExperimentalAcrylicBorder>
-  </DockPanel>
+    </DockPanel>
+  </ExperimentalAcrylicBorder>
 </Window>
