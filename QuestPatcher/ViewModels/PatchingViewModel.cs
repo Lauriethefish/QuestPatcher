@@ -29,9 +29,8 @@ namespace QuestPatcher.ViewModels
         private readonly PatchingManager _patchingManager;
         private readonly Window _mainWindow;
         private readonly Logger _logger;
-        private readonly Action _quit;
 
-        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, Logger logger, Action quit, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
+        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, Logger logger, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
         {
             Config = config;
             Locker = locker;
@@ -41,7 +40,6 @@ namespace QuestPatcher.ViewModels
             _patchingManager = patchingManager;
             _mainWindow = mainWindow;
             _logger = logger;
-            _quit = quit;
 
             _patchingManager.PropertyChanged += (_, args) =>
             {
@@ -59,7 +57,6 @@ namespace QuestPatcher.ViewModels
             try
             {
                 await _patchingManager.PatchApp();
-                IsPatchingInProgress = false;
             }
             catch (Exception ex)
             {
@@ -74,10 +71,9 @@ namespace QuestPatcher.ViewModels
                 builder.WithException(ex);
 
                 await builder.OpenDialogue(_mainWindow);
-                _quit();
-                return;
             }   finally
             {
+                IsPatchingInProgress = false;
                 Locker.FinishOperation();
             }
 
