@@ -40,44 +40,19 @@ namespace QuestPatcher.Core
             /// Tools folder relative if RequiresExtraction is true, otherwise extraction folder relative.
             /// 
             /// If RequiresExtraction is true, this should be the name of a file within the ZIP
+            /// May depend on operating system
             /// </summary>
-            public string SaveName { get; set; } = "";
+            public SystemSpecificValue<string> SaveName { get; set; } = "";
+
+            public string Name => ExtractionFolder ?? SaveName.Value;
 
             /// <summary>
-            /// Gets the correct download URL for the platform we are running on
+            /// Download URL for the file, which may depend on the OS.
             /// </summary>
-            public string PlatformSpecificUrl
-            {
-                get
-                {
-                    if(DownloadUrl != null)
-                    {
-                        return DownloadUrl;
-                    }
-
-                    if(OperatingSystem.IsWindows())
-                    {
-                        return WindowsDownloadUrl;
-                    }   else if(OperatingSystem.IsLinux())
-                    {
-                        return LinuxDownloadUrl;
-                    }   else
-                    {
-                        return MacDownloadUrl;
-                    }
-                }
-            }
-            public string? DownloadUrl { get; set; }
-
-            // Platform specific download URLs, used if DownloadUrl is null
-            public string WindowsDownloadUrl { get; set; } = "";
-            public string LinuxDownloadUrl { get; set; } = "";
-            public string MacDownloadUrl { get; set; } = "";
-
-            public string Name => ExtractionFolder ?? SaveName;
+            public SystemSpecificValue<string> DownloadUrl { get; set; } = new();
 
             /// <summary>
-            /// If this is true, the .exe suffix will be removed from the file if on Mac or Linux, and it will also be made executable with chmod.
+            /// If this is true,the file will be made executable with chmod after it is downloaded (and extracted)
             /// </summary>
             public bool IsExecutable { get; set; }
 
@@ -138,10 +113,17 @@ namespace QuestPatcher.Core
                 ExternalFileType.PlatformTools,
                 new FileInfo
                 {
-                    SaveName = "platform-tools/adb.exe",
-                    WindowsDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
-                    LinuxDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
-                    MacDownloadUrl = "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
+                    SaveName = new()
+                    {
+                        Windows = "platform-tools/adb.exe",
+                        Unix = "platform-tools/adb"
+                    },
+                    DownloadUrl = new()
+                    {
+                        Windows = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
+                        Linux = "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
+                        Mac = "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip"
+                    },
                     ExtractionFolder = "platform-tools",
                     IsExecutable = true
                 }
@@ -150,10 +132,18 @@ namespace QuestPatcher.Core
                 ExternalFileType.Jre,
                 new FileInfo
                 {
-                    SaveName = "jdk-11.0.11+9-jre/bin/java.exe",
-                    WindowsDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.11_9.zip",
-                    LinuxDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_linux_hotspot_11.0.11_9.tar.gz",
-                    MacDownloadUrl = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_mac_hotspot_11.0.11_9.tar.gz",
+                    SaveName = new()
+                    {
+                        Windows = "jdk-11.0.11+9-jre/bin/java.exe",
+                        Mac = "jdk-11.0.11+9-jre/Contents/Home/bin/java",
+                        Linux = "jdk-11.0.11+9-jre/bin/java"
+                    },
+                    DownloadUrl = new()
+                    {
+                        Windows = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.11_9.zip",
+                        Linux = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_linux_hotspot_11.0.11_9.tar.gz",
+                        Mac = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_mac_hotspot_11.0.11_9.tar.gz",
+                    },
                     ExtractionFolder = "openjre",
                     IsExecutable = true
                 }
@@ -244,7 +234,7 @@ namespace QuestPatcher.Core
                 DownloadProgress = 0.0;
                 DownloadingFileName = fileInfo.Name;
 
-                string url = fileInfo.PlatformSpecificUrl;
+                string url = fileInfo.DownloadUrl.Value;
                 if (fileInfo.ExtractionFolder != null)
                 {
                     Uri uri = new(url);
@@ -324,21 +314,15 @@ namespace QuestPatcher.Core
         {
             FileInfo fileInfo = _fileTypes[fileType];
 
-            // Remove .exe on non-windows
-            if(fileInfo.IsExecutable && _isUnix)
-            {
-                fileInfo.SaveName = fileInfo.SaveName[0..^4];
-            }
-
             // The save location is relative to the extract folder if requires extraction, otherwise it's just relative to the tools folder
             string saveLocation;
             if (fileInfo.ExtractionFolder == null)
             {
-                saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.SaveName);
+                saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.SaveName.Value);
             }
             else
             {
-                saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder, fileInfo.SaveName);
+                saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder, fileInfo.SaveName.Value);
             }
 
             if(!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation))
