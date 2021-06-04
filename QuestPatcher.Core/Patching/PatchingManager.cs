@@ -278,8 +278,8 @@ namespace QuestPatcher.Core.Patching
             // Add permissions to the manifest
             _logger.Information("Patching manifest . . .");
             string manifestPath = Path.Combine(_decompPath, "AndroidManifest.xml");
-            string modifiedManifest = PatchManifest(File.ReadAllText(manifestPath));
-            File.WriteAllText(manifestPath, modifiedManifest);
+            string modifiedManifest = PatchManifest(await File.ReadAllTextAsync(manifestPath));
+            await File.WriteAllTextAsync(manifestPath, modifiedManifest);
 
             // Pause patching before compiling the APK in order to give a developer the chance to modify it.
             if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
@@ -327,6 +327,13 @@ namespace QuestPatcher.Core.Patching
                 _logger.Warning("Failed to delete patched APK");
             }
 
+            string signedPath = Path.Combine(_specialFolders.PatchingFolder, "patched-aligned-debugSigned.apk");
+            // Avoid uninstalling the APK then failing during installation. Fail here instead to preserve the vanilla game
+            if (!File.Exists(signedPath))
+            {
+                throw new PatchingException($"Signed APK ({signedPath}) not found! Signing must have failed");
+            }
+            
             _logger.Information("Uninstalling the default APK . . .");
             PatchingStage = PatchingStage.UninstallingOriginal;
 
@@ -335,7 +342,6 @@ namespace QuestPatcher.Core.Patching
             _logger.Information("Installing the modded APK . . .");
             PatchingStage = PatchingStage.InstallingModded;
 
-            string signedPath = Path.Combine(_specialFolders.PatchingFolder, "patched-aligned-debugSigned.apk");
             await _debugBridge.InstallApp(signedPath);
             File.Delete(signedPath);
 
