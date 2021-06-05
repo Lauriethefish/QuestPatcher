@@ -11,6 +11,14 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <OutputType>WinExe</OutputType>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+    <!--Disabled because it's not worth the 10MB of extra file size in my opinion-->
+    <!--<PublishReadyToRun>true</PublishReadyToRun>-->
   </PropertyGroup>
 
   <ItemGroup>
