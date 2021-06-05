@@ -1,0 +1,26 @@
+name: MacOS DMG
+
+on:
+  push:
+    branches: [ rewrite ]
+  pull_request:
+    branches: [ rewrite ]
+
+jobs:
+  build:
+    name: Build DMG on MacOS
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.102
+    - name: Run build script
+      run: ./buildDMG.sh
+    - name: Artifact Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: QuestPatcher
+        path: ./macos-dmg/QuestPatcher.dmg
