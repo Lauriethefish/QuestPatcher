@@ -17,8 +17,6 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.102
-    - name: Install dependencies
-      run: dotnet restore
     - name: Run build script
       run: ./buildInstaller.ps1
     - name: Artifact Upload
