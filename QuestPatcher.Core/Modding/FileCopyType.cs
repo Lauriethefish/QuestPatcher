@@ -123,7 +123,10 @@ namespace QuestPatcher.Core.Modding
             string destinationPath = System.IO.Path.Combine(Path, System.IO.Path.GetFileName(localPath));
 
             await _debugBridge.UploadFile(localPath, destinationPath);
-            ExistingFiles.Add(destinationPath);
+            if (!ExistingFiles.Contains(destinationPath))
+            {
+                ExistingFiles.Add(destinationPath);
+            }
         }
 
         /// <summary>
