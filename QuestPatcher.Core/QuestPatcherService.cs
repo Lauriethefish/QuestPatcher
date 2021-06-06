@@ -183,9 +183,19 @@ namespace QuestPatcher.Core
         /// </summary>
         public async Task QuickFix()
         {
-            Logger.Information("Deleting apktool temp files . . .");
             // Apktool temporary files sometimes get corrupted, so we delete them
-            string apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "apktool");
+            string apkToolFilesPath;
+            if (OperatingSystem.IsMacOS())
+            {
+                apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify), "Library/apktool");
+            }
+            else
+            {
+                apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "apktool");
+            }
+            
+            Logger.Information("Deleting apktool temp files . . .");
+            Logger.Debug($"Temp files path: {apkToolFilesPath}");
             if (Directory.Exists(apkToolFilesPath))
             {
                 Directory.Delete(apkToolFilesPath, true);
