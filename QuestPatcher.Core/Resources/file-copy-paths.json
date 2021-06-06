@@ -25,7 +25,7 @@
       "supportedExtensions": [ "png", "jpg", "jpeg" ]
     },
     {
-      "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/MonkeComputer/Backgrounds",
+      "path": "/sdcard/ModData/com.AnotherAxiom.GorillaTag/Mods/MonkeComputer/Backgrounds/",
       "nameSingular": "MonkeComputer background",
       "namePlural": "MonkeComputer backgrounds",
       "supportedExtensions": [ "png", "jpg", "jpeg" ]
