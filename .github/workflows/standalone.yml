@@ -24,6 +24,8 @@ jobs:
       run: dotnet restore
     - name: Build ${{ matrix.runtime }}
       run: dotnet publish -r ${{ matrix.runtime }} -c Release
+    - name: Copy license
+      run: cp LICENSE QuestPatcher/bin/Release/net5.0/${{ matrix.runtime }}/publish/LICENSE
     - name: Artifact Upload ${{ matrix.runtime }}
       uses: actions/upload-artifact@v2
       with:
