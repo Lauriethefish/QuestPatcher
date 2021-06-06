@@ -48,7 +48,7 @@ namespace QuestPatcher.Core
                 string javaVersion = (await InvokeJava("-version")).ErrorOutput;
 
                 // Mac OS displays a special message when you try to use Java when it isn't installed
-                if (javaVersion.StartsWith("The operation couldn’t be completed. Unable to locate a Java Runtime."))
+                if (javaVersion.StartsWith("The operation couldn’t be completed. Unable to locate a Java Runtime.") || javaVersion.StartsWith("No Java runtime present, requesting install."))
                 {
                     isInstalled = false;
                 }
