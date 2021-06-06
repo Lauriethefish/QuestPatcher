@@ -30,5 +30,25 @@
       "namePlural": "MonkeComputer backgrounds",
       "supportedExtensions": [ "png", "jpg", "jpeg" ]
     }
+  ],
+  "com.beatgames.beatsaber": [
+    {
+      "path": "/sdcard/ModData/com.beatgames.beatsaber/Mods/Qosmetics/sabers/",
+      "nameSingular": "Custom Saber",
+      "namePlural": "Custom Sabers",
+      "supportedExtensions": [ "qsaber" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.beatgames.beatsaber/Mods/Qosmetics/notes/",
+      "nameSingular": "Custom Note",
+      "namePlural": "Custom Notes",
+      "supportedExtensions": [ "qbloq" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.beatgames.beatsaber/Mods/Qosmetics/walls/",
+      "nameSingular": "Custom Wall",
+      "namePlural": "Custom Walls",
+      "supportedExtensions": [ "qwall" ]
+    }
   ]
 }
