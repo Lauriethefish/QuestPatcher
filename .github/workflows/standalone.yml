@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        runtime: ['ubuntu-x64', 'win-x64', 'osx-x64']
+        runtime: ['ubuntu-x64', 'win-x64']
 
     runs-on: windows-latest
 
