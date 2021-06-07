@@ -78,19 +78,5 @@ namespace QuestPatcher.Core
             // This OS is not supported
             throw new UnknownOperatingSystemException();
         }
-
-        /// <summary>
-        /// Implicit operator, makes it so that you can easily assign and create a value that works on any OS.
-        /// TODO: Implicit operators should probably be avoided.
-        /// </summary>
-        /// <param name="value">Value, set to work on any OS</param>
-        /// <returns>SystemSpecificValue set to have the value work on any OS</returns>
-        public static implicit operator SystemSpecificValue<T>(T value)
-        {
-            return new()
-            {
-                Any = value
-            };
-        }
     }
 }

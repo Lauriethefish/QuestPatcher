@@ -42,7 +42,7 @@ namespace QuestPatcher.Core
             /// If RequiresExtraction is true, this should be the name of a file within the ZIP
             /// May depend on operating system
             /// </summary>
-            public SystemSpecificValue<string> SaveName { get; set; } = "";
+            public SystemSpecificValue<string> SaveName { get; set; } = "".ForAllSystems();
 
             public string Name => ExtractionFolder ?? SaveName.Value;
 
@@ -61,55 +61,55 @@ namespace QuestPatcher.Core
 
         private readonly Dictionary<ExternalFileType, FileInfo> _fileTypes = new()
         {
-            {
+                {
                 ExternalFileType.ApkTool,
                 new FileInfo
                 {
-                    SaveName = "apktool.jar",
-                    DownloadUrl = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar"
+                    SaveName = "apktool.jar".ForAllSystems(),
+                    DownloadUrl = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar".ForAllSystems()
                 }
-            },
-            {
+                },
+                {
                 ExternalFileType.UberApkSigner,
-                new FileInfo
+                    new FileInfo
+                    {
+                        SaveName = "uber-apk-signer.jar".ForAllSystems(),
+                        DownloadUrl = "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar".ForAllSystems()
+                    }
+                    },
+                    {
+                    ExternalFileType.Modloader64,
+                    new FileInfo
+                    {
+                        SaveName = "libmodloader64.so".ForAllSystems(),
+                        DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader64.so".ForAllSystems()
+                    }
+                    },
+                    {
+                    ExternalFileType.Main64,
+                    new FileInfo
+                    {
+                        SaveName = "libmain64.so".ForAllSystems(),
+                        DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain64.so".ForAllSystems()
+                    }
+                    },
+                    {
+                    ExternalFileType.Modloader32,
+                    new FileInfo
+                    {
+                        SaveName = "libmodloader32.so".ForAllSystems(),
+                        DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader32.so".ForAllSystems()
+                    }
+                    },
+                    {
+                    ExternalFileType.Main32,
+                    new FileInfo
+                    {
+                        SaveName = "libmain32.so".ForAllSystems(),
+                        DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain32.so".ForAllSystems()
+                    }
+                },
                 {
-                    SaveName = "uber-apk-signer.jar",
-                    DownloadUrl = "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar"
-                }
-            },
-            {
-                ExternalFileType.Modloader64,
-                new FileInfo
-                {
-                    SaveName = "libmodloader64.so",
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader64.so"
-                }
-            },
-            {
-                ExternalFileType.Main64,
-                new FileInfo
-                {
-                    SaveName = "libmain64.so",
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain64.so"
-                }
-            },
-            {
-                ExternalFileType.Modloader32,
-                new FileInfo
-                {
-                    SaveName = "libmodloader32.so",
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader32.so"
-                }
-            },
-            {
-                ExternalFileType.Main32,
-                new FileInfo
-                {
-                    SaveName = "libmain32.so",
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain32.so"
-                }
-            },
-            {
                 ExternalFileType.PlatformTools,
                 new FileInfo
                 {
@@ -127,8 +127,8 @@ namespace QuestPatcher.Core
                     ExtractionFolder = "platform-tools",
                     IsExecutable = true
                 }
-            },
-            {
+                },
+                {
                 ExternalFileType.Jre,
                 new FileInfo
                 {
