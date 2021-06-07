@@ -61,55 +61,55 @@ namespace QuestPatcher.Core
 
         private readonly Dictionary<ExternalFileType, FileInfo> _fileTypes = new()
         {
-                {
+            {
                 ExternalFileType.ApkTool,
                 new FileInfo
                 {
                     SaveName = "apktool.jar".ForAllSystems(),
                     DownloadUrl = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar".ForAllSystems()
                 }
-                },
-                {
+            },
+            {
                 ExternalFileType.UberApkSigner,
-                    new FileInfo
-                    {
-                        SaveName = "uber-apk-signer.jar".ForAllSystems(),
-                        DownloadUrl = "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar".ForAllSystems()
-                    }
-                    },
-                    {
-                    ExternalFileType.Modloader64,
-                    new FileInfo
-                    {
-                        SaveName = "libmodloader64.so".ForAllSystems(),
-                        DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader64.so".ForAllSystems()
-                    }
-                    },
-                    {
-                    ExternalFileType.Main64,
-                    new FileInfo
-                    {
-                        SaveName = "libmain64.so".ForAllSystems(),
-                        DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain64.so".ForAllSystems()
-                    }
-                    },
-                    {
-                    ExternalFileType.Modloader32,
-                    new FileInfo
-                    {
-                        SaveName = "libmodloader32.so".ForAllSystems(),
-                        DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader32.so".ForAllSystems()
-                    }
-                    },
-                    {
-                    ExternalFileType.Main32,
-                    new FileInfo
-                    {
-                        SaveName = "libmain32.so".ForAllSystems(),
-                        DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain32.so".ForAllSystems()
-                    }
-                },
+                new FileInfo
                 {
+                    SaveName = "uber-apk-signer.jar".ForAllSystems(),
+                    DownloadUrl = "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar".ForAllSystems()
+                }
+            },
+            {
+                ExternalFileType.Modloader64,
+                new FileInfo
+                {
+                    SaveName = "libmodloader64.so".ForAllSystems(),
+                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader64.so".ForAllSystems()
+                }
+            },
+            {
+                ExternalFileType.Main64,
+                new FileInfo
+                {
+                    SaveName = "libmain64.so".ForAllSystems(),
+                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain64.so".ForAllSystems()
+                }
+            },
+            {
+                ExternalFileType.Modloader32,
+                new FileInfo
+                {
+                    SaveName = "libmodloader32.so".ForAllSystems(),
+                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader32.so".ForAllSystems()
+                }
+            },
+            {
+                ExternalFileType.Main32,
+                new FileInfo
+                {
+                    SaveName = "libmain32.so".ForAllSystems(),
+                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain32.so".ForAllSystems()
+                }
+            },
+            {
                 ExternalFileType.PlatformTools,
                 new FileInfo
                 {
@@ -127,8 +127,8 @@ namespace QuestPatcher.Core
                     ExtractionFolder = "platform-tools",
                     IsExecutable = true
                 }
-                },
-                {
+            },
+            {
                 ExternalFileType.Jre,
                 new FileInfo
                 {
