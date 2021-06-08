@@ -196,6 +196,7 @@ namespace QuestPatcher.Services
         {
             configuration.MinimumLevel.Verbose()
                 .WriteTo.File(Path.Combine(SpecialFolders.LogsFolder, "log.log"), LogEventLevel.Verbose, "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.Console()
                 .WriteTo.Sink(
                 new StringDelegateSink((str) =>
                 {
