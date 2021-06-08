@@ -13,10 +13,7 @@
     <OutputType>WinExe</OutputType>
     <DebugType>embedded</DebugType>
     <SelfContained>true</SelfContained>
-    <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
-    <!--Disabled because it's not worth the 10MB of extra file size in my opinion-->
-    <!--<PublishReadyToRun>true</PublishReadyToRun>-->
   </PropertyGroup>
 
   <ItemGroup>
