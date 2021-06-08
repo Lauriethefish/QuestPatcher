@@ -111,11 +111,11 @@ namespace QuestPatcher.Core
             {
                 if (await Prompter.PromptAppNotInstalled())
                 {
-                    ExitApplication();
+                    return; // New app ID selected - we will later reload
                 }
                 else
                 {
-                    return; // New app ID selected - we reload
+                    ExitApplication();
                 }
             }
             Logger.Information("App is installed");

@@ -35,15 +35,15 @@ namespace QuestPatcher
             {
                 Title = "App Not Installed",
                 Text = $"The selected app - {_config.AppId} - is not installed",
-                HideCancelButton = true
+                HideOkButton = true
             };
-            builder.OkButton.Text = "Close";
+            builder.CancelButton.Text = "Close";
             builder.WithButtons(
                 new ButtonInfo
                 {
                     Text = "Change App",
                     CloseDialogue = true,
-                    ReturnValue = false,
+                    ReturnValue = true,
                     OnClick = async () =>
                     {
                         Debug.Assert(_uiService != null);
