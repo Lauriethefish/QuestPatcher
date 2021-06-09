@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
-using QuestPatcher.Core.Patching;
 using QuestPatcher.Services;
 using QuestPatcher.Views;
 using System;
@@ -105,7 +104,7 @@ namespace QuestPatcher
             DialogBuilder builder = new()
             {
                 Title = "Missing libunity.so",
-                Text = "No unstripped libunity.so is available for the the app you have selected. " +
+                Text = "No unstripped libunity.so is available for the app you have selected. " +
                         "This may mean that certain mods will not work correctly until one is added to the index. " +
                         "Proceed with caution - if you're updating from an older version, it is wise to wait for the latest version of your app to be added."
             };
