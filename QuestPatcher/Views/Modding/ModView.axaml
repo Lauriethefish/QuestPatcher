@@ -8,13 +8,18 @@
   <Design.DataContext>
     <moddingViewModels:ModViewModel />
   </Design.DataContext>
+  <UserControl.Styles>
+    <Style Selector="DockPanel#MainModPanel:pointerover">
+      <Setter Property="Background" Value="#353535"/>
+    </Style>
+  </UserControl.Styles>
   
-  <DockPanel Height="100">
+  <DockPanel Height="100" Margin="0 0 0 10" Name="MainModPanel">
     <Panel Width="177.778" DockPanel.Dock="Left">
       <Image Source="{Binding CoverImage}" Stretch="UniformToFill" IsVisible="{Binding CoverImage, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <Image DockPanel.Dock="Left" Source="/Assets/questpatcher-logo.ico" Width="50" IsVisible="{Binding CoverImage, Converter={x:Static ObjectConverters.IsNull}}" />
     </Panel>
-    <Panel Margin="10">
+    <Panel Margin="10 10 10 0">
       <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Spacing="5">
         <StackPanel Orientation="Horizontal" Spacing="5">
           <TextBlock Text="{Binding Name}"/>
@@ -23,7 +28,7 @@
         <TextBlock Text="{Binding Description}" FontSize="10"/>
       </StackPanel>
       <TextBlock Text="{Binding Author}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-      <Button VerticalAlignment="Bottom" HorizontalAlignment="Left" FontSize="13" IsEnabled="{Binding Locker.IsFree}" Command="{Binding OnDelete}">Delete</Button>
+      <Button VerticalAlignment="Bottom" Margin="0 0 0 5" HorizontalAlignment="Left" FontSize="13" IsEnabled="{Binding Locker.IsFree}" Command="{Binding OnDelete}">Delete</Button>
       <ToggleSwitch VerticalAlignment="Bottom" HorizontalAlignment="Right" OffContent="Disabled" OnContent="Enabled" IsChecked="{Binding IsInstalled}" IsEnabled="{Binding Locker.IsFree}" />
     </Panel>
   </DockPanel>
