@@ -49,6 +49,18 @@
       "nameSingular": "Custom Wall",
       "namePlural": "Custom Walls",
       "supportedExtensions": [ "qwall" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.beatgames.beatsaber/Mods/CustomPillows/images/",
+      "nameSingular": "Pillow Texture",
+      "namePlural": "Pillow Textures",
+      "supportedExtensions": [ "png", "jpg", "jpeg" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.beatgames.beatsaber/Mods/CustomPillows/constellations/",
+      "nameSingular": "Pillow Constellation",
+      "namePlural": "Pillow Constellations",
+      "supportedExtensions": [ "json" ]
     }
   ]
 }
