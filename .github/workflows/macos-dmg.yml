@@ -1,4 +1,4 @@
-name: Windows Installer
+name: MacOS DMG
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
 
 jobs:
   build:
-    name: Build installer on windows
-    runs-on: windows-latest
+    name: Build DMG on MacOS
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -17,10 +17,12 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.102
+    - name: Make build script executable
+      run: chmod +x buildDMG.sh
     - name: Run build script
-      run: ./buildInstaller.ps1
+      run: ./buildDMG.sh
     - name: Artifact Upload
       uses: actions/upload-artifact@v2
       with:
-        name: windows-installer
-        path: ./installer/windows-installer.exe
+        name: QuestPatcher
+        path: ./macos-dmg/QuestPatcher.dmg

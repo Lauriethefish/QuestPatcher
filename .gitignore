@@ -1,9 +1,18 @@
+# Binary/output files
 bin/
 obj/
-temp/
-ExampleMod/
 *.qmod
-mod.json
-.vs/
+
+# Windows installer output/extracted files
 installer/inno/
 installer/windows-installer.exe
+
+# MacOS DMG output files
+.DS_Store
+macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS
+macos-dmg/QuestPatcher.dmg
+
+# IDE Directories
+.vs/
+.idea/
+

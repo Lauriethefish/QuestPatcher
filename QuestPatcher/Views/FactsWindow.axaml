@@ -1,0 +1,10 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220" Width="430" Height="180"
+        x:Class="QuestPatcher.Views.FactsWindow"
+        Icon="/Assets/questpatcher-logo.ico"
+        Title="Facts" CanResize="False" SizeToContent="Height" MaxWidth="500">
+        <Image Source="/Assets/facts.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+</Window>
