@@ -188,7 +188,7 @@ namespace QuestPatcher.Views
 
             // Make sure to only show the normal button pretty rarely
             Button normalButton = dialogue.FindControl<Button>("NormalButton");
-            if (Random.Next(5) == 0)
+            if (Random.Next(20) == 0)
             {
                 normalButton.IsVisible = true;
                 normalButton.Click += (_, _) =>
