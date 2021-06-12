@@ -1,4 +1,4 @@
-# QuestPatcher 2
+# QuestPatcher
 
 QuestPatcher is a GUI based mod installer for any il2cpp unity app on the Oculus Quest that runs on Windows or Linux.
 It was originally created for modding Gorilla Tag.
