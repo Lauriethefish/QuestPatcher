@@ -67,7 +67,7 @@ namespace QuestPatcher.Core
         /// Command length limit used for batch commands to avoid errors.
         /// This isn't based on any particular OS, I kept it fairly low so that it works everywhere
         /// </summary>
-        private const int CommandLengthLimit = 8192;
+        private const int CommandLengthLimit = 1024;
 
         public event EventHandler? StoppedLogging;
 
