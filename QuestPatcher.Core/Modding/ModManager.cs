@@ -146,7 +146,7 @@ namespace QuestPatcher.Core.Modding
 
                     // Load the manifest
                     _logger.Debug($"Loading manifest from {localPath}");
-                    using Stream manifestStream = File.OpenRead(localPath);
+                    await using Stream manifestStream = File.OpenRead(localPath);
                     mod = Mod.Parse(manifestStream);
                 }
                 finally
@@ -342,7 +342,7 @@ namespace QuestPatcher.Core.Modding
             Mod mod;
             try
             {
-                using Stream modFileStream = File.OpenRead(path);
+                await using Stream modFileStream = File.OpenRead(path);
                 using ZipArchive archive = new(modFileStream);
                 ZipArchiveEntry? manifestEntry = archive.GetEntry("mod.json");
                 if (manifestEntry == null)
@@ -350,7 +350,7 @@ namespace QuestPatcher.Core.Modding
                     throw new InstallationException("Mod did not contain a mod.json manifest!");
                 }
 
-                using (Stream stream = manifestEntry.Open())
+                await using (Stream stream = manifestEntry.Open())
                 {
                     mod = Mod.Parse(stream);
                 }
@@ -366,7 +366,7 @@ namespace QuestPatcher.Core.Modding
 
                     using Stream coverStream = coverEntry.Open();
                     using MemoryStream memoryStream = new();
-                    coverStream.CopyTo(memoryStream);
+                    await coverStream.CopyToAsync(memoryStream);
 
                     mod.CoverImage = memoryStream.ToArray();
                 }
@@ -610,7 +610,7 @@ namespace QuestPatcher.Core.Modding
             string stagingPath = _specialFolders.GetTempFilePath();
             try
             {
-                using (StreamWriter writer = new(stagingPath))
+                await using (StreamWriter writer = new(stagingPath))
                 {
                     mod.Save(writer);
                 }
