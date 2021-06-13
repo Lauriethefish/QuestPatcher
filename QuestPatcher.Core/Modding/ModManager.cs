@@ -240,7 +240,7 @@ namespace QuestPatcher.Core.Modding
 
             if(didFailToMatch)
             {
-                throw new InstallationException($"Failed to upgrade install of mod {currentlyInstalled.Id} to {newVersion.Id}, check logs for more information");
+                throw new InstallationException($"Failed to upgrade install of mod {currentlyInstalled.Id} to {newVersion.Version}, check logs for more information");
             }
             else
             {
