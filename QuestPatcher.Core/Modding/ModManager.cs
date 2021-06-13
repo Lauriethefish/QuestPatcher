@@ -219,7 +219,7 @@ namespace QuestPatcher.Core.Modding
         /// </summary>
         /// <param name="currentlyInstalled">The installed version of the mod</param>
         /// <param name="newVersion">The version of the mod to be upgraded to</param>
-        private async Task PrepareVersionUpgrade(Mod currentlyInstalled, Mod newVersion)
+        private async Task PrepareVersionChange(Mod currentlyInstalled, Mod newVersion)
         {
             Debug.Assert(currentlyInstalled.Id == newVersion.Id);
             _logger.Information($"Attempting to upgrade {currentlyInstalled.Id} v{currentlyInstalled.Version} to {newVersion.Id} v{newVersion.Version}");
@@ -307,7 +307,7 @@ namespace QuestPatcher.Core.Modding
             {
                 _logger.Information($"Downloading dependency {dependency.Id} . . .");
                 await _filesDownloader.DownloadUrl(dependency.DownloadIfMissing, downloadPath, dependency.Id);
-                installedDependency = await LoadMod(downloadPath); // Recreate the list since it needs to be individual to each branch
+                installedDependency = await LoadMod(downloadPath);
             }
             finally
             {
@@ -410,17 +410,14 @@ namespace QuestPatcher.Core.Modding
             {
                 if (existingInstall.SemVersion == mod.SemVersion)
                 {
-                    throw new InstallationException($"Version of existing {existingInstall.Id} is the same as the installing version ({mod.Version})");
+                    _logger.Warning($"Version of existing {existingInstall.Id} is the same as the installing version ({mod.Version})");
                 }
-                else if (existingInstall.SemVersion > mod.SemVersion)
+                if (existingInstall.SemVersion > mod.SemVersion)
                 {
                     throw new InstallationException($"Version of existing {existingInstall.Id} ({existingInstall.Version}) is greater than installing version ({mod.Version}). Direct version downgrades are not permitted");
                 }
-                else
-                {
-                    // Uninstall the existing mod. May throw an exception if other mods depend on the older version
-                    await PrepareVersionUpgrade(existingInstall, mod);
-                }
+                // Uninstall the existing mod. May throw an exception if other mods depend on the older version
+                await PrepareVersionChange(existingInstall, mod);
             }
 
             string pushPath = Path.Combine(InstalledModsPath, $"{mod.Id}.temp");
