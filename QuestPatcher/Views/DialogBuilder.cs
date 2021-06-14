@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Media;
 using System;
 using System.Collections.Generic;
@@ -110,28 +109,12 @@ namespace QuestPatcher.Views
         }
 
         /// <summary>
-        /// Centers within inside window
-        /// </summary>
-        /// <param name="window">The window to move</param>
-        /// <param name="within">The window to move to the center of</param>
-        public static void CenterWindow(Window window, Window within)
-        {
-            double xOffset = (within.ClientSize.Width - window.ClientSize.Width) / 2.0;
-            double yOffset = (within.ClientSize.Height - window.ClientSize.Height) / 2.0;
-
-            window.Position = new PixelPoint(
-                within.Position.X + (int) xOffset,
-                within.Position.Y + (int) yOffset
-            );
-        }
-
-        /// <summary>
         /// Opens the dialogue.
         /// </summary>
         /// <param name="parentWindow">The window to prevent clicking while the dialogue is open</param>
-        /// <param name="centerWithinWindow">Whether the dialogue within the parent window. Does nothing if parentWindow is null</param>
+        /// <param name="showLocation">Where to show the dialog on the screen</param>
         /// <returns>A task which will complete with false if the dialogue is closed, or any other return value specified inside your buttons when they are clicked</returns>
-        public Task<bool> OpenDialogue(Window? parentWindow = null, bool centerWithinWindow = true)
+        public Task<bool> OpenDialogue(Window? parentWindow = null, WindowStartupLocation showLocation = WindowStartupLocation.CenterOwner)
         {
             MessageDialog dialogue = new();
             TextBlock messageText = dialogue.FindControl<TextBlock>("MessageText");
@@ -195,8 +178,8 @@ namespace QuestPatcher.Views
                 {
                     // Show the important facts window
                     Window factsWindow = new FactsWindow();
+                    factsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
                     factsWindow.ShowDialog(dialogue);
-                    CenterWindow(factsWindow, parentWindow ?? dialogue);
                 };
             }
 
@@ -208,15 +191,10 @@ namespace QuestPatcher.Views
                 }
             };
 
+            dialogue.WindowStartupLocation = showLocation;
             if (parentWindow != null)
             {
-                dialogue.IsVisible = false;
                 dialogue.ShowDialog(parentWindow);
-                if (centerWithinWindow)
-                {
-                    CenterWindow(dialogue, parentWindow);
-                }
-                dialogue.IsVisible = true;
             }
             else
             {

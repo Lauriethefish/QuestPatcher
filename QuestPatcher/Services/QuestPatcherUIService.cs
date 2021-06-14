@@ -159,9 +159,9 @@ namespace QuestPatcher.Services
             Window menuWindow = new SelectAppWindow();
             SelectAppWindowViewModel viewModel = new(menuWindow, Config.AppId);
             menuWindow.DataContext = viewModel;
+            menuWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
             Task windowCloseTask = menuWindow.ShowDialog(_mainWindow);
-            DialogBuilder.CenterWindow(menuWindow, _mainWindow);
 
             viewModel.InstalledApps = await DebugBridge.ListNonDefaultPackages();
 
