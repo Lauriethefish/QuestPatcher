@@ -152,7 +152,7 @@ namespace QuestPatcher.Core
                 else if(output.ErrorOutput.Contains("device offline"))
                 {
                     await _onDisconnect(DisconnectionType.DeviceOffline);
-                }   else if(output.ErrorOutput.Contains("multiple devices"))
+                }   else if(output.ErrorOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
                 {
                     await _onDisconnect(DisconnectionType.MultipleDevices);
                 }   else if(output.ErrorOutput.Contains("unauthorized"))
@@ -228,7 +228,7 @@ namespace QuestPatcher.Core
 
         public async Task<List<string>> ListNonDefaultPackages()
         {
-            return (await ListPackages()).Where(packageId => !DefaultPackagePrefixes.Where(defaultPackageId => packageId.StartsWith(defaultPackageId)).Any()).ToList();
+            return (await ListPackages()).Where(packageId => !DefaultPackagePrefixes.Any(packageId.StartsWith)).ToList();
         }
 
         public async Task<string> GetPackageVersion(string packageId)
