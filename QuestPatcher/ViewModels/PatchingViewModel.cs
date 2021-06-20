@@ -101,10 +101,11 @@ namespace QuestPatcher.ViewModels
             PatchingStageText = stage switch
             {
                 PatchingStage.NotStarted => "Not Started",
-                PatchingStage.Patching => "Modifying APK files to support mods (patching stage 1/4)",
-                PatchingStage.Signing => "Signing APK (patching stage 2/4)",
-                PatchingStage.UninstallingOriginal => "Uninstalling original APK to install modded APK (patching stage 3/4)",
-                PatchingStage.InstallingModded => "Installing modded APK (patching stage 4/4)",
+                PatchingStage.MovingToTemp => "Moving APK to temporary location (patching stage 1/5)",
+                PatchingStage.Patching => "Modifying APK files to support mods (patching stage 2/5)",
+                PatchingStage.Signing => "Signing APK (patching stage 3/5)",
+                PatchingStage.UninstallingOriginal => "Uninstalling original APK to install modded APK (patching stage 4/5)",
+                PatchingStage.InstallingModded => "Installing modded APK (patching stage 5/5)",
                 _ => throw new NotImplementedException()
             };
             this.RaisePropertyChanged(nameof(PatchingStageText));
