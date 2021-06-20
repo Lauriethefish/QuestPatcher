@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuestPatcher", "QuestPatche
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestPatcher.Core", "QuestPatcher.Core\QuestPatcher.Core.csproj", "{C02D15DD-D4A2-478A-9129-500EF33BF05D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestPatcher.Axml", "QuestPatcher.Axml\QuestPatcher.Axml.csproj", "{9F254220-2B69-4CD0-86FC-E5F3C2E3BDFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C02D15DD-D4A2-478A-9129-500EF33BF05D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C02D15DD-D4A2-478A-9129-500EF33BF05D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C02D15DD-D4A2-478A-9129-500EF33BF05D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F254220-2B69-4CD0-86FC-E5F3C2E3BDFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F254220-2B69-4CD0-86FC-E5F3C2E3BDFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F254220-2B69-4CD0-86FC-E5F3C2E3BDFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F254220-2B69-4CD0-86FC-E5F3C2E3BDFF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
