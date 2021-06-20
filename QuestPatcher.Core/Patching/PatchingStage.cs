@@ -6,9 +6,8 @@
     public enum PatchingStage
     {
         NotStarted,
-        Decompiling,
+        MovingToTemp,
         Patching,
-        Recompiling,
         Signing,
         UninstallingOriginal,
         InstallingModded
