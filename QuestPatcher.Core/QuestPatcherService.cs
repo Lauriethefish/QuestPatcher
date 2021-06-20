@@ -177,30 +177,12 @@ namespace QuestPatcher.Core
         }
 
         /// <summary>
-        /// Clears cached QuestPatcher files, and deletes APKtool temporary files.
+        /// Clears cached QuestPatcher files.
         /// This really shouldn't be necessary, but often fixes issues.
-        /// The "partially extracted download" or "partially downloaded file" causing issues shouldn't be a thing with the new file download system, however this is here just in case it still is.
+        /// The "partially extracted download" or "partially downloaded file" causing issues shouldn't be an issue with the new file download system, however this is here just in case it still is.
         /// </summary>
         public async Task QuickFix()
         {
-            // Apktool temporary files sometimes get corrupted, so we delete them
-            string apkToolFilesPath;
-            if (OperatingSystem.IsMacOS())
-            {
-                apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify), "Library/apktool");
-            }
-            else
-            {
-                apkToolFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "apktool");
-            }
-            
-            Logger.Information("Deleting apktool temp files . . .");
-            Logger.Debug($"Temp files path: {apkToolFilesPath}");
-            if (Directory.Exists(apkToolFilesPath))
-            {
-                Directory.Delete(apkToolFilesPath, true);
-            }
-
             await DebugBridge.KillServer(); // Allow ADB to be deleted
 
             // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 namespace QuestPatcher.Core
 {
     /// <summary>
-    /// Abstraction around APKtool and uber-apk-signer used during patching.
+    /// Abstraction around uber-apk-signer used during patching.
+    /// Used to abstract apktool as well, but QuestPatcher no longer uses this, relying on its own manifest decompiler instead.
     /// </summary>
     public class ApkTools
     {
@@ -68,16 +69,6 @@ namespace QuestPatcher.Core
                 // Download Java if it is not installed
                 _javaExecutableName = await _filesDownloader.GetFileLocation(ExternalFileType.Jre);
             }
-        }
-
-        public Task DecompileApk(string apkPath, string extractPath)
-        {
-            return InvokeJavaTool(ExternalFileType.ApkTool, $"d -f -o \"{extractPath}\" \"{apkPath}\"");
-        }
-
-        public Task CompileApk(string extractPath, string resultPath)
-        {
-            return InvokeJavaTool(ExternalFileType.ApkTool, $"b -f -o \"{resultPath}\" \"{extractPath}\"");
         }
 
         public Task SignApk(string apkPath)

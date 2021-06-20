@@ -20,7 +20,6 @@ namespace QuestPatcher.Core
         Main32,
         Main64,
         UberApkSigner,
-        ApkTool,
         PlatformTools,
         Jre,
     }
@@ -61,14 +60,6 @@ namespace QuestPatcher.Core
 
         private readonly Dictionary<ExternalFileType, FileInfo> _fileTypes = new()
         {
-            {
-                ExternalFileType.ApkTool,
-                new FileInfo
-                {
-                    SaveName = "apktool.jar".ForAllSystems(),
-                    DownloadUrl = "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.5.0.jar".ForAllSystems()
-                }
-            },
             {
                 ExternalFileType.UberApkSigner,
                 new FileInfo
