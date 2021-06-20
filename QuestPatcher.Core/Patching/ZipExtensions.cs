@@ -1,12 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Patching
 {
     public static class ZipExtensions
     {
         /// <summary>
-        /// Copies a file to the archive, overwriting if <code>overwrite</code> is set to <code>true</code>.
+        /// Asynchronously copies a file to the archive, overwriting if <code>overwrite</code> is set to <code>true</code>.
         /// </summary>
         /// <param name="archive">Archive to copy the file to</param>
         /// <param name="sourcePath">Where to copy the file from</param>
@@ -14,14 +16,14 @@ namespace QuestPatcher.Core.Patching
         /// <param name="overwrite">Used if an entry already exists with the given <paramRef name="entryName"/>. If set to <code>true</code>, the existing entry will be removed and a new entry will be created. Otherwise, <see cref="InvalidOperationException"/> is thrown.</param>
         /// <param name="enforceForwardSlash">If true, any backward slashes in the <paramRef name="entryName"/> will be replaced with forward slashes.</param>
         /// <exception cref="InvalidOperationException">If an entry with name <paramRef name="entryName"/> already exists and <paramRef name="overwrite"/> is set to <code>false</code></exception>
-        public static void CopyFileToArchive(this ZipArchive archive, string sourcePath, string entryName, bool overwrite = false, bool enforceForwardSlash = true)
+        public static async Task AddFileAsync(this ZipArchive archive, string sourcePath, string entryName, bool overwrite = false, bool enforceForwardSlash = true)
         {
             if (enforceForwardSlash)
             {
                 entryName = entryName.Replace("\\", "/");
             }
             
-            ZipArchiveEntry? existingEntry = archive.GetEntry(entryName.Replace("\\", "/"));
+            ZipArchiveEntry? existingEntry = archive.GetEntry(entryName);
             if (existingEntry != null)
             {
                 if (overwrite)
@@ -35,7 +37,11 @@ namespace QuestPatcher.Core.Patching
                 }
             }
 
-            archive.CreateEntryFromFile(sourcePath, entryName);
+            // We do not use the built in CreateEntryFromFile method, as it is not async
+            ZipArchiveEntry newEntry = archive.CreateEntry(entryName);
+            await using Stream fileStream = File.OpenRead(sourcePath);
+            await using Stream destinationStream = newEntry.Open();
+            await fileStream.CopyToAsync(destinationStream);
         }
     }
 }
