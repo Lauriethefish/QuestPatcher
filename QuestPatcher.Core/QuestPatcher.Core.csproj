@@ -21,7 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\**" />
+    <ProjectReference Include="..\QuestPatcher.Axml\QuestPatcher.Axml.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\**" />
+  </ItemGroup>
+  
 </Project>
