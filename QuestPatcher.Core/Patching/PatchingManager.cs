@@ -314,7 +314,7 @@ namespace QuestPatcher.Core.Patching
             string patchedApkPath = Path.Combine(_specialFolders.PatchingFolder, "patched.apk");
 
             // There is no async file copy method, so we Task.Run it (we could make our own with streams, that's another option)
-            await Task.Run(() => { File.Copy(_storedApkPath, patchedApkPath); });
+            await Task.Run(() => { File.Copy(_storedApkPath, patchedApkPath, true); });
             
             _logger.Information("Copying files to patch APK . . .");
 
