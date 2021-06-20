@@ -19,6 +19,7 @@ namespace QuestPatcher.Core
         Modloader64,
         Main32,
         Main64,
+        ApkTool,
         UberApkSigner,
         PlatformTools,
         Jre,
