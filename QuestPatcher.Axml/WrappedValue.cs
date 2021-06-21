@@ -4,8 +4,7 @@
     {
         Id,
         Style,
-        Class,
-        Reference
+        Class
     }
     
     /// <summary>
@@ -25,10 +24,16 @@
         public string RawValue { get; }
         
         /// <summary>
-        /// TODO: figure out what this is
+        /// ID of the value this wrapped value refers to. Not quite sure what this points to as of now
         /// </summary>
         public int ReferenceId { get; }
 
+        /// <summary>
+        /// Creates a new wrapped AXML value
+        /// </summary>
+        /// <param name="type">Type of the underlying value</param>
+        /// <param name="rawValue">Raw string value</param>
+        /// <param name="referenceId">ID of the value this wrapped value refers to</param>
         public WrappedValue(WrappedValueType type, string rawValue, int referenceId)
         {
             Type = type;

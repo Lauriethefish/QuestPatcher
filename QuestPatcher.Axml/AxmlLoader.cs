@@ -5,9 +5,15 @@ using System.Collections.Generic;
 
 namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Class for loading Android binary XML. (tested on the <code>AndroidManifest.xml</code> file in APKs)
+    /// </summary>
     public static class AxmlLoader
     {
-        private struct QueuedNamespace
+        /// <summary>
+        /// Used to put namespaces in a queue until there is an element to declare them on.
+        /// </summary>
+        private readonly struct QueuedNamespace
         {
             public string? Prefix { get; }
             public Uri Uri { get; }
@@ -19,6 +25,13 @@ namespace QuestPatcher.Axml
             }
         }
         
+        /// <summary>
+        /// Loads a document from the given stream.
+        /// </summary>
+        /// <param name="stream">Stream to load the document from. Must be seekable</param>
+        /// <returns>The root element of the document</returns>
+        /// <exception cref="ArgumentException">If a non-seekable stream is passed</exception>
+        /// <exception cref="AxmlParseException">Any AXML parsing related exceptions</exception>
         public static AxmlElement LoadDocument(Stream stream)
         {
             if (!stream.CanSeek)
@@ -103,10 +116,7 @@ namespace QuestPatcher.Axml
                             throw new AxmlParseException("Expected 0x00140014");
                         }
                         
-                        AxmlElement childElement =
-                            new(currentLineNumber, elementName, namespaceId == -1
-                                ? null
-                                : ParseNamespaceUri(stringPool[namespaceId]));
+                        AxmlElement childElement = new(elementName, namespaceId == -1 ? null : ParseNamespaceUri(stringPool[namespaceId]), currentLineNumber);
 
                         int numAttributes = input.ReadInt16();
                         int idAttributeIndex = input.ReadInt16() - 1;

@@ -27,12 +27,5 @@ namespace QuestPatcher.Axml
             writer.Write((int) typeEnum | typePrefix << 16);
             writer.Write(length);
         }
-
-        internal static void Write(this BinaryWriter writer, ResourceType resourceType)
-        {
-            writer.Write((int) resourceType);
-        }
-
-
     }
 }

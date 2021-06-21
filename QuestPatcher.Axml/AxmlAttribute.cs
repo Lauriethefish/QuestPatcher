@@ -70,6 +70,13 @@ namespace QuestPatcher.Axml
             Debug.Assert(_value != null);
         }
 
+        /// <summary>
+        /// Creates a new attribute.
+        /// </summary>
+        /// <param name="name">The name of the attribute, without the namespace prefix</param>
+        /// <param name="ns">The URI of the namespace this attribute is in, if any</param>
+        /// <param name="resourceId">The resource ID of this attribute. This must be checked beforehand on the R class in an Android project, or by looking at existing resource IDs in a parsed manifest</param>
+        /// <param name="value">The value of the attribute, supported types are <see cref="string"/>, <see cref="int"/>, <see cref="bool"/> and </param>
         public AxmlAttribute(string name, Uri? ns, int? resourceId, object value)
         {
             Name = name;

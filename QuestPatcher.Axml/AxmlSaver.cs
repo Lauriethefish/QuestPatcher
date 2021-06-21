@@ -4,6 +4,11 @@ namespace QuestPatcher.Axml
 {
     public static class AxmlSaver
     {
+        /// <summary>
+        /// Saves the given root element to the given stream as AXML.
+        /// </summary>
+        /// <param name="stream">Stream to save to</param>
+        /// <param name="rootElement">Root element of the document</param>
         public static void SaveDocument(Stream stream, AxmlElement rootElement)
         {
             BinaryWriter mainOutput = new(stream);

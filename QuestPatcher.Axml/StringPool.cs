@@ -3,8 +3,15 @@ using System.Text;
 
 namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Class for loading and saving the AXML string pool format.
+    /// Does not currently support styles.
+    /// </summary>
     internal static class StringPool
     {
+        /// <summary>
+        /// Set if the string pool in the manifest is UTF-8 instead of UTF-16 (the default)
+        /// </summary>
         private const int Utf8Flag = 0x00000100;
         
         internal static string[] LoadStringPool(BinaryReader input)
@@ -69,7 +76,7 @@ namespace QuestPatcher.Axml
         }
 
         /// <summary>
-        /// Calculates the length that the given string pool will take up when written (not inlcuding the resource type and length prefix)
+        /// Calculates the length that the given string pool will take up when written (not including the resource type and length prefix)
         /// </summary>
         /// <param name="pool">The pool to calculate</param>
         /// <returns>The length in bytes</returns>

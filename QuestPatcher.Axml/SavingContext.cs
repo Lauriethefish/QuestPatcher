@@ -3,8 +3,15 @@ using System.IO;
 
 namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Used to store information about the state of the document while saving AXML.
+    /// </summary>
     internal class SavingContext
     {
+        /// <summary>
+        /// Represents a pool to reuse strings and resource IDs in the document.
+        /// </summary>
+        /// <typeparam name="T">Type of the values stored by the pool</typeparam>
         public class Pool<T> where T: notnull
         {
             private readonly Dictionary<T, int> _pool = new();

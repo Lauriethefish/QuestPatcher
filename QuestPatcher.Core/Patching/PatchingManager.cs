@@ -221,7 +221,7 @@ namespace QuestPatcher.Core.Patching
                 if(existingPermissions.Contains(permission)) { continue; } // Do not add existing permissions
 
                 _logger.Information($"Adding permission {permission}");
-                AxmlElement permElement = new(0, "uses-permission", null);
+                AxmlElement permElement = new("uses-permission");
                 AddNameAttribute(permElement, permission);
                 manifest.Children.Add(permElement);
             }
@@ -231,7 +231,7 @@ namespace QuestPatcher.Core.Patching
                 if(existingFeatures.Contains(feature)) { continue; } // Do not add existing features
 
                 _logger.Information($"Adding feature {feature}");
-                AxmlElement featureElement = new(0, "uses-feature", null);
+                AxmlElement featureElement = new("uses-feature");
                 AddNameAttribute(featureElement, feature);
                 
                 // TODO: User may want the feature to be required instead of suggested
