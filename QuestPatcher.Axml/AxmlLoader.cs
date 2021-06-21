@@ -161,6 +161,11 @@ namespace QuestPatcher.Axml
                                 value = new WrappedValue(WrappedValueType.Style, stringPool[attrRawStringIndex],
                                     attrRawValue);
                             }
+                            else if (attrType == AttributeType.Reference)
+                            {
+                                value = new WrappedValue(WrappedValueType.Reference, null,
+                                    attrRawValue);
+                            }
                             else if(attrType == AttributeType.String)
                             {
                                 value = stringPool[attrRawValue];

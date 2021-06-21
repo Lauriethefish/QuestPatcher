@@ -112,7 +112,10 @@ namespace QuestPatcher.Axml
             if (Value is WrappedValue)
             {
                 WrappedValue wrappedValue = (WrappedValue) Value;
-                rawStringIndex = ctx.StringPool.GetIndex(wrappedValue.RawValue);
+                if (wrappedValue.RawValue != null)
+                {
+                    rawStringIndex = ctx.StringPool.GetIndex(wrappedValue.RawValue);
+                }
                 rawValue = wrappedValue.ReferenceId;
             }
             else if (Value is bool)
