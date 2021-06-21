@@ -38,8 +38,8 @@ namespace QuestPatcher.Axml
                     ReadUtf8Length(input); // Ignored, we just need to get past this varint
                     int statedLength = ReadUtf8Length(input);
 
-                    MemoryStream stringStream = new();
-                    BinaryWriter stringWriter = new(stringStream);
+                    MemoryStream stringStream = new MemoryStream();
+                    BinaryWriter stringWriter = new BinaryWriter(stringStream);
                     stringWriter.Write(input.ReadBytes(statedLength));
                     while(true)
                     {

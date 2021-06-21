@@ -16,18 +16,18 @@ namespace QuestPatcher.Axml
         /// <summary>
         /// Attributes of this element.
         /// </summary>
-        public List<AxmlAttribute> Attributes { get; } = new();
+        public List<AxmlAttribute> Attributes { get; } = new List<AxmlAttribute>();
 
         /// <summary>
         /// Child elements of this element
         /// </summary>
-        public List<AxmlElement> Children { get; } = new();
+        public List<AxmlElement> Children { get; } = new List<AxmlElement>();
 
         /// <summary>
         /// Any namespace declared within this element.
         /// Keys are namespace prefixes, values are URIs.
         /// </summary>
-        public Dictionary<string, Uri> DeclaredNamespaces { get; } = new();
+        public Dictionary<string, Uri> DeclaredNamespaces { get; } = new Dictionary<string, Uri>();
 
         /// <summary>
         /// The URI of a namespace declared as the default namespace for this element and all child elements

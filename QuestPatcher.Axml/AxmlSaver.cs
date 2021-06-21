@@ -6,10 +6,10 @@ namespace QuestPatcher.Axml
     {
         public static void SaveDocument(Stream stream, AxmlElement rootElement)
         {
-            BinaryWriter mainOutput = new(stream);
+            BinaryWriter mainOutput = new BinaryWriter(stream);
 
             // Write the main elements chunk of the file to a MemoryStream first
-            SavingContext ctx = new();
+            SavingContext ctx = new SavingContext();
             rootElement.PrepareResourceIndices(ctx);
             rootElement.Save(ctx);
             MemoryStream mainChunkStream = (MemoryStream) ctx.Writer.BaseStream;

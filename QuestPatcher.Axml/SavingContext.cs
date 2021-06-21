@@ -7,7 +7,7 @@ namespace QuestPatcher.Axml
     {
         public class Pool<T> where T: notnull
         {
-            private readonly Dictionary<T, int> _pool = new();
+            private readonly Dictionary<T, int> _pool = new Dictionary<T, int>();
             private int _nextIndex;
 
             /// <summary>
@@ -43,8 +43,8 @@ namespace QuestPatcher.Axml
             }
         }
 
-        public Pool<string> StringPool { get; } = new();
-        public Pool<int> ResourcePool { get; } = new();
+        public Pool<string> StringPool { get; } = new Pool<string>();
+        public Pool<int> ResourcePool { get; } = new Pool<int>();
 
         /// <summary>
         /// The writer for the main section of the document, which is written to memory.
@@ -53,6 +53,6 @@ namespace QuestPatcher.Axml
         ///
         /// This could be also done by an initial pass that adds all the strings to the pool, but this would add a lot of extra code, even though the memory usage would be more efficient.
         /// </summary>
-        public BinaryWriter Writer { get; } = new(new MemoryStream());
+        public BinaryWriter Writer { get; } = new BinaryWriter(new MemoryStream());
     }
 }

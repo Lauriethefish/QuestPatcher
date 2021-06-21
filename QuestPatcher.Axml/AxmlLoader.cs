@@ -26,7 +26,7 @@ namespace QuestPatcher.Axml
                 throw new ArgumentException("Cannot read axml from non-seekable stream");
             }
 
-            BinaryReader input = new(stream);
+            BinaryReader input = new BinaryReader(stream);
             if (input.ReadResourceType() != ResourceType.Xml)
             {
                 throw new AxmlParseException("Initial tag was not xml");
@@ -37,8 +37,8 @@ namespace QuestPatcher.Axml
             string[]? stringPool = null;
             int[]? resourceMap = null;
 
-            Stack<AxmlElement> elementStack = new();
-            List<QueuedNamespace> queuedNamespaces = new();
+            Stack<AxmlElement> elementStack = new Stack<AxmlElement>();
+            List<QueuedNamespace> queuedNamespaces = new List<QueuedNamespace>();
             AxmlElement? rootElement = null;
             
             int preChunkPosition = 8; // Already gone past two ints for initial XML tag and file size
@@ -104,7 +104,7 @@ namespace QuestPatcher.Axml
                         }
                         
                         AxmlElement childElement =
-                            new(currentLineNumber, elementName, namespaceId == -1
+                            new AxmlElement(currentLineNumber, elementName, namespaceId == -1
                                 ? null
                                 : ParseNamespaceUri(stringPool[namespaceId]));
 
