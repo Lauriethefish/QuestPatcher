@@ -7,9 +7,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using QuestPatcher.Axml;
 
 namespace QuestPatcher.Core.Patching
 {
@@ -18,6 +20,13 @@ namespace QuestPatcher.Core.Patching
     /// </summary>
     public class PatchingManager : INotifyPropertyChanged
     {
+        private const string ManifestPath = "AndroidManifest.xml";
+        private static readonly Uri AndroidNamespaceUri = new("http://schemas.android.com/apk/res/android");
+        private const int NameAttributeResourceId = 16842755;
+        private const int RequiredAttributeResourceId = 16843406;
+        private const int DebuggableAttributeResourceId = 16842767;
+        private const int LegacyStorageAttributeResourceId = 16844291;
+
         public ApkInfo? InstalledApp { get => _installedApp; private set { if (_installedApp != value) { _installedApp = value; NotifyPropertyChanged(); } } }
         private ApkInfo? _installedApp;
 
@@ -37,8 +46,7 @@ namespace QuestPatcher.Core.Patching
         private readonly IUserPrompter _prompter;
         private readonly Action _quit;
 
-        private readonly string _currentApkPath;
-        private readonly string _decompPath;
+        private readonly string _storedApkPath;
         private Dictionary<string, Dictionary<string, string>>? _libUnityIndex;
 
         public PatchingManager(Logger logger, Config config, AndroidDebugBridge debugBridge, ApkTools apkTools, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, Action quit)
@@ -52,8 +60,7 @@ namespace QuestPatcher.Core.Patching
             _prompter = prompter;
             _quit = quit;
 
-            _currentApkPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
-            _decompPath = Path.Combine(specialFolders.PatchingFolder, "decompiledApp");
+            _storedApkPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -67,7 +74,7 @@ namespace QuestPatcher.Core.Patching
             _logger.Information($"App Version: {version}");
 
             _logger.Information("Downloading APK from the Quest . . .");
-            await _debugBridge.DownloadApk(_config.AppId, _currentApkPath);
+            await _debugBridge.DownloadApk(_config.AppId, _storedApkPath);
 
             bool isModded = false;
             bool is64Bit = false;
@@ -76,7 +83,7 @@ namespace QuestPatcher.Core.Patching
             _logger.Information("Checking APK modding status . . .");
             await Task.Run(() =>
             {
-                using ZipArchive apkArchive = ZipFile.OpenRead(_currentApkPath);
+                using ZipArchive apkArchive = ZipFile.OpenRead(_storedApkPath);
 
                 // QuestPatcher adds a tag file to determine if the APK is modded later on
                 isModded = apkArchive.GetEntry("modded") != null || apkArchive.GetEntry("BMBF.modded") != null;
@@ -99,7 +106,7 @@ namespace QuestPatcher.Core.Patching
             InstalledApp = null;
         }
 
-        private async Task<bool> AttemptCopyUnstrippedUnity(string libsPath)
+        private async Task<bool> AttemptCopyUnstrippedUnity(string libsPath, ZipArchive apkArchive)
         {
             WebClient client = new();
             // Only download the index once
@@ -137,149 +144,236 @@ namespace QuestPatcher.Core.Patching
             }
 
             _logger.Information("Unstripped libunity found. Downloading . . .");
-            await _filesDownloader.DownloadUrl($"https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/{correctVersion}.so", Path.Combine(libsPath, "libunity.so"));
+            string tempDownloadPath = _specialFolders.GetTempFilePath();
+            try
+            {
+                await _filesDownloader.DownloadUrl(
+                    $"https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/{correctVersion}.so",
+                    tempDownloadPath, "libunity.so");
+
+                await apkArchive.AddFileAsync(tempDownloadPath, Path.Combine(libsPath, "libunity.so"), true);
+            }
+            finally
+            {
+                if (File.Exists(tempDownloadPath)) { File.Delete(tempDownloadPath); }
+            }
+
             return true;
         }
 
         /// <summary>
-        /// Adds permissions for modding, as specified in the config.
-        /// This does not parse the XML, simply uses string manipulation because it was easier and it's a strange form of XML that nothing will read.
+        /// Patches the manifest of the APK to add the permissions/features specified in <see cref="PatchingPermissions"/> in the <see cref="Config"/>.
         /// </summary>
-        /// <param name="manifest">The manifest to add the permissions to</param>
-        /// <returns>The modified manifest</returns>
-        private string PatchManifest(string manifest)
+        /// <param name="apkArchive">The archive of the APK to patch</param>
+        /// <exception cref="PatchingException">If the given archive does not contain an <code>AndroidManifest.xml</code> file</exception>
+        private async Task PatchManifest(ZipArchive apkArchive)
         {
-
-            // This is future-proofing as in Android 11 WRITE and READ is replaced by MANAGE.
-            // Otherwise storage access would be limited to scoped-storage like an app-specific directory or a public shared directory.
-            // Can be removed until any device updates to Android 11, however it's best to keep for compatability.
-
-            const string readPermissions = "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>";
-            const string writePermissions = "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>";
-            const string managePermissions = "<uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\"/>";
-
-            // Required for Apps that target Android 10 API Level 29 or higher as that uses scoped storage see: https://developer.android.com/training/data-storage/use-cases#opt-out-scoped-storage
-            const string legacyExternalStorage = "android:requestLegacyExternalStorage = \"true\"";
-            const string applicationDebuggable = "android:debuggable = \"true\"";
-
-            // Hand tracking features and permissions
-            const string ovrFeatureHandTracking = "<uses-feature android:name=\"oculus.software.handtracking\" android:required=\"false\"/>";
-            const string ovrPermissionHandTracking = "<uses-permission android:name=\"oculus.permission.handtracking\"/>\n<uses-permission android:name=\"com.oculus.permission.HAND_TRACKING\"/>";
-
-            const string applicationStr = "<application";
-
-            int newLineIndex = manifest.IndexOf('\n');
-            string newManifest = manifest.Substring(0, newLineIndex) + "\n";
-
-            if (_config.PatchingPermissions.ExternalFiles)
+            ZipArchiveEntry? manifestEntry = apkArchive.GetEntry(ManifestPath);
+            if (manifestEntry == null)
             {
-                _logger.Information("Adding storage permissions . . .");
-                if (!manifest.Contains(readPermissions))
-                {
-                    newManifest += "    " + readPermissions + "\n";
-                }
-
-                if (!manifest.Contains(writePermissions))
-                {
-                    newManifest += "    " + writePermissions + "\n";
-                }
-
-                if (!manifest.Contains(managePermissions))
-                {
-                    newManifest += "    " + managePermissions + "\n";
-                }
-
-                if (!manifest.Contains(legacyExternalStorage))
-                {
-                    _logger.Debug("Adding legacy storage support . . .");
-                    manifest = manifest.Replace(applicationStr, $"{applicationStr} {legacyExternalStorage}");
-                }
-            }
-            else
-            {
-                _logger.Warning("No external file permissions granted - many mods will not work!");
+                throw new PatchingException($"APK missing {ManifestPath} to patch");
             }
 
-            if (_config.PatchingPermissions.Debuggable)
+            // The AMXL loader requires a seekable stream
+            MemoryStream ms = new();
+            await Task.Run(() =>
             {
-                if (!manifest.Contains(applicationDebuggable))
-                {
-                    _logger.Information("Adding debuggable flag . . .");
-                    manifest = manifest.Replace(applicationStr, $"{applicationStr} {applicationDebuggable}");
-                }
+                using Stream stream = manifestEntry.Open();
+                stream.CopyTo(ms);
+            });
+
+            ms.Position = 0;
+            _logger.Information("Loading manifest as AXML . . .");
+            AxmlElement manifest = AxmlLoader.LoadDocument(ms);
+
+            // First we add permissions and features to the APK for modding
+            List<string> addingPermissions = new();
+            List<string> addingFeatures = new();
+            PatchingPermissions permissions = _config.PatchingPermissions;
+            if (permissions.ExternalFiles)
+            {
+                // Technically, we only need READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE, but we also add MANAGE_EXTERNAL_STORAGE as this is what Android 11 needs instead
+                addingPermissions.AddRange(new[] {
+                    "android.permission.READ_EXTERNAL_STORAGE", 
+                    "android.permission.WRITE_EXTERNAL_STORAGE",
+                    "android.permission.MANAGE_EXTERNAL_STORAGE"
+                });
             }
 
-            if(_config.PatchingPermissions.HandTracking)
+            if (permissions.HandTracking)
             {
-                _logger.Information("Adding hand tracking . . .");
-                if (!manifest.Contains(ovrFeatureHandTracking))
+                // For some reason these are separate permissions, but we need both of them
+                addingPermissions.AddRange(new[]
                 {
-                    newManifest += "    " + ovrFeatureHandTracking + "\n";
-                }
-
-                if (!manifest.Contains(ovrPermissionHandTracking))
-                {
-                    newManifest += "    " + ovrPermissionHandTracking + "\n";
-                }
+                    "oculus.permission.handtracking",
+                    "com.oculus.permission.HAND_TRACKING"
+                });
+                // Tell Android (and thus Oculus home) that this app supports hand tracking and we can launch the app with it
+                addingFeatures.Add("oculus.software.handtracking");
             }
 
-            newManifest += manifest[(newLineIndex + 1)..]; // Add the rest of the original manifest
-            return newManifest;
+            // Find which features and permissions already exist to avoid adding existing ones
+            ISet<string> existingPermissions = GetExistingChildren(manifest, "uses-permission");
+            ISet<string> existingFeatures = GetExistingChildren(manifest, "uses-feature");
+
+            foreach (string permission in addingPermissions)
+            {
+                if(existingPermissions.Contains(permission)) { continue; } // Do not add existing permissions
+
+                _logger.Information($"Adding permission {permission}");
+                AxmlElement permElement = new(0, "uses-permission", null);
+                AddNameAttribute(permElement, permission);
+                manifest.Children.Add(permElement);
+            }
+
+            foreach (string feature in addingFeatures)
+            {
+                if(existingFeatures.Contains(feature)) { continue; } // Do not add existing features
+
+                _logger.Information($"Adding feature {feature}");
+                AxmlElement featureElement = new(0, "uses-feature", null);
+                AddNameAttribute(featureElement, feature);
+                
+                // TODO: User may want the feature to be required instead of suggested
+                featureElement.Attributes.Add(new AxmlAttribute("required", AndroidNamespaceUri, RequiredAttributeResourceId, false));
+                manifest.Children.Add(featureElement);
+            }
+
+            // Now we need to add the legacyStorageSupport and debuggable flags
+            AxmlElement appElement = manifest.Children.Single(element => element.Name == "application");
+            if (permissions.Debuggable && !appElement.Attributes.Any(attribute => attribute.Name == "debuggable"))
+            {
+                _logger.Information("Adding debuggable flag . . .");
+                appElement.Attributes.Add(new AxmlAttribute("debuggable", AndroidNamespaceUri, DebuggableAttributeResourceId, true));
+            }
+
+            if (permissions.ExternalFiles && !appElement.Attributes.Any(attribute => attribute.Name == "requestLegacyExternalStorage"))
+            {
+                _logger.Information("Adding legacy external storage flag . . .");
+                appElement.Attributes.Add(new AxmlAttribute("requestLegacyExternalStorage", AndroidNamespaceUri, LegacyStorageAttributeResourceId, true));
+            }
+            
+            // Save the manifest using our AXML library
+            // TODO: The AXML library is missing some features such as styles.
+            _logger.Information("Saving manifest as AXML . . .");
+            manifestEntry.Delete(); // Remove old manifest
+            
+            // No async ZipArchive implementation, so Task.Run is used
+            await Task.Run(() =>
+            {
+                manifestEntry = apkArchive.CreateEntry(ManifestPath);
+                using Stream saveStream = manifestEntry.Open();
+                AxmlSaver.SaveDocument(saveStream, manifest);
+            });
         }
 
+        /// <summary>
+        /// Scans the attributes of the children of the given element for their "name" attribute.
+        /// </summary>
+        /// <param name="manifest"></param>
+        /// <param name="childNames"></param>
+        /// <returns>A set of the values of the "name" attributes of children (does not error on children without this attribute)</returns>
+        private ISet<string> GetExistingChildren(AxmlElement manifest, string childNames)
+        {
+            HashSet<string> result = new();
+            
+            foreach (AxmlElement element in manifest.Children)
+            {
+                if(element.Name != childNames) { continue; }
+
+                List<AxmlAttribute> nameAttributes = element.Attributes.Where(attribute => attribute.Namespace == AndroidNamespaceUri && attribute.Name == "name").ToList();
+                // Only add children with the name attribute
+                if (nameAttributes.Count > 0) { result.Add((string) nameAttributes[0].Value); }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Adds a "name" attribute to the given element, with the given value.
+        /// </summary>
+        /// <param name="element">The element to add the attribute to</param>
+        /// <param name="name">The value to put in the name attribute</param>
+        private void AddNameAttribute(AxmlElement element, string name)
+        {
+            element.Attributes.Add(new AxmlAttribute("name", AndroidNamespaceUri, NameAttributeResourceId, name));
+        }
+
+        /// <summary>
+        /// Begins patching the currently installed APK. (must be pulled before calling this)
+        /// </summary>
         public async Task PatchApp()
         {
-            _logger.Information("Decompiling APK . . .");
-            PatchingStage = PatchingStage.Decompiling;
-
-            Directory.CreateDirectory(_decompPath);
-            await _apkTools.DecompileApk(_currentApkPath, _decompPath);
-            _logger.Information("Decompiled APK");
-
-            _logger.Information("Copying library files to patch APK . . .");
-            PatchingStage = PatchingStage.Patching;
             if (InstalledApp == null)
             {
                 throw new NullReferenceException("Cannot patch before installed app has been checked");
             }
-            string libsPath = Path.Combine(_decompPath, InstalledApp.Is64Bit ? "lib/arm64-v8a" : "lib/armeabi-v7a");
+            
+            _patchingStage = PatchingStage.MovingToTemp;
+            _logger.Information("Copying APK to patched location . . .");
+            string patchedApkPath = Path.Combine(_specialFolders.PatchingFolder, "patched.apk");
 
-            if (!InstalledApp.Is64Bit)
+            // There is no async file copy method, so we Task.Run it (we could make our own with streams, that's another option)
+            await Task.Run(() => { File.Copy(_storedApkPath, patchedApkPath, true); });
+            
+            _logger.Information("Copying files to patch APK . . .");
+
+            PatchingStage = PatchingStage.Patching;
+            ZipArchive apkArchive = ZipFile.Open(patchedApkPath, ZipArchiveMode.Update);
+            try
             {
-                _logger.Warning("App is 32 bit!");
-                if (!await _prompter.Prompt32Bit()) // Prompt the user to ask if they would like to continue, even though BS-hook doesn't work on 32 bit apps
+                string libsPath = InstalledApp.Is64Bit ? "lib/arm64-v8a" : "lib/armeabi-v7a";
+
+                if (!InstalledApp.Is64Bit)
                 {
-                    return;
+                    _logger.Warning("App is 32 bit!");
+                    if (
+                        !await _prompter
+                            .Prompt32Bit()) // Prompt the user to ask if they would like to continue, even though BS-hook doesn't work on 32 bit apps
+                    {
+                        return;
+                    }
                 }
-            }
-
-            if (!await AttemptCopyUnstrippedUnity(libsPath))
-            {
-                if (!await _prompter.PromptUnstrippedUnityUnavailable()) // Prompt the user to ask if they would like to continue, since missing libunity is likely to break some mods
+                
+                if (!await AttemptCopyUnstrippedUnity(libsPath, apkArchive))
                 {
-                    return;
+                    if (!await _prompter
+                        .PromptUnstrippedUnityUnavailable()) // Prompt the user to ask if they would like to continue, since missing libunity is likely to break some mods
+                    {
+                        return;
+                    }
                 }
-            }
 
-            // Replace libmain.so to load the modloader, then add libmodloader.so, which actually does the mod loading.
-            _logger.Information("Copying libmain.so and libmodloader.so . . .");
-            if (InstalledApp.Is64Bit)
-            {
-                File.Copy(await _filesDownloader.GetFileLocation(ExternalFileType.Main64), Path.Combine(libsPath, "libmain.so"), true);
-                File.Copy(await _filesDownloader.GetFileLocation(ExternalFileType.Modloader64), Path.Combine(libsPath, "libmodloader.so"));
-            }
-            else
-            {
-                _logger.Warning("Using 32 bit versions!");
-                File.Copy(await _filesDownloader.GetFileLocation(ExternalFileType.Main32), Path.Combine(libsPath, "libmain.so"), true);
-                File.Copy(await _filesDownloader.GetFileLocation(ExternalFileType.Modloader32), Path.Combine(libsPath, "libmodloader.so"));
-            }
+                // Replace libmain.so to load the modloader, then add libmodloader.so, which actually does the mod loading.
+                _logger.Information("Copying libmain.so and libmodloader.so . . .");
+                if (InstalledApp.Is64Bit)
+                {
+                    await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Main64), Path.Combine(libsPath, "libmain.so"), true);
+                    await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Modloader64), Path.Combine(libsPath, "libmodloader.so"));
+                }
+                else
+                {
+                    _logger.Warning("Using 32 bit versions!");
+                    await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Main32), Path.Combine(libsPath, "libmain.so"), true);
+                    await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Modloader32), Path.Combine(libsPath, "libmodloader.so"));
+                }
+                
 
-            // Add permissions to the manifest
-            _logger.Information("Patching manifest . . .");
-            string manifestPath = Path.Combine(_decompPath, "AndroidManifest.xml");
-            string modifiedManifest = PatchManifest(await File.ReadAllTextAsync(manifestPath));
-            await File.WriteAllTextAsync(manifestPath, modifiedManifest);
+                // Add permissions to the manifest
+                _logger.Information("Patching manifest . . .");
+                await PatchManifest(apkArchive);
+
+                _logger.Information("Adding tag . . .");
+                // The disk IO while opening the APK as a zip archive causes a UI freeze, so we run it on another thread
+                // We cannot just create this tag before compiling - apktool will remove it as it isn't a normal part of the APK
+                apkArchive.CreateEntry("modded");
+
+                _logger.Information("Closing APK archive . . .");
+            }
+            finally
+            {
+                await Task.Run(() => { apkArchive.Dispose(); });
+            }
 
             // Pause patching before compiling the APK in order to give a developer the chance to modify it.
             if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
@@ -287,40 +381,13 @@ namespace QuestPatcher.Core.Patching
                 return;
             }
 
-            _logger.Information("Recompiling APK . . .");
-            PatchingStage = PatchingStage.Recompiling;
-
-            string patchedPath = Path.Combine(_specialFolders.PatchingFolder, "patched.apk");
-            await _apkTools.CompileApk(_decompPath, patchedPath);
-
-            try
-            {
-                await Task.Run(() =>
-                {
-                    Directory.Delete(_decompPath, true); // The decompiled APK takes up a LOT of space (800-900 MB for Beat Saber!), so we clear this now
-                });
-            } 
-            catch (IOException) // Sometimes a developer might be using the APK, so avoid failing the whole patching process
-            {
-                _logger.Warning("Failed to delete decompiled APK");
-            }
-
-            _logger.Information("Adding tag . . .");
-            // The disk IO while opening the APK as a zip archive causes a UI freeze, so we run it on another thread
-            // We cannot just create this tag before compiling - apktool will remove it as it isn't a normal part of the APK
-            await Task.Run(() =>
-            {
-                using ZipArchive apkArchive = ZipFile.Open(patchedPath, ZipArchiveMode.Update);
-                apkArchive.CreateEntry("modded");
-            });
-
             _logger.Information("Signing APK (this might take a while) . . .");
             PatchingStage = PatchingStage.Signing;
 
-            await _apkTools.SignApk(patchedPath);
+            await _apkTools.SignApk(patchedApkPath);
             try
             {
-                File.Delete(patchedPath); // The patched APK takes up space, and we don't need it now
+                File.Delete(patchedApkPath); // The patched APK takes up space, and we don't need it now
             }
             catch (IOException) // Sometimes a developer might be using the APK, so avoid failing the whole patching process
             {
