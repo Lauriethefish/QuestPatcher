@@ -9,7 +9,7 @@ namespace QuestPatcher.Axml
     {
         /// <summary>
         /// Axml text line number read from the parser.
-        /// TODO: Figure out what we can actually do with this, I'm not sure why it's there.
+        /// TODO: Automatically set this to a sensible value upon saving?
         /// </summary>
         public int TextLineNumber { get; set; }
 
@@ -44,7 +44,13 @@ namespace QuestPatcher.Axml
         /// </summary>
         public Uri? NamespaceUri { get; set; }
 
-        public AxmlElement(int textLineNumber, string name, Uri? namespaceUri)
+        /// <summary>
+        /// Creates a new element.
+        /// </summary>
+        /// <param name="name">The name of the element, without the namespace prefix</param>
+        /// <param name="namespaceUri">URI of the namespace that this element is in. Set to <code>null</code> (leave at default value) for no namespace.</param>
+        /// <param name="textLineNumber">Line number of the element, can safely be left at the default value of <code>0</code>, Android will still load elements with out-of-order line numbers.</param>
+        public AxmlElement(string name, Uri? namespaceUri = null, int textLineNumber = 0)
         {
             TextLineNumber = textLineNumber;
             Name = name;

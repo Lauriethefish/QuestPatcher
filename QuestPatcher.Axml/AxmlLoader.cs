@@ -103,10 +103,7 @@ namespace QuestPatcher.Axml
                             throw new AxmlParseException("Expected 0x00140014");
                         }
                         
-                        AxmlElement childElement =
-                            new AxmlElement(currentLineNumber, elementName, namespaceId == -1
-                                ? null
-                                : ParseNamespaceUri(stringPool[namespaceId]));
+                        AxmlElement childElement = new AxmlElement(elementName, namespaceId == -1 ? null : ParseNamespaceUri(stringPool[namespaceId]), currentLineNumber);
 
                         int numAttributes = input.ReadInt16();
                         int idAttributeIndex = input.ReadInt16() - 1;

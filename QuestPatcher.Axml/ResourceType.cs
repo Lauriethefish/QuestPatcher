@@ -1,5 +1,8 @@
 ﻿namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Represents an AXML chunk type.
+    /// </summary>
     internal enum ResourceType
     {
         StringPool = 0x0001,

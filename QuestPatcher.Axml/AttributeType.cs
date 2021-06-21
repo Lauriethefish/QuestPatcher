@@ -1,5 +1,10 @@
 ﻿namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Represents the saved type of an attribute.
+    /// Some of these types cannot be set manually, but they are just preserved for later saving if loaded.
+    /// TODO: Add support for setting references and hex values.
+    /// </summary>
     internal enum AttributeType
     {
         FirstInt = 0x10,

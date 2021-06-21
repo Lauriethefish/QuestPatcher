@@ -20,16 +20,22 @@
         public WrappedValueType Type { get; }
         
         /// <summary>
-        /// Raw underlying string value that represents this value.
+        /// Raw underlying string value that represents this value, <code>null</code> if a reference value.
         /// </summary>
-        public string RawValue { get; }
+        public string? RawValue { get; }
         
         /// <summary>
-        /// TODO: figure out what this is
+        /// ID of the value this wrapped value refers to. Not quite sure what this points to as of now
         /// </summary>
         public int ReferenceId { get; }
 
-        public WrappedValue(WrappedValueType type, string rawValue, int referenceId)
+        /// <summary>
+        /// Creates a new wrapped AXML value
+        /// </summary>
+        /// <param name="type">Type of the underlying value</param>
+        /// <param name="rawValue">Raw string value</param>
+        /// <param name="referenceId">ID of the value this wrapped value refers to</param>
+        public WrappedValue(WrappedValueType type, string? rawValue, int referenceId)
         {
             Type = type;
             RawValue = rawValue;
