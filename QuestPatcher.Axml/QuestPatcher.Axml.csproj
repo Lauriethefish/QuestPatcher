@@ -10,8 +10,7 @@
     <Title>QuestPatcher.Axml</Title>
     <PackageVersion>1.0.0</PackageVersion>
     <Authors>Lauriethefish</Authors>
-    <Description>A library for the parsing and saving of Android binary XML files such as the AndroidManifest.xml file inside an APK.
-      Used in QuestPatcher for patching the manifest with added permissions.</Description>
+    <Description>A library for the parsing and saving of Android binary XML files such as the AndroidManifest.xml file inside an APK. Used in QuestPatcher for patching the manifest with added permissions.</Description>
     <Copyright>Copyright 2021 Laurie ?</Copyright>
     <PackageProjectUrl>https://github.com/Lauriethefish/QuestPatcher/tree/main/QuestPatcher.Axml</PackageProjectUrl>
     <PackageLicenseExpression>Zlib</PackageLicenseExpression>
