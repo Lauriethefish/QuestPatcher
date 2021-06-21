@@ -4,6 +4,9 @@ using System.IO;
 
 namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Represents an AXML attribute.
+    /// </summary>
     public class AxmlAttribute
     {
         /// <summary>
@@ -76,7 +79,7 @@ namespace QuestPatcher.Axml
         /// <param name="name">The name of the attribute, without the namespace prefix</param>
         /// <param name="ns">The URI of the namespace this attribute is in, if any</param>
         /// <param name="resourceId">The resource ID of this attribute. This must be checked beforehand on the R class in an Android project, or by looking at existing resource IDs in a parsed manifest</param>
-        /// <param name="value">The value of the attribute, supported types are <see cref="string"/>, <see cref="int"/>, <see cref="bool"/> and </param>
+        /// <param name="value">The value of the attribute, supported types are <see cref="string"/>, <see cref="int"/>, <see cref="bool"/> and <see cref="WrappedValue"/></param>
         public AxmlAttribute(string name, Uri? ns, int? resourceId, object value)
         {
             Name = name;

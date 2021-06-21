@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Class for loading AXML files.
+    /// </summary>
     public static class AxmlLoader
     {
         private struct QueuedNamespace
@@ -19,6 +22,14 @@ namespace QuestPatcher.Axml
             }
         }
         
+        /// <summary>
+        /// Loads an AXML document from the given stream.
+        /// The stream must be seekable.
+        /// </summary>
+        /// <param name="stream">The stream to load from, must be seekable</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">If the given stream is not seekable</exception>
+        /// <exception cref="AxmlParseException">Any errors in the AXML format of the file</exception>
         public static AxmlElement LoadDocument(Stream stream)
         {
             if (!stream.CanSeek)
@@ -136,17 +147,17 @@ namespace QuestPatcher.Axml
                             object value;
                             if (i == idAttributeIndex)
                             {
-                                value = new WrappedValue(WrappedValueType.Id, stringPool[attrRawStringIndex],
-                                    attrRawValue);
+                                value = new WrappedValue(WrappedValueType.Id, stringPool[attrRawStringIndex], attrRawValue);
                             }
                             else if(i == classAttributeIndex)
                             {
-                                value = new WrappedValue(WrappedValueType.Class, stringPool[attrRawStringIndex],
-                                    attrRawValue);
+                                value = new WrappedValue(WrappedValueType.Class, stringPool[attrRawStringIndex], attrRawValue);
                             }   else if (i == styleAttributeIndex)
                             {
-                                value = new WrappedValue(WrappedValueType.Style, stringPool[attrRawStringIndex],
-                                    attrRawValue);
+                                value = new WrappedValue(WrappedValueType.Style, stringPool[attrRawStringIndex], attrRawValue);
+                            }   else if (attrType == AttributeType.Reference)
+                            {
+                                value = new WrappedValue(WrappedValueType.Reference, null, attrRawValue);
                             }
                             else if(attrType == AttributeType.String)
                             {

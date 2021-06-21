@@ -14,6 +14,12 @@ namespace QuestPatcher.Axml
         /// </summary>
         private const int Utf8Flag = 0x00000100;
         
+        /// <summary>
+        /// Loads the string pool from the binary data.
+        /// Does not current load files.
+        /// </summary>
+        /// <param name="input">The reader to read the string pool from</param>
+        /// <returns>The pool as a string array</returns>
         internal static string[] LoadStringPool(BinaryReader input)
         {
             int beginChunkOffset = (int) input.BaseStream.Position - 8;

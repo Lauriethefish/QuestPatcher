@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Represents an AXML element.
+    /// </summary>
     public class AxmlElement
     {
         /// <summary>
@@ -49,7 +52,7 @@ namespace QuestPatcher.Axml
         /// </summary>
         /// <param name="name">The name of the element, without the namespace prefix</param>
         /// <param name="namespaceUri">URI of the namespace that this element is in. Set to <code>null</code> (leave at default value) for no namespace.</param>
-        /// <param name="textLineNumber">Line number of the element, can safely be left at the default value of <code>0</code>, Android will still load elements with out-of-order line numbers.</param>
+        /// <param name="textLineNumber">Line number of the element, can safely be left at the default value of <code>0</code> - Android will still load elements with out-of-order line numbers.</param>
         public AxmlElement(string name, Uri? namespaceUri = null, int textLineNumber = 0)
         {
             TextLineNumber = textLineNumber;

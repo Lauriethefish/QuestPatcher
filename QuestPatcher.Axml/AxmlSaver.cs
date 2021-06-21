@@ -2,6 +2,9 @@
 
 namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// Class for saving AXML files.
+    /// </summary>
     public static class AxmlSaver
     {
         /// <summary>

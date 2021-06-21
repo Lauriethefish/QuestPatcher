@@ -3,7 +3,7 @@
 namespace QuestPatcher.Axml
 {
     /// <summary>
-    /// Class for read/write methods convenient for AXML handling
+    /// Class with read/write methods convenient for AXML handling
     /// </summary>
     internal static class BinaryStreamExtensions
     {

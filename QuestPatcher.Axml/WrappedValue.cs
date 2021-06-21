@@ -1,5 +1,8 @@
 ﻿namespace QuestPatcher.Axml
 {
+    /// <summary>
+    /// The type of the value that a wrapped value holds.
+    /// </summary>
     public enum WrappedValueType
     {
         Id,
