@@ -12,7 +12,7 @@
         x:Class="QuestPatcher.Views.MainWindow"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/questpatcher-logo.ico"
-        Title="QuestPatcher v2.0.1"
+        Title="QuestPatcher v2.1.0"
         Background="{x:Null}"
         Foreground="{StaticResource SystemBaseHighColor}"
         ExtendClientAreaToDecorationsHint="true"
