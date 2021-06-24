@@ -2,30 +2,24 @@
 using QuestPatcher.Core.Models;
 using Serilog.Core;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using Newtonsoft.Json.Serialization;
 
 namespace QuestPatcher.Core
 {
     public class ConfigManager
     {
-        private static readonly JsonSerializer Serializer = new();
-
-        public Config Config
+        private static readonly JsonSerializer Serializer = new()
         {
-            get
+            Formatting = Formatting.Indented,
+            ContractResolver = new DefaultContractResolver()
             {
-                if(_config == null)
-                {
-                    LoadConfig();
-                }
-                Debug.Assert(_config != null);
-                return _config;
+                NamingStrategy = new CamelCaseNamingStrategy()
             }
-        }
+        };
 
-        private Config? _config;
+        private Config? _loadedConfig;
         private readonly Logger _logger;
         private readonly string _configPath;
         private readonly string _legacyAppIdPath;
@@ -37,49 +31,104 @@ namespace QuestPatcher.Core
             _legacyAppIdPath = Path.Combine(specialFolders.DataFolder, "appId.txt");
         }
 
-        private void LoadConfig()
+        /// <summary>
+        /// Gets the currently loaded config file, or loads the config file if none is loaded.
+        /// Will attempt to recover corrupted configs by overwriting them with the default config file.
+        /// </summary>
+        /// <returns>The loaded config</returns>
+        public Config GetOrLoadConfig()
         {
-            _logger.Debug("Loading config . . .");
-            // Save the default config file from resources if a config was not found
-            if (!File.Exists(_configPath))
+            if (_loadedConfig == null)
             {
-                _logger.Debug("Saving default config file . . .");
-                Stream? resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.default-config.json");
-                if(resourceStream == null)
+                try
                 {
-                    throw new NullReferenceException("Unable to find default-config.json in resources!");
+                    _loadedConfig = LoadConfig();
                 }
-
-                FileStream destStream = new(_configPath, FileMode.Create, FileAccess.Write);
-
-                resourceStream.CopyTo(destStream);
-                destStream.Close();
-                resourceStream.Close();
+                catch (Exception ex)
+                {
+                    if (ex is FormatException or JsonException)
+                    {
+                        // Attempt to respond to config load errors by overwriting with the default config file
+                        _logger.Warning($"Failed to load the config file, overwriting with default config instead! ({ex})");
+                        SaveDefaultConfig(true);
+                        _loadedConfig = LoadConfig();
+                        _logger.Information("Overwriting with default config fixed the issue, continuing");
+                    }
+                    else
+                    {
+                        // Unknown errors just get rethrown an treated as an unhandled load error
+                        throw;
+                    }
+                }
             }
 
+            return _loadedConfig;
+        }
+
+        /// <summary>
+        /// Saves the default config file if no config file currently exists.
+        /// </summary>
+        /// <param name="overwrite">Whether to overwrite the config even if an existing config file exists</param>
+        /// <exception cref="NullReferenceException"></exception>
+        private void SaveDefaultConfig(bool overwrite)
+        {
+            // If not forcing an overwrite of the config, and the config exists, we don't need to save the default config.
+            if (File.Exists(_configPath) && !overwrite) { return; }
+            
+            _logger.Debug("Saving default config file . . .");
+            using Stream? resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.default-config.json");
+            if(resourceStream == null)
+            {
+                throw new NullReferenceException("Unable to find default-config.json in resources!");
+            }
+
+            using FileStream destStream = new(_configPath, FileMode.Create, FileAccess.Write);
+            resourceStream.CopyTo(destStream);
+        }
+
+        /// <summary>
+        /// Loads the config from disk.
+        /// </summary>
+        /// <returns>The loaded config</returns>
+        /// <exception cref="FormatException">If the loaded config did not contain a config object, i.e. it was empty</exception>
+        private Config LoadConfig()
+        {
+            _logger.Information("Loading config . . .");
+            
             // Load the config
-            using (StreamReader streamReader = new(_configPath))
-            using (JsonTextReader reader = new(streamReader)) {
-                _config = Serializer.Deserialize<Config>(reader);
+            using StreamReader streamReader = new(_configPath);
+            using JsonTextReader reader = new(streamReader);
+            Config? newConfig = Serializer.Deserialize<Config>(reader);
+            if (newConfig == null)
+            {
+                throw new FormatException("Loaded config contained no config object");
             }
-
+            
             // In the past, an appId.txt file was used to store the app ID
             // Load this into the config, then delete the old file
             if (File.Exists(_legacyAppIdPath))
             {
                 _logger.Information("Loading app ID from legacy appId.txt");
-                Config.AppId = File.ReadAllText(_legacyAppIdPath);
+                newConfig.AppId = File.ReadAllText(_legacyAppIdPath);
                 File.Delete(_legacyAppIdPath);
                 SaveConfig();
             }
+
+            return newConfig;
         }
 
+        /// <summary>
+        /// Saves the loaded config file.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the config has not been loaded yet</exception>
         public void SaveConfig()
         {
+            if (_loadedConfig == null) { throw new InvalidOperationException("Cannot save the config as it has not been loaded yet"); }
+            
             _logger.Information("Saving config file . . .");
             using StreamWriter streamWriter = new(_configPath);
             using JsonTextWriter writer = new(streamWriter);
-            Serializer.Serialize(writer, _config);
+            Serializer.Serialize(writer, _loadedConfig);
         }
     }
 }

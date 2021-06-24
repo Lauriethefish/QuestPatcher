@@ -26,7 +26,7 @@ namespace QuestPatcher.Core
         protected OtherFilesManager OtherFilesManager { get; }
         protected IUserPrompter Prompter { get; }
 
-        protected Config Config => _configManager.Config;
+        protected Config Config => _configManager.GetOrLoadConfig();
         
         private readonly ApkTools _apkTools;
         private readonly ConfigManager _configManager;
@@ -43,6 +43,7 @@ namespace QuestPatcher.Core
 
             Logger = SetupLogging();
             _configManager = new ConfigManager(Logger, SpecialFolders);
+            _configManager.GetOrLoadConfig(); // Load the config file
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders, Logger);
             _apkTools = new ApkTools(Logger, FilesDownloader);
             DebugBridge = new AndroidDebugBridge(Logger, FilesDownloader, OnAdbDisconnect);
