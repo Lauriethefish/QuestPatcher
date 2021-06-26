@@ -1,10 +1,19 @@
 ﻿using Serilog.Core;
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core
 {
+    /// <summary>
+    /// Thrown if signing fails.
+    /// </summary>
+    public class SigningException : Exception
+    {
+        public SigningException(string message) : base(message) { }
+    }
+    
     /// <summary>
     /// Abstraction around uber-apk-signer used during patching.
     /// Used to abstract apktool as well, but QuestPatcher no longer uses this, relying on its own manifest decompiler instead.
@@ -71,9 +80,46 @@ namespace QuestPatcher.Core
             }
         }
 
-        public Task SignApk(string apkPath)
+        /// <summary>
+        /// Signs the APK with the given path using uber-apk-signer.
+        ///
+        /// Sometimes signing with zipalign will fail, especially on macOS.
+        /// Therefore it's best to attempt signing with zipalign, then fall back to without if signing fails.
+        /// </summary>
+        /// <param name="apkPath">The path of the APk to sign</param>
+        /// <param name="useZipAlign">Whether or not to use zipalign to optimise the APK</param>
+        /// <exception cref="SigningException">If the signer does not produce an APK at the output path, or if the output path already exists</exception>
+        /// <returns>The path of the signed APK</returns>
+        public async Task<string> SignApk(string apkPath, bool useZipAlign = true)
         {
-            return InvokeJavaTool(ExternalFileType.UberApkSigner, $"--debug --apks \"{apkPath}\"");
+            string signedPath = Path.GetFileNameWithoutExtension(apkPath);
+            string? apkDirectory = Path.GetDirectoryName(apkPath);
+            if (apkDirectory != null)
+            {
+                signedPath = Path.Combine(apkDirectory, signedPath);
+            }
+
+            // Uber APK signer uses -aligned-debugSigned for aligned APKs and -debugSigned for non-aligned APKs.
+            signedPath += useZipAlign ? "-aligned-debugSigned.apk" : "-debugSigned.apk";
+            // Sanity check this to avoid having to comb through the output of the Java signer
+            if (File.Exists(signedPath))
+            {
+                throw new SigningException($"Destination file for signing {signedPath} already exists");
+            }
+            
+            string command = "--debug ";
+            if (!useZipAlign) { command += "--skipZipAlign "; }
+            command += $"--apks \"{apkPath}\"";
+            
+            await InvokeJavaTool(ExternalFileType.UberApkSigner, command);
+
+            // If the destination APK path is missing, then signing must have failed
+            if (!File.Exists(signedPath))
+            {
+                throw new SigningException($"Signed APK at {signedPath} was missing, signing must have failed");
+            }
+
+            return signedPath;
         }
     }
 }
