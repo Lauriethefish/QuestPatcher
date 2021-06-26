@@ -73,7 +73,7 @@ namespace QuestPatcher.Core
 
         public Task SignApk(string apkPath)
         {
-            return InvokeJavaTool(ExternalFileType.UberApkSigner, $"--apks \"{apkPath}\"");
+            return InvokeJavaTool(ExternalFileType.UberApkSigner, $"--debug --apks \"{apkPath}\"");
         }
     }
 }
