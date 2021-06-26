@@ -384,7 +384,21 @@ namespace QuestPatcher.Core.Patching
             _logger.Information("Signing APK (this might take a while) . . .");
             PatchingStage = PatchingStage.Signing;
 
-            await _apkTools.SignApk(patchedApkPath);
+            string signedPath;
+            try
+            {
+                // First attempt to sign the APK with zipalign enabled
+                signedPath = await _apkTools.SignApk(patchedApkPath);
+            }
+            catch (SigningException ex)
+            {
+                _logger.Warning($"Signing the APK failed with zipalign enabled. Falling back to non-zipalign . . .");
+                _logger.Verbose(ex.ToString());
+                // Signing with zipalign often fails on macOS, so we fall back to signing without it, which could yield worse performance/RAM usage on the quest
+                // If non-zipalign fails, then we just quit patching
+                signedPath = await _apkTools.SignApk(patchedApkPath, false);
+            }
+
             try
             {
                 File.Delete(patchedApkPath); // The patched APK takes up space, and we don't need it now
@@ -394,7 +408,6 @@ namespace QuestPatcher.Core.Patching
                 _logger.Warning("Failed to delete patched APK");
             }
 
-            string signedPath = Path.Combine(_specialFolders.PatchingFolder, "patched-aligned-debugSigned.apk");
             // Avoid uninstalling the APK then failing during installation. Fail here instead to preserve the vanilla game
             if (!File.Exists(signedPath))
             {
