@@ -39,7 +39,7 @@ namespace QuestPatcher.Core.Patching
 
             // We do not use the built in CreateEntryFromFile method, as it is not async
             ZipArchiveEntry newEntry = archive.CreateEntry(entryName);
-            await using Stream fileStream = File.OpenRead(sourcePath);
+            await using Stream fileStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             await using Stream destinationStream = newEntry.Open();
             await fileStream.CopyToAsync(destinationStream);
         }
