@@ -135,14 +135,18 @@ namespace QuestPatcher.ViewModels
             {
                 // Create the dump in the default location (the data directory)
                 string dumpLocation = await _dumper.CreateInfoDump();
-                
-                // Open the dump's directory for convenience
-                Process.Start(new ProcessStartInfo
+
+                string? dumpFolder = Path.GetDirectoryName(dumpLocation);
+                if (dumpFolder != null)
                 {
-                    FileName = Path.GetDirectoryName(dumpLocation),
-                    UseShellExecute = true,
-                    Verb = "open"
-                });
+                    // Open the dump's directory for convenience
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = dumpFolder,
+                        UseShellExecute = true,
+                        Verb = "open"
+                    });
+                }
             }
             catch (Exception ex)
             {
