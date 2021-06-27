@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace QuestPatcher.Core
         private readonly Logger _logger;
         private readonly ConfigManager _configManager;
         private readonly Config _config;
+        private readonly PatchingManager _patchingManager;
 
         private const string LogsDirectory = "logs";
         private string GameLogsDirectory => $"logs/{_config.AppId}";
@@ -29,7 +31,7 @@ namespace QuestPatcher.Core
         private string GameConfigsPath => $"/sdcard/ModData/{_config.AppId}/Configs/";
         private string GameConfigsDirectory => $"configs/{_config.AppId}";
 
-        public InfoDumper(SpecialFolders specialFolders, AndroidDebugBridge debugBridge, ModManager modManager, Logger logger, ConfigManager configManager)
+        public InfoDumper(SpecialFolders specialFolders, AndroidDebugBridge debugBridge, ModManager modManager, Logger logger, ConfigManager configManager, PatchingManager patchingManager)
         {
             _specialFolders = specialFolders;
             _debugBridge = debugBridge;
@@ -37,6 +39,7 @@ namespace QuestPatcher.Core
             _logger = logger;
             _configManager = configManager;
             _config = configManager.GetOrLoadConfig();
+            _patchingManager = patchingManager;
         }
         
         /// <summary>
@@ -178,6 +181,17 @@ namespace QuestPatcher.Core
             await writer.WriteLineAsync("QuestPatcher Information dump");
             await writer.WriteLineAsync("=============================");
 
+            ApkInfo? app = _patchingManager.InstalledApp;
+            if (app != null)
+            {
+                await writer.WriteLineAsync(
+                    $"Application: {_config.AppId} v{app.Version}. Is Modded: {app.IsModded}. 64 bit: {app.Is64Bit}");
+            }
+            else
+            {
+                await writer.WriteLineAsync("Application not yet loaded");
+            }
+            
             await writer.WriteLineAsync($"Total installed mods: {_modManager.AllMods.Count}. {_modManager.AllMods.Count(mod => mod.IsInstalled)} enabled");
 
             foreach (Mod mod in _modManager.AllMods)

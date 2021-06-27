@@ -52,7 +52,7 @@ namespace QuestPatcher.Core
             PatchingManager = new PatchingManager(Logger, Config, DebugBridge, _apkTools, SpecialFolders, FilesDownloader, Prompter, ExitApplication);
             ModManager = new ModManager(Logger, DebugBridge, SpecialFolders, PatchingManager, Config, FilesDownloader);
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
-            InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager);
+            InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager, PatchingManager);
 
             Logger.Debug("QuestPatcherService constructed");
         }
