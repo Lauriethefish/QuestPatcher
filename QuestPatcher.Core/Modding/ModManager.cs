@@ -114,6 +114,8 @@ namespace QuestPatcher.Core.Modding
         /// <returns>True if old mods were found and deleted, false otherwise</returns>
         public async Task<bool> DetectAndRemoveOldMods()
         {
+            await CreateModsDirectories();
+
             List<string> manifests = await _debugBridge.ListDirectoryFiles(InstalledModsPath);
             if(manifests.Count == 0) { return false; }
 
