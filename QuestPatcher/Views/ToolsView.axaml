@@ -31,6 +31,12 @@
           </TextBlock>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button IsEnabled="{Binding Locker.IsAdbAvailable}" Command="{Binding CreateDump}">Create Dump</Button>
+          <TextBlock VerticalAlignment="Center" FontSize="12">
+            Creates a dump containing lots of information about QuestPatcher and mod state.
+          </TextBlock>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
           <Button Command="{Binding QuickFix}" IsEnabled="{Binding Locker.IsFree}">Quick Fix</Button>
           <TextBlock VerticalAlignment="Center" FontSize="12">Clears cached QuestPatcher data - try this if something isn't working.</TextBlock>
         </StackPanel>

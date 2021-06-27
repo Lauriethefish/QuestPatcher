@@ -62,7 +62,7 @@ namespace QuestPatcher.Services
                     new PatchingViewModel(Config, _operationLocker, PatchingManager, window, Logger, progressViewModel, FilesDownloader),
                     new ManageModsViewModel(ModManager, PatchingManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
-                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, Logger, PatchingManager, DebugBridge, this),
+                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, Logger, PatchingManager, DebugBridge, this, InfoDumper),
                     _otherItemsView,
                     Config,
                     PatchingManager,

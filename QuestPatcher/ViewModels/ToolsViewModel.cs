@@ -31,8 +31,9 @@ namespace QuestPatcher.ViewModels
         private readonly PatchingManager _patchingManager;
         private readonly AndroidDebugBridge _debugBridge;
         private readonly QuestPatcherUIService _uiService;
+        private readonly InfoDumper _dumper;
 
-        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService)
+        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService, InfoDumper dumper)
         {
             Config = config;
             ProgressView = progressView;
@@ -44,6 +45,7 @@ namespace QuestPatcher.ViewModels
             _patchingManager = patchingManager;
             _debugBridge = debugBridge;
             _uiService = uiService;
+            _dumper = dumper;
 
             _debugBridge.StoppedLogging += (_, _) =>
             {
@@ -85,7 +87,7 @@ namespace QuestPatcher.ViewModels
 
         public void OpenLogsFolder()
         {
-            Process.Start(new ProcessStartInfo()
+            Process.Start(new ProcessStartInfo
             {
                 FileName = _specialFolders.LogsFolder,
                 UseShellExecute = true,
@@ -123,6 +125,42 @@ namespace QuestPatcher.ViewModels
 
                 _isAdbLogging = true;
                 this.RaisePropertyChanged(nameof(AdbButtonText));
+            }
+        }
+
+        public async void CreateDump()
+        {
+            Locker.StartOperation();
+            try
+            {
+                // Create the dump in the default location (the data directory)
+                string dumpLocation = await _dumper.CreateInfoDump();
+                
+                // Open the dump's directory for convenience
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = Path.GetDirectoryName(dumpLocation),
+                    UseShellExecute = true,
+                    Verb = "open"
+                });
+            }
+            catch (Exception ex)
+            {
+                // Show a dialog with any errors
+                _logger.Error($"Failed to create dump: {ex}");
+                DialogBuilder builder = new()
+                {
+                    Title = "Failed to create dump",
+                    Text = "Creating the dump failed due to an unhandled error",
+                    HideCancelButton = true
+                };
+                builder.WithException(ex);
+
+                await builder.OpenDialogue(_mainWindow);
+            }
+            finally
+            {
+                Locker.FinishOperation();
             }
         }
 
