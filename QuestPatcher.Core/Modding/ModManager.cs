@@ -32,7 +32,7 @@ namespace QuestPatcher.Core.Modding
         /// <summary>
         /// All installed mods, including libraries
         /// </summary>
-        private Dictionary<string, Mod>.ValueCollection AllMods => _modsById.Values;
+        public Dictionary<string, Mod>.ValueCollection AllMods => _modsById.Values;
 
         private readonly Logger _logger;
         private readonly AndroidDebugBridge _debugBridge;
@@ -42,8 +42,8 @@ namespace QuestPatcher.Core.Modding
         private readonly Config _config;
 
         private string InstalledModsPath => $"/sdcard/QuestPatcher/{_config.AppId}/installedMods/";
-        private string ModsPath => $"/sdcard/Android/data/{_config.AppId}/files/mods/";
-        private string LibsPath => $"/sdcard/Android/data/{_config.AppId}/files/libs/";
+        public string ModsPath => $"/sdcard/Android/data/{_config.AppId}/files/mods/";
+        public string LibsPath => $"/sdcard/Android/data/{_config.AppId}/files/libs/";
 
         public ModManager(Logger logger, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, PatchingManager patchingManager, Config config, ExternalFilesDownloader filesDownloader)
         {
