@@ -43,6 +43,7 @@ namespace QuestPatcher.Core
             {
                 try
                 {
+                    SaveDefaultConfig(false);
                     _loadedConfig = LoadConfig();
                 }
                 catch (Exception ex)
