@@ -4,10 +4,30 @@ using System.Threading.Tasks;
 
 namespace QuestPatcher.Core
 {
+    /// <summary>
+    /// Represents the result of running a process.
+    /// </summary>
     public struct ProcessOutput
     {
+        /// <summary>
+        /// All lines the process wrote to stdout
+        /// </summary>
         public string StandardOutput { get; set; }
+        
+        /// <summary>
+        /// All lines the process wrote to stderr
+        /// </summary>
         public string ErrorOutput { get; set; }
+
+        /// <summary>
+        /// Returns the error output added to the end of the standard output.
+        /// </summary>
+        public string AllOutput => StandardOutput + ErrorOutput;
+        
+        /// <summary>
+        /// The exit code of the process
+        /// </summary>
+        public int ExitCode { get; set; }
     }
 
     public static class ProcessUtil
@@ -57,7 +77,8 @@ namespace QuestPatcher.Core
             return new ProcessOutput
             {
                 StandardOutput = standardOutputBuilder.ToString(),
-                ErrorOutput = errorOutputBuilder.ToString()
+                ErrorOutput = errorOutputBuilder.ToString(),
+                ExitCode = process.ExitCode
             };
         }
     }

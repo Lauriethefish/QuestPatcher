@@ -41,15 +41,6 @@ namespace QuestPatcher.Core
     public class AndroidDebugBridge
     {
         /// <summary>
-        /// Words that will cause running an ADB command to throw an exception if found in the output
-        /// </summary>
-        private static readonly string[] FailedWords =
-        {
-            "error",
-            "failed"
-        };
-
-        /// <summary>
         /// Package names that will not be included in the apps to patch list
         /// </summary>
         private static readonly string[] DefaultPackagePrefixes =
@@ -87,21 +78,6 @@ namespace QuestPatcher.Core
         }
 
         /// <summary>
-        /// Scans str for keywords that would suggest that it failed. If there are any, this will throw AdbException
-        /// </summary>
-        /// <param name="str">The string to scan</param>
-        private static void ThrowIfFailed(string str)
-        {
-            foreach(string failedMsg in FailedWords)
-            {
-                if(str.ContainsIgnoreCase(failedMsg))
-                {
-                    throw new AdbException(str);
-                }
-            }
-        }
-
-        /// <summary>
         /// Checks if ADB is on PATH, and downloads it if not
         /// </summary>
         public async Task PrepareAdbPath()
@@ -122,11 +98,11 @@ namespace QuestPatcher.Core
 
         /// <summary>
         /// Runs <code>adb (command)</code> and returns the result.
-        /// AdbException is thrown if the result contains "failed" or "error"
+        /// AdbException is thrown if the return code is non-zero, unless the return code is in allowedExitCodes.
         /// </summary>
-        /// <param name="command"></param>
-        /// <returns></returns>
-        public async Task<ProcessOutput> RunCommand(string command)
+        /// <param name="command">The command to execute, without the <code>adb</code> executable name</param>
+        /// <returns>The process output from executing the file</returns>
+        public async Task<ProcessOutput> RunCommand(string command, params int[] allowedExitCodes)
         {
             if(_adbPath == null)
             {
@@ -138,34 +114,37 @@ namespace QuestPatcher.Core
             while (true)
             {
                 ProcessOutput output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, command);
-                _logger.Verbose($"Standard output: {output.StandardOutput}");
+                _logger.Verbose($"Standard output: \"{output.StandardOutput}\"");
                 if (output.ErrorOutput.Length > 0)
                 {
-                    _logger.Verbose($"Error output: {output.ErrorOutput}");
+                    _logger.Verbose($"Error output: \"{output.ErrorOutput}\"");
                 }
+                _logger.Verbose($"Exit code: {output.ExitCode}");
+
+                // Command execution was a success
+                if (output.ExitCode == 0 || allowedExitCodes.Contains(output.ExitCode)) { return output; }
+
+                string allOutput = output.StandardOutput + output.ErrorOutput;
 
                 // We repeatedly prompt the user to plug in their quest if it is not plugged in, or the device is offline, or if there are multiple devices
-                if (output.ErrorOutput.Contains("no devices/emulators found"))
+                if (allOutput.Contains("no devices/emulators found"))
                 {
                     await _onDisconnect(DisconnectionType.NoDevice);
                 }
-                else if(output.ErrorOutput.Contains("device offline"))
+                else if(allOutput.Contains("device offline"))
                 {
                     await _onDisconnect(DisconnectionType.DeviceOffline);
-                }   else if(output.ErrorOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
+                }   else if(allOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
                 {
                     await _onDisconnect(DisconnectionType.MultipleDevices);
-                }   else if(output.ErrorOutput.Contains("unauthorized"))
+                }   else if(allOutput.Contains("unauthorized"))
                 {
                     await _onDisconnect(DisconnectionType.Unauthorized);
                 }
                 else
                 {
-                    // Check the output for errors
-                    ThrowIfFailed(output.StandardOutput);
-                    ThrowIfFailed(output.ErrorOutput);
-
-                    return output;
+                    // Throw an exception as ADB gave a non-zero exit code so the command must've failed
+                    throw new AdbException(allOutput);
                 }
             }
         }
@@ -356,16 +335,30 @@ namespace QuestPatcher.Core
         public async Task<List<string>> ListDirectoryFiles(string path, bool onlyFileName = false)
         {
             path = FixPath(path);
-            string filesNonSplit = (await RunCommand($"shell \"ls -p \\\"{path}\\\" | grep -v /\"")).StandardOutput;
-
+            ProcessOutput output = await RunCommand($"shell \"ls -p \\\"{path}\\\" | grep -v /\"", 1);
+            string filesNonSplit = output.StandardOutput;
+            
+            // Exit code 1 is only allowed if it is returned with no files, as this is what the LS command returns
+            if (filesNonSplit.Trim().Length != 0 && output.ExitCode != 0)
+            {
+                throw new AdbException(output.AllOutput);
+            }
+            
             return ParsePaths(filesNonSplit, path, onlyFileName);
         }
 
         public async Task<List<string>> ListDirectoryFolders(string path, bool onlyFolderName = false)
         {
             path = FixPath(path);
-            string foldersNonSplit = (await RunCommand($"shell \"ls -p \\\"{path}\\\" | grep /\"")).StandardOutput;
+            ProcessOutput output = await RunCommand($"shell \"ls -p \\\"{path}\\\" | grep /\"", 1);
+            string foldersNonSplit = output.StandardOutput;
 
+            // Exit code 1 is only allowed if it is returned with no folders, as this is what the LS command returns
+            if (foldersNonSplit.Trim().Length != 0 && output.ExitCode != 0)
+            {
+                throw new AdbException(output.AllOutput);
+            }
+            
             return ParsePaths(foldersNonSplit, path, onlyFolderName);
         }
 
