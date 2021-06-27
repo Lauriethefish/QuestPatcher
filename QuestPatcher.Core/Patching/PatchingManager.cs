@@ -392,7 +392,7 @@ namespace QuestPatcher.Core.Patching
             }
             catch (SigningException ex)
             {
-                _logger.Warning($"Signing the APK failed with zipalign enabled. Falling back to non-zipalign . . .");
+                _logger.Warning("Signing the APK failed with zipalign enabled. Falling back to non-zipalign . . .");
                 _logger.Verbose(ex.ToString());
                 // Signing with zipalign often fails on macOS, so we fall back to signing without it, which could yield worse performance/RAM usage on the quest
                 // If non-zipalign fails, then we just quit patching
