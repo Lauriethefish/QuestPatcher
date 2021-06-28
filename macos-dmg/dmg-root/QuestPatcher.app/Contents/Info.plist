@@ -11,9 +11,9 @@
         <key>NSHighResolutionCapable</key>
         <true />
         <key>CFBundleVersion</key>
-        <string>2.1.0</string>
+        <string>2.2.0</string>
         <key>CFBundleShortVersionString</key>
-        <string>2.1.0</string>
+        <string>2.2.0</string>
         <key>CFBundleIconFile</key>
         <string>iconfile</string>
     </dict>
