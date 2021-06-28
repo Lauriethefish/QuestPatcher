@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -192,7 +191,7 @@ namespace QuestPatcher.Core
                 await writer.WriteLineAsync("Application not yet loaded");
             }
             
-            await writer.WriteLineAsync($"Total installed mods: {_modManager.AllMods.Count}. {_modManager.AllMods.Count(mod => mod.IsInstalled)} enabled");
+            await writer.WriteLineAsync($"Total loaded mods: {_modManager.AllMods.Count}. {_modManager.AllMods.Count(mod => mod.IsInstalled)} Installed");
 
             foreach (Mod mod in _modManager.AllMods)
             {
