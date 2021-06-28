@@ -148,6 +148,7 @@ namespace QuestPatcher.Core
 
                 string oldLogPath = Path.Combine(SpecialFolders.DataFolder, "log.log");
                 string oldAdbLogPath = Path.Combine(SpecialFolders.DataFolder, "adb.log");
+                string oldApkToolPath = Path.Combine(SpecialFolders.ToolsFolder, "apktool.jar");
                 if (File.Exists(oldLogPath))
                 {
                     File.Delete(oldLogPath);
@@ -155,6 +156,10 @@ namespace QuestPatcher.Core
                 if (File.Exists(oldAdbLogPath))
                 {
                     File.Delete(oldAdbLogPath);
+                }
+                if (File.Exists(oldApkToolPath))
+                {
+                    File.Delete(oldApkToolPath);
                 }
             }
             catch (Exception ex)
