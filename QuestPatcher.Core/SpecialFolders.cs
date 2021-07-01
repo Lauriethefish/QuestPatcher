@@ -70,12 +70,12 @@ namespace QuestPatcher.Core
         /// <summary>
         /// Finds a path to write a file to before using ADB to push it
         /// </summary>
-        /// <returns>The file to write to</returns>
-        public string GetTempFilePath()
+        /// <returns>A wrapper around a file to write to</returns>
+        public TempFile GetTempFile()
         {
             string path = Path.Combine(StagingArea, $"{_currentStagingNumber}.temp");
             _currentStagingNumber++;
-            return path;
+            return new TempFile(path);
         }
     }
 }

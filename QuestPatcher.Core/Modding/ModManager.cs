@@ -138,39 +138,27 @@ namespace QuestPatcher.Core.Modding
         {
             try
             {
-                string localPath = _specialFolders.GetTempFilePath();
                 Mod mod;
-                try
+                using (TempFile localPath = _specialFolders.GetTempFile())
                 {
                     // Download the manifest from the quest to local storage
                     _logger.Debug($"Downloading manifest {questPath} to {localPath} . . .");
-                    await _debugBridge.DownloadFile(questPath, localPath);
+                    await _debugBridge.DownloadFile(questPath, localPath.Path);
 
                     // Load the manifest
                     _logger.Debug($"Loading manifest from {localPath}");
-                    await using Stream manifestStream = File.OpenRead(localPath);
+                    await using Stream manifestStream = File.OpenRead(localPath.Path);
                     mod = Mod.Parse(manifestStream);
-                }
-                finally
-                {
-                    File.Delete(localPath);
                 }
 
                 if (mod.CoverImagePath != null)
                 {
                     _logger.Debug("Downloading cover image . . .");
                     string fullCoverImagePath = Path.Combine(GetExtractDirectory(mod), mod.CoverImagePath);
-                    string localCoverPath = _specialFolders.GetTempFilePath();
-
-                    try
-                    {
-                        await _debugBridge.DownloadFile(fullCoverImagePath, localCoverPath);
-                        mod.CoverImage = await File.ReadAllBytesAsync(localCoverPath);
-                    }
-                    finally
-                    {
-                        File.Delete(localCoverPath);
-                    }
+                    using TempFile localCoverFile = _specialFolders.GetTempFile();
+                    
+                    await _debugBridge.DownloadFile(fullCoverImagePath, localCoverFile.Path);
+                    mod.CoverImage = await File.ReadAllBytesAsync(localCoverFile.Path);
                 }
 
                 // Next we need to check that the mod is actually installed correctly.
@@ -303,18 +291,14 @@ namespace QuestPatcher.Core.Modding
                 throw new InstallationException($"Dependency {dependency.Id} is not installed, and the mod depending on it does not specify a download path if missing");
             }
 
-            string downloadPath = _specialFolders.GetTempFilePath();
             Mod installedDependency;
-            try
+            using (TempFile downloadFile = _specialFolders.GetTempFile())
             {
                 _logger.Information($"Downloading dependency {dependency.Id} . . .");
-                await _filesDownloader.DownloadUrl(dependency.DownloadIfMissing, downloadPath, dependency.Id);
-                installedDependency = await LoadMod(downloadPath);
+                await _filesDownloader.DownloadUrl(dependency.DownloadIfMissing, downloadFile.Path, dependency.Id);
+                installedDependency = await LoadMod(downloadFile.Path);
             }
-            finally
-            {
-                File.Delete(downloadPath);
-            }
+
             await InstallMod(installedDependency, new List<string>(installedInBranch));
 
             // Sanity checks that the download link actually pointed to the right mod
@@ -609,21 +593,14 @@ namespace QuestPatcher.Core.Modding
         /// <param name="mod">The mod to save the manifest of</param>
         private async Task SaveManifest(Mod mod)
         {
-            string stagingPath = _specialFolders.GetTempFilePath();
-            try
+            using TempFile stagingPath = _specialFolders.GetTempFile();
+            await using (StreamWriter writer = new(stagingPath.Path))
             {
-                await using (StreamWriter writer = new(stagingPath))
-                {
-                    mod.Save(writer);
-                }
+                mod.Save(writer);
+            }
 
-                string uploadPath = Path.Combine(GetExtractDirectory(mod), "mod.json");
-                await _debugBridge.UploadFile(stagingPath, uploadPath);
-            }
-            finally
-            {
-                File.Delete(stagingPath);
-            }
+            string uploadPath = Path.Combine(GetExtractDirectory(mod), "mod.json");
+            await _debugBridge.UploadFile(stagingPath.Path, uploadPath);
         }
 
         /// <summary>

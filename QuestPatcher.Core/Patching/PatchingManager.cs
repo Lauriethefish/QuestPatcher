@@ -144,19 +144,13 @@ namespace QuestPatcher.Core.Patching
             }
 
             _logger.Information("Unstripped libunity found. Downloading . . .");
-            string tempDownloadPath = _specialFolders.GetTempFilePath();
-            try
-            {
-                await _filesDownloader.DownloadUrl(
+            using TempFile tempDownloadPath = _specialFolders.GetTempFile();
+            
+            await _filesDownloader.DownloadUrl(
                     $"https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/{correctVersion}.so",
-                    tempDownloadPath, "libunity.so");
+                    tempDownloadPath.Path, "libunity.so");
 
-                await apkArchive.AddFileAsync(tempDownloadPath, Path.Combine(libsPath, "libunity.so"), true);
-            }
-            finally
-            {
-                if (File.Exists(tempDownloadPath)) { File.Delete(tempDownloadPath); }
-            }
+            await apkArchive.AddFileAsync(tempDownloadPath.Path, Path.Combine(libsPath, "libunity.so"), true);
 
             return true;
         }

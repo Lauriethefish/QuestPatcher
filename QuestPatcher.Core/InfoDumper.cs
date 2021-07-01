@@ -102,20 +102,16 @@ namespace QuestPatcher.Core
 
             foreach (string logPath in await _debugBridge.ListDirectoryFiles(gameLogsPath))
             {
-                string tempPath = _specialFolders.GetTempFilePath();
                 try
                 {
+                    using TempFile tempPath = _specialFolders.GetTempFile();
                     _logger.Information($"Downloading {logPath} to {tempPath} . . .");
-                    await _debugBridge.DownloadFile(logPath, tempPath);
-                    await CreateLogEntry(dump, tempPath, GameLogsDirectory, Path.GetFileName(logPath));
+                    await _debugBridge.DownloadFile(logPath, tempPath.Path);
+                    await CreateLogEntry(dump, tempPath.Path, GameLogsDirectory, Path.GetFileName(logPath));
                 }
                 catch(Exception ex)
                 {
                     _logger.Warning($"Failed to download log {logPath}: {ex}");
-                }
-                finally
-                {
-                    if(File.Exists(tempPath)) { File.Delete(tempPath); }
                 }
             }
         }
@@ -125,20 +121,14 @@ namespace QuestPatcher.Core
             _logger.Information($"Saving configs in {GameConfigsPath} . . .");
             foreach (string configPath in await _debugBridge.ListDirectoryFiles(GameConfigsPath))
             {
-                string tempPath = _specialFolders.GetTempFilePath();
                 try
                 {
+                    using TempFile tempPath = _specialFolders.GetTempFile();
                     _logger.Information($"Downloading {configPath} to {tempPath} . . .");
-                    await _debugBridge.DownloadFile(configPath, tempPath);
-                    await dump.AddFileAsync(tempPath, Path.Combine(GameConfigsDirectory, Path.GetFileName(configPath)));
-                }
-                catch(Exception ex)
-                {
+                    await _debugBridge.DownloadFile(configPath, tempPath.Path);
+                    await dump.AddFileAsync(tempPath.Path, Path.Combine(GameConfigsDirectory, Path.GetFileName(configPath)));
+                } catch (Exception ex) { 
                     _logger.Warning($"Failed to download config {configPath}: {ex}");
-                }
-                finally
-                {
-                    if(File.Exists(tempPath)) { File.Delete(tempPath); }
                 }
             }
         }
