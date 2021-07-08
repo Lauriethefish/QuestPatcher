@@ -20,7 +20,7 @@ jobs:
     - name: Install Inno Setup
       run: '"../is.exe" /VERYSILENT /NORESTART /ALLUSERS'
     - name: Compile Installer
-      run: "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /f installer/installer.iss
+      run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /f installer/installer.iss'
     - name: Artifact Upload
       uses: actions/upload-artifact@v2
       with:
