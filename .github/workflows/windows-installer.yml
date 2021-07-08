@@ -16,12 +16,12 @@ jobs:
     - name: Download Inno Setup
       uses: suisei-cn/actions-download-file@v1
       with:
-        url: wget https://jrsoftware.org/download.php/is.exe
+        url: https://jrsoftware.org/download.php/is.exe
         target: ../
-    - name: Build QuestPatcher
-      run: dotnet publish QuestPatcher/QuestPatcher.csproj -c Release -r win-x64
     - name: Install Inno Setup
       run: '"../is.exe" /VERYSILENT /NORESTART /ALLUSERS'
+    - name: Build QuestPatcher
+      run: dotnet publish QuestPatcher/QuestPatcher.csproj -c Release -r win-x64
     - name: Compile Installer
       run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /f installer/installer.iss'
     - name: Artifact Upload
