@@ -23,7 +23,7 @@ jobs:
     - name: Build QuestPatcher
       run: dotnet publish QuestPatcher/QuestPatcher.csproj -c Release -r win-x64
     - name: Compile Installer
-      run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /f installer/installer.iss'
+      run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /f installer/installer.iss'
     - name: Artifact Upload
       uses: actions/upload-artifact@v2
       with:
