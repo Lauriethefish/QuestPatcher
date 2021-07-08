@@ -13,10 +13,13 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.102
+    - name: Download Inno Setup
+      uses: suisei-cn/actions-download-file@v1
+      with:
+        url: wget https://jrsoftware.org/download.php/is.exe
+        target: ../
     - name: Build QuestPatcher
       run: dotnet publish QuestPatcher/QuestPatcher.csproj -c Release -r win-x64
-    - name: Download Inno Setup
-      run: wget https://jrsoftware.org/download.php/is.exe -O ../is.exe
     - name: Install Inno Setup
       run: '"../is.exe" /VERYSILENT /NORESTART /ALLUSERS'
     - name: Compile Installer
