@@ -18,7 +18,7 @@ jobs:
     - name: Download Inno Setup
       run: wget https://jrsoftware.org/download.php/is.exe -O ../is.exe
     - name: Install Inno Setup
-      run: "../is.exe" /VERYSILENT /NORESTART /ALLUSERS
+      run: '"../is.exe" /VERYSILENT /NORESTART /ALLUSERS'
     - name: Compile Installer
       run: "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /f installer/installer.iss
     - name: Artifact Upload
