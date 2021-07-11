@@ -201,7 +201,8 @@ namespace QuestPatcher.ViewModels.Modding
             Locker.StartOperation();
             try
             {
-                // Always uninstall mods before deleting
+                // Always uninstall mods before deleting.
+                // DeleteMod does this is the mod is installed, but we want to use our "safe" removal method to make sure that no mods depend on this one
                 if (Inner.IsInstalled)
                 {
                     if (!await UninstallSafely())
@@ -210,7 +211,7 @@ namespace QuestPatcher.ViewModels.Modding
                     }
                 }
 
-                await _modManager.UnloadMod(Inner);
+                await _modManager.DeleteMod(Inner);
             }
             catch (Exception ex)
             {

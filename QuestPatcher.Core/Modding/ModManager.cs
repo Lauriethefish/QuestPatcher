@@ -194,7 +194,7 @@ namespace QuestPatcher.Core.Modding
                 }
 
                 _logger.Information($"Mod {mod.Id} loaded");
-                AddMod(mod);
+                AddModToList(mod);
             }
             catch (Exception ex)
             {
@@ -234,9 +234,8 @@ namespace QuestPatcher.Core.Modding
             }
             else
             {
-                _logger.Information($"Uninstalling & unloading old version of {newVersion.Id} to prepare for upgrade . . .");
-                await UninstallMod(currentlyInstalled);
-                await UnloadMod(currentlyInstalled);
+                _logger.Information($"Deleting old version of {newVersion.Id} to prepare for upgrade . . .");
+                await DeleteMod(currentlyInstalled);
             }
         }
 
@@ -414,7 +413,7 @@ namespace QuestPatcher.Core.Modding
             await _debugBridge.ExtractArchive(pushPath, Path.Combine(InstalledModsPath, mod.Id));
             await _debugBridge.RemoveFile(pushPath);
 
-            AddMod(mod);
+            AddModToList(mod);
             _logger.Information("Import complete");
             return mod;
         }
@@ -424,15 +423,16 @@ namespace QuestPatcher.Core.Modding
         /// The mod should be uninstalled first.
         /// </summary>
         /// <param name="mod">The mod to unload</param>
-        public async Task UnloadMod(Mod mod)
+        public async Task DeleteMod(Mod mod)
         {
-            _logger.Information($"Removing mod {mod.Id} . . .");
             if(mod.IsInstalled)
             {
-                _logger.Warning("Attempted to unload mod when it is still installed! The mod will act as uninstalled even though its files will still be copied");
+                _logger.Information($"Uninstalling mod {mod.Id} to prepare for removal . . .");
+                await UninstallMod(mod);
             }
+            _logger.Information($"Removing mod {mod.Id} . . .");
 
-            RemoveMod(mod);
+            RemoveModFromList(mod);
             await _debugBridge.RemoveDirectory(GetExtractDirectory(mod));
 
             if (!mod.IsLibrary)
@@ -629,13 +629,13 @@ namespace QuestPatcher.Core.Modding
                     if (!onlyDisable)
                     {
                         actionPerformed = true;
-                        await UnloadMod(mod);
+                        await DeleteMod(mod);
                     }
                 }
             }
         }
 
-        private void AddMod(Mod mod)
+        private void AddModToList(Mod mod)
         {
             if(mod.IsLibrary)
             {
@@ -648,7 +648,7 @@ namespace QuestPatcher.Core.Modding
             _modsById[mod.Id] = mod;
         }
 
-        private void RemoveMod(Mod mod)
+        private void RemoveModFromList(Mod mod)
         {
             if (mod.IsLibrary)
             {
