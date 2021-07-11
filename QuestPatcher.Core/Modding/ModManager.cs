@@ -553,7 +553,15 @@ namespace QuestPatcher.Core.Modding
                 _logger.Information("Removing copied file " + fileCopy.Destination);
                 filesToRemove.Add(fileCopy.Destination);
             }
-            await _debugBridge.DeleteFiles(filesToRemove);
+
+            try
+            {
+                await _debugBridge.DeleteFiles(filesToRemove);
+            }
+            catch (AdbException ex)
+            {
+                _logger.Warning($"Failed to delete some of the files to uninstall a mod: {ex}. Were they manually deleted outside of QuestPatcher's knowledge?");
+            }
 
             mod.IsInstalled = false;
             await SaveManifest(mod);
