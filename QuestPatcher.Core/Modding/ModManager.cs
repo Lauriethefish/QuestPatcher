@@ -350,8 +350,8 @@ namespace QuestPatcher.Core.Modding
                         throw new InstallationException($"Mod specified cover image at {mod.CoverImagePath}, however this file was not found in the archive");
                     }
 
-                    using Stream coverStream = coverEntry.Open();
-                    using MemoryStream memoryStream = new();
+                    await using Stream coverStream = coverEntry.Open();
+                    await using MemoryStream memoryStream = new();
                     await coverStream.CopyToAsync(memoryStream);
 
                     mod.CoverImage = memoryStream.ToArray();
