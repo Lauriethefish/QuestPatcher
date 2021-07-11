@@ -514,8 +514,15 @@ namespace QuestPatcher.Core.Modding
         /// Uninstalls the mod and clears unused libraries
         /// </summary>
         /// <param name="mod">The mod to uninstall</param>
-        public async Task UninstallMod(Mod mod)
+        /// <param name="force">Whether to attempt an uninstall even if the mod is already uninstalled</param>
+        public async Task UninstallMod(Mod mod, bool force = false)
         {
+            if (!mod.IsInstalled && !force)
+            {
+                _logger.Debug($"Mod {mod.Id} is already uninstalled and we are not forcing the uninstall. Not uninstalling.");
+                return;
+            }
+            
             _logger.Information($"Uninstalling mod {mod.Id} . . .");
             await CreateModsDirectories();
 
