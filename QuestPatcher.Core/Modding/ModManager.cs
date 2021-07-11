@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
@@ -215,6 +216,9 @@ namespace QuestPatcher.Core.Modding
             _logger.Information($"Attempting to upgrade {currentlyInstalled.Id} v{currentlyInstalled.Version} to {newVersion.Id} v{newVersion.Version}");
 
             bool didFailToMatch = false;
+
+            StringBuilder errorBuilder = new();
+            errorBuilder.AppendLine($"Failed to upgrade installation of mod {currentlyInstalled.Id} to {newVersion.Version}: ");
             foreach (Mod mod in AllMods)
             {
 
@@ -222,7 +226,10 @@ namespace QuestPatcher.Core.Modding
                 {
                     if (dependency.Id == currentlyInstalled.Id && !dependency.SemVersion.IsSatisfied(newVersion.Version))
                     {
-                        _logger.Error($"Dependency of mod {mod.Id} requires version range {dependency.Version} of {currentlyInstalled.Id}, however the version of {currentlyInstalled.Id} being upgraded to ({newVersion.Version}) does not match this range");
+                        string errorLine = $"Dependency of mod {mod.Id} requires version range {dependency.Version} of {currentlyInstalled.Id}, however the version of {currentlyInstalled.Id} being upgraded to ({newVersion.Version}) does not intersect this range";
+                        errorBuilder.AppendLine(errorLine);
+                        
+                        _logger.Error(errorLine);
                         didFailToMatch = true;
                     }
                 }
@@ -230,7 +237,7 @@ namespace QuestPatcher.Core.Modding
 
             if(didFailToMatch)
             {
-                throw new InstallationException($"Failed to upgrade install of mod {currentlyInstalled.Id} to {newVersion.Version}, check logs for more information");
+                throw new InstallationException(errorBuilder.ToString());
             }
             else
             {
