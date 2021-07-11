@@ -303,13 +303,13 @@ namespace QuestPatcher.Core.Modding
             // Sanity checks that the download link actually pointed to the right mod
             if (dependency.Id != installedDependency.Id)
             {
-                await UninstallMod(installedDependency);
+                await DeleteMod(installedDependency);
                 throw new InstallationException($"Downloaded dependency had ID {installedDependency.Id}, whereas the dependency stated ID {dependency.Id}");
             }
 
             if (!dependency.SemVersion.IsSatisfied(installedDependency.SemVersion))
             {
-                await UninstallMod(installedDependency);
+                await DeleteMod(installedDependency);
                 throw new InstallationException($"Downloaded dependency {installedDependency.Id} v{installedDependency.Version} was not within the version range stated in the dependency info ({dependency.Version})");
             }
         }
