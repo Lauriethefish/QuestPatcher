@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -301,7 +302,15 @@ namespace QuestPatcher.Core.Modding
             using (TempFile downloadFile = _specialFolders.GetTempFile())
             {
                 _logger.Information($"Downloading dependency {dependency.Id} . . .");
-                await _filesDownloader.DownloadUrl(dependency.DownloadIfMissing, downloadFile.Path, dependency.Id);
+                try
+                {
+                    await _filesDownloader.DownloadUrl(dependency.DownloadIfMissing, downloadFile.Path, dependency.Id);
+                }
+                catch (WebException ex)
+                {
+                    // Print a nicer error message
+                    throw new InstallationException($"Failed to download dependency from URL {dependency.DownloadIfMissing}: {ex.Message}", ex);
+                }
                 installedDependency = await LoadMod(downloadFile.Path);
             }
 
