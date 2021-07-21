@@ -1,6 +1,9 @@
 name: Windows Installer
 
-on: [push]
+on:
+  release:
+    types:
+      - created
 
 jobs:
   build:
@@ -24,8 +27,13 @@ jobs:
       run: dotnet publish QuestPatcher/QuestPatcher.csproj -c Release -r win-x64
     - name: Compile Installer
       run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /f installer/installer.iss'
-    - name: Artifact Upload
-      uses: actions/upload-artifact@v2
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: QuestPatcher-windows.exe
-        path: ./installer/QuestPatcher-windows.exe
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./installer/QuestPatcher-windows.exe
+        asset_name: QuestPatcher-windows.exe
+        asset_content_type: application/octet-stream

@@ -1,14 +1,19 @@
 name: Standalone
 
-on: [push]
+on:
+  release:
+    types:
+    - created
+  push:
 
 jobs:
   build:
     strategy:
       matrix:
-        runtime: ['ubuntu-x64', 'win-x64']
+        target: [{"runtime": 'ubuntu-x64', "artifact": "QuestPatcher-ubuntu.zip"}, {"runtime": 'win-x64', "artifact": "QuestPatcher-windows-standalone.zip"}]
 
     runs-on: windows-latest
+    name: Build for ${{ matrix.target.runtime }}
 
     steps:
     - uses: actions/checkout@v2
@@ -18,12 +23,26 @@ jobs:
         dotnet-version: 5.0.102
     - name: Install dependencies
       run: dotnet restore
-    - name: Build ${{ matrix.runtime }}
-      run: dotnet publish QuestPatcher/QuestPatcher.csproj -r ${{ matrix.runtime }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -c Release
+    - name: Build ${{ matrix.target.runtime }}
+      run: dotnet publish QuestPatcher/QuestPatcher.csproj -r ${{ matrix.target.runtime }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -c Release
     - name: Copy license
-      run: cp LICENSE QuestPatcher/bin/Release/net5.0/${{ matrix.runtime }}/publish/LICENSE.txt
-    - name: Artifact Upload ${{ matrix.runtime }}
+      run: cp LICENSE QuestPatcher/bin/Release/net5.0/${{ matrix.target.runtime }}/publish/LICENSE.txt
+    - name: Artifact Upload ${{ matrix.target.runtime }}
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.runtime }}
-        path: QuestPatcher/bin/Release/net5.0/${{ matrix.runtime }}/publish/
+        name: ${{ matrix.target.runtime }}
+        path: QuestPatcher/bin/Release/net5.0/${{ matrix.target.runtime }}/publish/
+    - name: Compress Release Artifact
+      if: ${{ github.event_name == 'release' }}
+      run: 'Compress-Archive QuestPatcher/bin/Release/net5.0/${{ matrix.target.runtime }}/publish/* ./release.zip'
+    - name: Upload Release Asset
+      if: ${{ github.event_name == 'release' }}
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./release.zip
+        asset_name: ${{ matrix.target.artifact }}
+        asset_content_type: application/zip

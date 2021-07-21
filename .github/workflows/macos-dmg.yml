@@ -1,6 +1,9 @@
 name: MacOS DMG
 
-on: [push]
+on:
+  release:
+    types:
+      - created
 
 jobs:
   build:
@@ -17,8 +20,13 @@ jobs:
       run: chmod +x buildDMG.sh
     - name: Run build script
       run: ./buildDMG.sh
-    - name: Artifact Upload
-      uses: actions/upload-artifact@v2
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: QuestPatcher
-        path: ./macos-dmg/QuestPatcher.dmg
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./macos-dmg/QuestPatcher.dmg
+        asset_name: QuestPatcher-mac.dmg
+        asset_content_type: application/octet-stream
