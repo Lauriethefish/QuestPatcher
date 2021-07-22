@@ -16,10 +16,45 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.102
-    - name: Make build script executable
-      run: chmod +x buildDMG.sh
-    - name: Run build script
-      run: ./buildDMG.sh
+    - name: Set version
+      run: 'echo "${{ github.event.release.tag_name }}" > ./VERSION'
+    - name: Write Info.plist with correct version
+      run: 'echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+    <dict>
+        <key>CFBundleExecutable</key>
+        <string>QuestPatcher</string>
+        <key>CFBundleName</key>
+        <string>QuestPatcher</string>
+        <key>CFBundleIdentifier</key>
+        <string>dev.lauriethefish.QuestPatcher</string>
+        <key>NSHighResolutionCapable</key>
+        <true />
+        <key>CFBundleVersion</key>
+        <string>${{ github.event.release.tag_name }}</string>
+        <key>CFBundleShortVersionString</key>
+        <string>${{ github.event.release.tag_name }}</string>
+        <key>CFBundleIconFile</key>
+        <string>iconfile</string>
+    </dict>
+</plist>" > ./macos-dmg/dmg-root/QuestPatcher.app/Contents/Info.plist'
+    - name: Build QuestPatcher
+      run: dotnet publish -c Release -r osx-x64
+    - name: Create applications symlink
+      run: ln -sfn "/Applications" "macos-dmg/dmg-root/Applications"
+    - name: Create app contents folder
+      run: mkdir -p macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS
+    - name: Copy built files to app contents
+      run: cp -r QuestPatcher/bin/Release/net5.0/osx-x64/publish/* macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS/
+    - name: Add LICENSE to app contents
+      run: cp LICENSE macos-dmg/dmg-root/LICENSE.txt
+    - name: Detach existing DMGs
+      run: hdiutil info | grep /dev/disk | grep partition | cut -f 1 | xargs hdiutil detach
+    - name: Create DMG
+      run: hdiutil create -srcfolder macos-dmg/dmg-root /tmp/QuestPatcher.dmg -volname QuestPatcher
+    - name: Compress DMG
+      run: hdiutil convert /tmp/QuestPatcher.dmg -format UDZO -o macos-dmg/QuestPatcher.dmg
     - name: Upload Release Asset
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1

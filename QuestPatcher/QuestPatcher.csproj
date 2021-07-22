@@ -6,6 +6,17 @@
     <ApplicationIcon>Assets\questpatcher-logo.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <Target Name="SetVersionFromFile" BeforeTargets="BeforeBuild">
+    <ReadLinesFromFile File="../VERSION">
+      <Output TaskParameter="Lines" ItemName="VersionFileContent" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <Version>@(VersionFileContent)</Version>
+    </PropertyGroup>
+
+    <Message Text="Setting version to content of version file (@(VersionFileContent))" Importance="High" />
+  </Target>
+
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputType>Exe</OutputType>
   </PropertyGroup>

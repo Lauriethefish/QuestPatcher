@@ -23,6 +23,8 @@ jobs:
         target: ../
     - name: Install Inno Setup
       run: '../is.exe /VERYSILENT /NORESTART /ALLUSERS'
+    - name: Set version
+      run: '"${{ github.event.release.tag_name }}" | Out-File -NoNewline -FilePath ./VERSION'
     - name: Build QuestPatcher
       run: dotnet publish QuestPatcher/QuestPatcher.csproj -c Release -r win-x64
     - name: Compile Installer

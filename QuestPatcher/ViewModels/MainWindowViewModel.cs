@@ -7,6 +7,7 @@ using ReactiveUI;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.ViewModels
@@ -15,6 +16,8 @@ namespace QuestPatcher.ViewModels
     {
         public LoadedViewModel LoadedView { get; }
         public LoadingViewModel LoadingView { get; }
+        
+        public string WindowName { get; }
 
         public QuestPatcherService MainService { get; }
 
@@ -23,6 +26,15 @@ namespace QuestPatcher.ViewModels
             LoadedView = loadedView;
             LoadingView = loadingView;
             MainService = mainService;
+
+            // Set the window name based on the assembly version
+            Version? assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
+            if (assemblyVersion == null)
+            {
+                throw new NullReferenceException("Assembly version was null, unable to set window title");
+            }
+
+            WindowName = $"QuestPatcher v{assemblyVersion.Major}.{assemblyVersion.Minor}.{assemblyVersion.Build}";
         }
     }
 }
