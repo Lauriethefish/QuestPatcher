@@ -14,16 +14,18 @@ namespace QuestPatcher
         private Window? _mainWindow;
         private Config? _config;
         private QuestPatcherUIService? _uiService;
+        private SpecialFolders? _specialFolders;
 
         /// <summary>
         /// This exists instead of a constructor since the prompter must be immediately passed on QuestPatcherService's creation, so we initialise its members after the fact.
         /// Maybe there's a better workaround, but this works fine for now
         /// </summary>
-        public void Init(Window mainWindow, Config config, QuestPatcherUIService uiService)
+        public void Init(Window mainWindow, Config config, QuestPatcherUIService uiService, SpecialFolders specialFolders)
         {
             _mainWindow = mainWindow;
             _config = config;
             _uiService = uiService;
+            _specialFolders = specialFolders;
         }
 
         public Task<bool> PromptAppNotInstalled()
@@ -131,9 +133,23 @@ namespace QuestPatcher
             DialogBuilder builder = new()
             {
                 Title = "Patching Paused",
-                Text = "The APK has been patched and will recompile/reinstall when you continue. Pressing cancel will immediately stop patching"
+                Text = "The APK has been patched and will recompile/reinstall when you continue. Pressing cancel will immediately stop patching."
             };
             builder.OkButton.Text = "Continue";
+            builder.WithButtons(new ButtonInfo
+            {
+                Text = "Show patched APK",
+                OnClick = () =>
+                {
+                    Debug.Assert(_specialFolders != null);
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = _specialFolders.PatchingFolder,
+                        UseShellExecute = true,
+                        Verb = "open"
+                    });
+                }
+            });
 
             return builder.OpenDialogue(_mainWindow);
         }

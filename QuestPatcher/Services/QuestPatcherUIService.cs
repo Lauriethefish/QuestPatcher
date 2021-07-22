@@ -39,7 +39,7 @@ namespace QuestPatcher.Services
 
             _appLifetime.MainWindow = _mainWindow;
             UIPrompter prompter = (UIPrompter) Prompter;
-            prompter.Init(_mainWindow, Config, this);
+            prompter.Init(_mainWindow, Config, this, SpecialFolders);
 
             _mainWindow.Opened += async (_, _) => await LoadAndHandleErrors();
             _mainWindow.Closing += OnMainWindowClosing;
