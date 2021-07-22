@@ -121,8 +121,9 @@ namespace QuestPatcher.Core
                 }
                 _logger.Verbose($"Exit code: {output.ExitCode}");
 
-                // Command execution was a success
-                if (output.ExitCode == 0 || allowedExitCodes.Contains(output.ExitCode)) { return output; }
+                // Command execution was a success if the exit code was zero or an allowed exit code
+                // -1073740940 is always allowed as some ADB installations return it randomly, even when commands are successful.
+                if (output.ExitCode == 0 || allowedExitCodes.Contains(output.ExitCode) || output.ExitCode == -1073740940) { return output; }
 
                 string allOutput = output.StandardOutput + output.ErrorOutput;
 
@@ -187,7 +188,7 @@ namespace QuestPatcher.Core
 
         public async Task<bool> IsPackageInstalled(string packageId)
         {
-            string result = (await RunCommand($"shell pm list packages {packageId}", -1073740940)).StandardOutput; // List packages with the specified ID
+            string result = (await RunCommand($"shell pm list packages {packageId}")).StandardOutput; // List packages with the specified ID
             return result.Contains(packageId); // The result is "package:packageId", so we check if the packageId is within that result. If it isn't the result will be empty, so this will return false
         }
 
