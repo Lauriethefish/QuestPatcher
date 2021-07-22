@@ -187,7 +187,7 @@ namespace QuestPatcher.Core
 
         public async Task<bool> IsPackageInstalled(string packageId)
         {
-            string result = (await RunCommand($"shell pm list packages {packageId}")).StandardOutput; // List packages with the specified ID
+            string result = (await RunCommand($"shell pm list packages {packageId}", -1073740940)).StandardOutput; // List packages with the specified ID
             return result.Contains(packageId); // The result is "package:packageId", so we check if the packageId is within that result. If it isn't the result will be empty, so this will return false
         }
 
