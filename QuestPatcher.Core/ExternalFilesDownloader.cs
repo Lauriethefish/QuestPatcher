@@ -74,7 +74,7 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmodloader64.so".ForAllSystems(),
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmodloader64.so".ForAllSystems()
+                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader64.so".ForAllSystems()
                 }
             },
             {
@@ -82,7 +82,7 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmain64.so".ForAllSystems(),
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmain64.so".ForAllSystems()
+                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain64.so".ForAllSystems()
                 }
             },
             {
@@ -90,7 +90,7 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmodloader32.so".ForAllSystems(),
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmodloader32.so".ForAllSystems()
+                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmodloader32.so".ForAllSystems()
                 }
             },
             {
@@ -98,7 +98,7 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmain32.so".ForAllSystems(),
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmain32.so".ForAllSystems()
+                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/latest/download/libmain32.so".ForAllSystems()
                 }
             },
             {
