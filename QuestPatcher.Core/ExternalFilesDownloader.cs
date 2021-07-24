@@ -334,6 +334,7 @@ namespace QuestPatcher.Core
             try
             {
                 _logger.Information($"Downloading {fileInfo.Name} . . .");
+                _logger.Debug($"Download URL: {downloadUrl}");
                 DownloadProgress = 0.0;
                 DownloadingFileName = fileInfo.Name;
 
