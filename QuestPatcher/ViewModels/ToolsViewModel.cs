@@ -106,6 +106,15 @@ namespace QuestPatcher.ViewModels
             catch (Exception ex)
             {
                 _logger.Error($"Failed to clear cache: {ex}");
+                DialogBuilder builder = new()
+                {
+                    Title = "Failed to clear cache",
+                    Text = "Running the quick fix failed due to an unhandled error",
+                    HideCancelButton = true
+                };
+                builder.WithException(ex);
+
+                await builder.OpenDialogue(_mainWindow);
             }   finally
             {
                 Locker.FinishOperation();
