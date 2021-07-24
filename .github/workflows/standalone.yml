@@ -32,6 +32,7 @@ jobs:
     - name: Copy license
       run: cp LICENSE QuestPatcher/bin/Release/net5.0/${{ matrix.target.runtime }}/publish/LICENSE.txt
     - name: Artifact Upload ${{ matrix.target.runtime }}
+      if: ${{ github.event_name != 'release' }}
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.target.runtime }}
