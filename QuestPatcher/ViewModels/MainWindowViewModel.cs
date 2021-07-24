@@ -27,14 +27,8 @@ namespace QuestPatcher.ViewModels
             LoadingView = loadingView;
             MainService = mainService;
 
-            // Set the window name based on the assembly version
-            Version? assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
-            if (assemblyVersion == null)
-            {
-                throw new NullReferenceException("Assembly version was null, unable to set window title");
-            }
-
-            WindowName = $"QuestPatcher v{assemblyVersion.Major}.{assemblyVersion.Minor}.{assemblyVersion.Build}";
+            // Set the window name based on the QuestPatcher version
+            WindowName = $"QuestPatcher v{VersionUtil.QuestPatcherVersion}";
         }
     }
 }

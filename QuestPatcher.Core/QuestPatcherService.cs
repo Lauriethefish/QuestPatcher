@@ -54,7 +54,7 @@ namespace QuestPatcher.Core
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
             InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager, PatchingManager);
 
-            Logger.Debug("QuestPatcherService constructed");
+            Logger.Debug($"QuestPatcherService constructed (QuestPatcher version {VersionUtil.QuestPatcherVersion})");
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
