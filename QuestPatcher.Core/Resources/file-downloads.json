@@ -6,16 +6,16 @@
         "any": "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar"
       },
       "Modloader64": {
-        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmodloader64.so"
+        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmodloader64.so"
       },
       "Main64": {
-        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmain64.so"
+        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmain64.so"
       },
       "Modloader32": {
-        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmodloader32.so"
+        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmodloader32.so"
       },
       "Main32": {
-        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmain32.so"
+        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmain32.so"
       },
       "PlatformTools": {
         "windows": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
