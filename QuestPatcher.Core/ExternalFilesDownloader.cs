@@ -7,9 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace QuestPatcher.Core
 {
@@ -33,6 +36,9 @@ namespace QuestPatcher.Core
     /// </summary>
     public class ExternalFilesDownloader : INotifyPropertyChanged
     {
+        /// <summary>
+        /// Stores information about each file type for extracting/running
+        /// </summary>
         private class FileInfo
         {
             /// <summary>
@@ -47,17 +53,53 @@ namespace QuestPatcher.Core
             public string Name => ExtractionFolder ?? SaveName.Value;
 
             /// <summary>
-            /// Download URL for the file, which may depend on the OS.
-            /// </summary>
-            public SystemSpecificValue<string> DownloadUrl { get; set; } = new();
-
-            /// <summary>
             /// If this is true,the file will be made executable with chmod after it is downloaded (and extracted)
             /// </summary>
             public bool IsExecutable { get; set; }
 
             public string? ExtractionFolder { get; set; }
         }
+
+        /// <summary>
+        /// Represents a particular set of download links in the JSON pulled from the QP repository.
+        /// </summary>
+        private class DownloadSet
+        {
+#nullable disable
+            /// <summary>
+            /// Range of QuestPatcher versions supported by this set
+            /// </summary>
+            [JsonIgnore]
+            public SemVer.Range SupportedVersions { get; set; }
+            
+            [JsonProperty(PropertyName = "supportedVersions")]
+            public string SupportedVersion
+            {
+                get => SupportedVersions.ToString();
+                set => SupportedVersions = SemVer.Range.Parse(value);
+            }
+
+            /// <summary>
+            /// Download links as SystemSpecificValues
+            /// </summary>
+            public Dictionary<ExternalFileType, SystemSpecificValue<string>> Downloads { get; set; }
+#nullable enable
+        }
+        
+        private static readonly JsonSerializer Serializer = new()
+        {
+            Formatting = Formatting.Indented,
+            ContractResolver = new DefaultContractResolver()
+            {
+                NamingStrategy = new CamelCaseNamingStrategy()
+            },
+            NullValueHandling = NullValueHandling.Ignore
+        };
+        
+        /// <summary>
+        /// Index for file downloads. Used by default, but if it fails QP will fallback to resources
+        /// </summary>
+        private const string DownloadsUrl = "https://raw.githubusercontent.com/Lauriethefish/QuestPatcher/main/QuestPatcher.Core/Resources/file-downloads.json";
 
         private readonly Dictionary<ExternalFileType, FileInfo> _fileTypes = new()
         {
@@ -66,7 +108,6 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "uber-apk-signer.jar".ForAllSystems(),
-                    DownloadUrl = "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar".ForAllSystems()
                 }
             },
             {
@@ -74,7 +115,6 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmodloader64.so".ForAllSystems(),
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmodloader64.so".ForAllSystems()
                 }
             },
             {
@@ -82,7 +122,6 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmain64.so".ForAllSystems(),
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmain64.so".ForAllSystems()
                 }
             },
             {
@@ -90,7 +129,6 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmodloader32.so".ForAllSystems(),
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmodloader32.so".ForAllSystems()
                 }
             },
             {
@@ -98,7 +136,6 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmain32.so".ForAllSystems(),
-                    DownloadUrl = "https://github.com/sc2ad/QuestLoader/releases/download/v1.1.1/libmain32.so".ForAllSystems()
                 }
             },
             {
@@ -109,12 +146,6 @@ namespace QuestPatcher.Core
                     {
                         Windows = "platform-tools/adb.exe",
                         Unix = "platform-tools/adb"
-                    },
-                    DownloadUrl = new()
-                    {
-                        Windows = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
-                        Linux = "https://dl.google.com/android/repository/platform-tools-latest-linux.zip",
-                        Mac = "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip"
                     },
                     ExtractionFolder = "platform-tools",
                     IsExecutable = true
@@ -130,17 +161,13 @@ namespace QuestPatcher.Core
                         Mac = "jdk-11.0.11+9-jre/Contents/Home/bin/java",
                         Linux = "jdk-11.0.11+9-jre/bin/java"
                     },
-                    DownloadUrl = new()
-                    {
-                        Windows = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.11_9.zip",
-                        Linux = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_linux_hotspot_11.0.11_9.tar.gz",
-                        Mac = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_mac_hotspot_11.0.11_9.tar.gz",
-                    },
                     ExtractionFolder = "openjre",
                     IsExecutable = true
                 }
             }
         };
+
+        private Dictionary<ExternalFileType, SystemSpecificValue<string>>? _downloadUrls;
 
         /// <summary>
         /// The name of the downloading file, or null if no file is downloading
@@ -205,7 +232,7 @@ namespace QuestPatcher.Core
             _webClient.DownloadProgressChanged += (_, args) =>
             {
                 // Manually calculate the progress for better precision than the provided integer percentage
-                DownloadProgress = ((double) args.BytesReceived / args.TotalBytesToReceive) * 100.0;
+                DownloadProgress = (double) args.BytesReceived / args.TotalBytesToReceive * 100.0;
             };
         }
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -218,7 +245,91 @@ namespace QuestPatcher.Core
             await File.WriteAllLinesAsync(_fullyDownloadedPath, _fullyDownloaded.ConvertAll(fileType => fileType.ToString()));
         }
 
-        private async Task DownloadFile(ExternalFileType fileType, FileInfo fileInfo, string saveLocation)
+        /// <summary>
+        /// Downloads the download URLs (meta I know) from the QP repository, and if that fails uses the JSON in resources.
+        /// Only pulls the download URLs if they haven't been pulled already.
+        /// </summary>
+        /// <returns>The pulled or existing download URLs</returns>
+        /// <exception cref="Exception">If no download URLs were found for the current QuestPatcher version</exception>
+        private async Task<Dictionary<ExternalFileType, SystemSpecificValue<string>>> PrepareDownloadUrls()
+        {
+            // Only pull the download URLs if we haven't already
+            if (_downloadUrls != null) { return _downloadUrls; }
+            
+            _logger.Debug("Preparing URLs to download files from . . .");
+            List<DownloadSet> downloadSets;
+            try
+            {
+                downloadSets = await LoadDownloadSetsFromWeb();
+            }
+            catch(Exception ex) {
+                _logger.Debug($"Failed to download download URLs ({ex}), pulling from resources instead . . .");
+                downloadSets = LoadDownloadSetsFromResources();
+            }
+
+            SemVer.Version qpVersion = VersionUtil.QuestPatcherVersion;
+
+            // Download sets are in order, highest priority comes first
+            foreach (DownloadSet downloadSet in downloadSets)
+            {
+                if (downloadSet.SupportedVersions.IsSatisfied(qpVersion))
+                {
+                    _logger.Debug($"Using download set for versions {downloadSet.SupportedVersions}");
+                    _downloadUrls = downloadSet.Downloads;
+                    return _downloadUrls;
+                }
+            }
+
+            throw new Exception($"Unable to find download URLs suitable for this QuestPatcher version ({qpVersion})");
+        }
+        
+        /// <summary>
+        /// Loads the available download sets from a DLL resource
+        /// </summary>
+        /// <returns>The list of download sets</returns>
+        /// <exception cref="NullReferenceException">If the resource is missing</exception>
+        private List<DownloadSet> LoadDownloadSetsFromResources()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            using Stream? stream = assembly.GetManifestResourceStream("QuestPatcher.Core.Resources.file-downloads.json");
+            if (stream == null)
+            {
+                throw new NullReferenceException("Could not find file-downloads.json in resources");
+            }
+
+            using TextReader textReader = new StreamReader(stream);
+            using JsonReader jsonReader = new JsonTextReader(textReader);
+            List<DownloadSet>? result = Serializer.Deserialize<List<DownloadSet>>(jsonReader);
+            if (result == null)
+            {
+                throw new NullReferenceException("No download sets found in resources file");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Loads the available download sets from the QuestPatcher repository
+        /// </summary>
+        /// <returns>The available download sets</returns>
+        /// <exception cref="NullReferenceException">If no download sets were in the pulled file, i.e. it was empty</exception>
+        private async Task<List<DownloadSet>> LoadDownloadSetsFromWeb()
+        {
+            _logger.Debug($"Getting download URLs from {DownloadsUrl} . . .");
+            string data = await _webClient.DownloadStringTaskAsync(DownloadsUrl);
+            using StringReader stringReader = new(data);
+            using JsonReader jsonReader = new JsonTextReader(stringReader);
+
+            List<DownloadSet>? result = Serializer.Deserialize<List<DownloadSet>>(jsonReader);
+            if (result == null)
+            {
+                throw new NullReferenceException("No download sets found in web pulled file");
+            }
+
+            return result;
+        }
+
+        private async Task DownloadFile(ExternalFileType fileType, FileInfo fileInfo, string downloadUrl, string saveLocation)
         {
             try
             {
@@ -226,10 +337,9 @@ namespace QuestPatcher.Core
                 DownloadProgress = 0.0;
                 DownloadingFileName = fileInfo.Name;
 
-                string url = fileInfo.DownloadUrl.Value;
                 if (fileInfo.ExtractionFolder != null)
                 {
-                    Uri uri = new(url);
+                    Uri uri = new(downloadUrl);
                     byte[] archiveData = await _webClient.DownloadDataTaskAsync(uri);
                     using MemoryStream stream = new(archiveData); // Temporarily download the archive in order to extract it
 
@@ -240,7 +350,7 @@ namespace QuestPatcher.Core
                     {
                         string extractFolder = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder);
 
-                        if(url.EndsWith(".tar.gz")) {
+                        if(downloadUrl.EndsWith(".tar.gz")) {
                             GZipStream zipStream = new(stream, CompressionMode.Decompress);
 
                             TarArchive archive = TarArchive.CreateInputTarArchive(zipStream, Encoding.UTF8);
@@ -257,7 +367,7 @@ namespace QuestPatcher.Core
                 else
                 {
                     // Directly download the file to the tools folder
-                    await _webClient.DownloadFileTaskAsync(url, saveLocation);
+                    await _webClient.DownloadFileTaskAsync(downloadUrl, saveLocation);
                 }
 
                 // chmod to make the downloaded executable actually usable if on mac or linux
@@ -304,6 +414,7 @@ namespace QuestPatcher.Core
         /// <returns>The location of the file</returns>
         public async Task<string> GetFileLocation(ExternalFileType fileType)
         {
+            
             FileInfo fileInfo = _fileTypes[fileType];
 
             // The save location is relative to the extract folder if requires extraction, otherwise it's just relative to the tools folder
@@ -319,7 +430,7 @@ namespace QuestPatcher.Core
 
             if(!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation))
             {
-                await DownloadFile(fileType, fileInfo, saveLocation);
+                await DownloadFile(fileType, fileInfo, (await PrepareDownloadUrls())[fileType].Value, saveLocation);
             }
 
             return saveLocation;
