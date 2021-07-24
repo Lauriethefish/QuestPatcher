@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace QuestPatcher.Core
 {
@@ -40,6 +41,7 @@ namespace QuestPatcher.Core
         /// <summary>
         /// Sets both the linux and mac value at the same time.
         /// </summary>
+        [JsonIgnore]
         public T? Unix {
             init
             {
@@ -51,6 +53,7 @@ namespace QuestPatcher.Core
         /// <summary>
         /// Finds the current value based on the operating system
         /// </summary>
+        [JsonIgnore]
         public T Value => EvaluateBasedOnOS();
 
         private T EvaluateBasedOnOS()
