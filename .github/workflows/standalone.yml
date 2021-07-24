@@ -5,6 +5,7 @@ on:
     types:
     - created
   push:
+  pull_request:
 
 jobs:
   build:
