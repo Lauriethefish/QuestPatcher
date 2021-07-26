@@ -24,11 +24,11 @@ jobs:
 <plist version=\"1.0\">
     <dict>
         <key>CFBundleExecutable</key>
-        <string>QuestPatcher</string>
+        <string>Quatcher</string>
         <key>CFBundleName</key>
-        <string>QuestPatcher</string>
+        <string>Quatcher</string>
         <key>CFBundleIdentifier</key>
-        <string>dev.lauriethefish.QuestPatcher</string>
+        <string>dev.lauriethefish.Quatcher</string>
         <key>NSHighResolutionCapable</key>
         <true />
         <key>CFBundleVersion</key>
@@ -38,23 +38,23 @@ jobs:
         <key>CFBundleIconFile</key>
         <string>iconfile</string>
     </dict>
-</plist>" > ./macos-dmg/dmg-root/QuestPatcher.app/Contents/Info.plist'
-    - name: Build QuestPatcher
+</plist>" > ./macos-dmg/dmg-root/Quatcher.app/Contents/Info.plist'
+    - name: Build Quatcher
       run: dotnet publish -c Release -r osx-x64
     - name: Create applications symlink
       run: ln -sfn "/Applications" "macos-dmg/dmg-root/Applications"
     - name: Create app contents folder
-      run: mkdir -p macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS
+      run: mkdir -p macos-dmg/dmg-root/Quatcher.app/Contents/MacOS
     - name: Copy built files to app contents
-      run: cp -r QuestPatcher/bin/Release/net5.0/osx-x64/publish/* macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS/
+      run: cp -r Quatcher/bin/Release/net5.0/osx-x64/publish/* macos-dmg/dmg-root/Quatcher.app/Contents/MacOS/
     - name: Add LICENSE to app contents
       run: cp LICENSE macos-dmg/dmg-root/LICENSE.txt
     - name: Detach existing DMGs
       run: hdiutil info | grep /dev/disk | grep partition | cut -f 1 | xargs hdiutil detach
     - name: Create DMG
-      run: hdiutil create -srcfolder macos-dmg/dmg-root /tmp/QuestPatcher.dmg -volname QuestPatcher
+      run: hdiutil create -srcfolder macos-dmg/dmg-root /tmp/Quatcher.dmg -volname Quatcher
     - name: Compress DMG
-      run: hdiutil convert /tmp/QuestPatcher.dmg -format UDZO -o macos-dmg/QuestPatcher.dmg
+      run: hdiutil convert /tmp/Quatcher.dmg -format UDZO -o macos-dmg/Quatcher.dmg
     - name: Upload Release Asset
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1
@@ -62,6 +62,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./macos-dmg/QuestPatcher.dmg
-        asset_name: QuestPatcher-mac.dmg
+        asset_path: ./macos-dmg/Quatcher.dmg
+        asset_name: Quatcher-mac.dmg
         asset_content_type: application/octet-stream

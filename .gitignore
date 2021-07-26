@@ -9,8 +9,8 @@ installer/windows-installer.exe
 
 # MacOS DMG output files
 .DS_Store
-macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS
-macos-dmg/QuestPatcher.dmg
+macos-dmg/dmg-root/Quatcher.app/Contents/MacOS
+macos-dmg/Quatcher.dmg
 
 # IDE Directories
 .vs/
