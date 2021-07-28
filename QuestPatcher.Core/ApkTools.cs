@@ -52,32 +52,9 @@ namespace QuestPatcher.Core
 
         public async Task PrepareJavaInstall()
         {
-            bool isInstalled = true;
-            try
-            {
-                string javaVersion = (await InvokeJava("-version")).ErrorOutput;
-
-                // Mac OS displays a special message when you try to use Java when it isn't installed
-                if (javaVersion.StartsWith("The operation couldn’t be completed. Unable to locate a Java Runtime.") || javaVersion.StartsWith("No Java runtime present, requesting install."))
-                {
-                    isInstalled = false;
-                }
-                else
-                {
-                    _logger.Information("Located Java install on PATH");
-                    _logger.Debug($"Java version: {javaVersion}");
-                }
-            }
-            catch (Win32Exception) // Thrown if the executable is missing, even on Linux. Slight .NET quirk.
-            {
-                isInstalled = false;
-            }
-
-            if (!isInstalled)
-            {
-                // Download Java if it is not installed
-                _javaExecutableName = await _filesDownloader.GetFileLocation(ExternalFileType.Jre);
-            }
+            // Download Java if it is not installed
+            _logger.Information("Preparing JRE . . .");
+            _javaExecutableName = await _filesDownloader.GetFileLocation(ExternalFileType.Jre);
         }
 
         /// <summary>
