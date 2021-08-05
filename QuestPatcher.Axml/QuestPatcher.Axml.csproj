@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+    
+  <PropertyGroup>
+    <Title>QuestPatcher.Axml</Title>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Authors>Lauriethefish</Authors>
+    <Description>A library for the parsing and saving of Android binary XML files such as the AndroidManifest.xml file inside an APK. Used in QuestPatcher for patching the manifest with added permissions.</Description>
+    <Copyright>Copyright 2021 Laurie ?</Copyright>
+    <PackageProjectUrl>https://github.com/Lauriethefish/QuestPatcher/tree/main/QuestPatcher.Axml</PackageProjectUrl>
+    <PackageLicenseExpression>Zlib</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Lauriethefish/QuestPatcher.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>axml, android, xml</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  
+</Project>

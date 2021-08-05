@@ -1,0 +1,9 @@
+﻿{
+  "appId": "com.AnotherAxiom.GorillaTag",
+  "showPatchingOptions":  false,
+  "patchingPermissions": {
+    "externalFiles": true,
+    "debuggable": false,
+    "handTracking": false
+  }
+}

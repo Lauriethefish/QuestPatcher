@@ -1,15 +1,8 @@
 # QuestPatcher
 
-QuestPatcher is a WIP GUI based mod installer for any il2cpp unity app on the Oculus Quest.
-It was originally created for modding GorillaTag.
-
-It should support Windows, Mac and Linux.
+QuestPatcher is a GUI based mod installer for any il2cpp unity app on the Oculus Quest that runs on Windows or Linux.
+It was originally created for modding Gorilla Tag.
 
 It uses Sc2ad's [QuestLoader](https://github.com/sc2ad/QuestLoader/) for loading mods and is based mostly on RedBrumbler's [CLI Tool](https://github.com/RedBrumbler/QuestAppPatcher).
 
-Currently it isn't released, as several more things still need to be added:
-
-See `MOD_FORMAT.md` for instructions about making a mod that is loadable by this patcher.
-
-## TODO
-- Improve GUI perhaps
+See `QuestPatcher.Core/Resources/qmod.schema.json` for the `mod.json` that QMODs must contain, alongside their mod files.

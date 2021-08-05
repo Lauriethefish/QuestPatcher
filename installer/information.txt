@@ -1,0 +1,2 @@
+QuestPatcher is a tool for modding il2cpp Unity Oculus Quest 1 and 2 applications.
+To use, just open it and patch your app. It is set to patch Gorilla Tag by default.
