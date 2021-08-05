@@ -125,7 +125,7 @@ namespace QuestPatcher.Axml
             }
             else if (Value is bool asBool)
             {
-                rawValue = asBool ? 1 : 0;
+                rawValue = asBool ? -1 : 0;
             }
             else if (Value is string asString)
             {
