@@ -40,13 +40,16 @@ namespace QuestPatcher.Axml
                 if (value is string)
                 {
                     _valueType = AttributeType.String;
-                }   else if (value is WrappedValue)
+                }
+                else if (value is WrappedValue)
                 {
                     _valueType = null;
-                }   else if (value is bool)
+                }
+                else if (value is bool)
                 {
                     _valueType = AttributeType.Boolean;
-                }   else if (value is int)
+                }
+                else if (value is int)
                 {
                     _valueType = AttributeType.FirstInt;
                 }
@@ -93,7 +96,7 @@ namespace QuestPatcher.Axml
         {
             if (ResourceId != null)
             {
-                ctx.ResourcePool.GetIndex((int) ResourceId);
+                ctx.ResourcePool.GetIndex((int)ResourceId);
                 ctx.StringPool.GetIndex(Name);
             }
         }
@@ -102,7 +105,7 @@ namespace QuestPatcher.Axml
         {
             ctx.Writer.Write(Namespace == null ? -1 : ctx.StringPool.GetIndex(Namespace.ToString()));
             int nameIndex = ctx.StringPool.GetIndex(Name);
-            int resourceIdIndex = ResourceId == null ? -1 : ctx.ResourcePool.GetIndex((int) ResourceId);
+            int resourceIdIndex = ResourceId == null ? -1 : ctx.ResourcePool.GetIndex((int)ResourceId);
             if (ResourceId != null && nameIndex != resourceIdIndex)
             {
                 throw new InvalidDataException("Name indices and resource indices for attributes must be explicitly matched before saving. They did not match, therefore this step was not completed");
@@ -110,28 +113,28 @@ namespace QuestPatcher.Axml
             ctx.Writer.Write(nameIndex);
 
             int rawStringIndex = -1;
-            int type = _valueType == null ? -1 : ((int) _valueType << 24) | 0x000008;
+            int type = _valueType == null ? -1 : ((int)_valueType << 24) | 0x000008;
             int rawValue;
-            if (Value is WrappedValue)
+            if (Value is WrappedValue wrappedValue)
             {
-                WrappedValue wrappedValue = (WrappedValue) Value;
                 if (wrappedValue.RawValue != null)
                 {
                     rawStringIndex = ctx.StringPool.GetIndex(wrappedValue.RawValue);
                 }
                 rawValue = wrappedValue.ReferenceId;
             }
-            else if (Value is bool)
+            else if (Value is bool asBool)
             {
-                rawValue = (bool) Value ? 1 : 0;
-            }   else if (Value is string)
+                rawValue = asBool ? 1 : 0;
+            }
+            else if (Value is string asString)
             {
-                rawValue = ctx.StringPool.GetIndex((string) Value);
+                rawValue = ctx.StringPool.GetIndex(asString);
                 rawStringIndex = rawValue;
             }
             else
             {
-                rawValue = (int) Value;
+                rawValue = (int)Value;
             }
 
             ctx.Writer.Write(rawStringIndex);
