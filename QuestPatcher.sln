@@ -5,9 +5,14 @@ VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuestPatcher", "QuestPatcher\QuestPatcher.csproj", "{F197175B-20FD-48E0-A70B-B23B2B861C10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestPatcher.Core", "QuestPatcher.Core\QuestPatcher.Core.csproj", "{C02D15DD-D4A2-478A-9129-500EF33BF05D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuestPatcher.Core", "QuestPatcher.Core\QuestPatcher.Core.csproj", "{C02D15DD-D4A2-478A-9129-500EF33BF05D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestPatcher.Axml", "QuestPatcher.Axml\QuestPatcher.Axml.csproj", "{9F254220-2B69-4CD0-86FC-E5F3C2E3BDFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuestPatcher.Axml", "QuestPatcher.Axml\QuestPatcher.Axml.csproj", "{9F254220-2B69-4CD0-86FC-E5F3C2E3BDFF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3D2AF47C-D9B2-455A-B3F2-1349C16BB5C6}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
