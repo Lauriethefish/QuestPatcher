@@ -1,4 +1,4 @@
-﻿# QuestPatcher.Axml
+# QuestPatcher.Axml
 
 This project is used for the parsing and writing of the AXML format used for the `AndroidManifest.xml` file inside the APK.
 
