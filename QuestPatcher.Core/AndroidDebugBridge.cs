@@ -64,17 +64,17 @@ namespace QuestPatcher.Core
 
         private readonly Logger _logger;
         private readonly ExternalFilesDownloader _filesDownloader;
-        private readonly Func<DisconnectionType, Task> _onDisconnect;
         private readonly string _adbExecutableName = OperatingSystem.IsWindows() ? "adb.exe" : "adb";
-
+        private readonly ICallbacks _prompter;
+        
         private string? _adbPath;
         private Process? _logcatProcess;
 
-        public AndroidDebugBridge(Logger logger, ExternalFilesDownloader filesDownloader, Func<DisconnectionType, Task> onDisconnect)
+        public AndroidDebugBridge(Logger logger, ExternalFilesDownloader filesDownloader, ICallbacks prompter)
         {
             _logger = logger;
             _filesDownloader = filesDownloader;
-            _onDisconnect = onDisconnect;
+            _prompter = prompter;
         }
 
         /// <summary>
@@ -93,6 +93,18 @@ namespace QuestPatcher.Core
             {
                 // Otherwise, we download the tool and make it executable (only necessary on mac & linux)
                 _adbPath = await _filesDownloader.GetFileLocation(ExternalFileType.PlatformTools); // Download ADB if it hasn't been already
+            }
+        }
+        
+        /// <summary>
+        /// Repeatedly called while ADB is disconnected until it connects again
+        /// </summary>
+        /// <param name="type">What caused the disconnection</param>
+        private async Task OnDisconnect(DisconnectionType type)
+        {
+            if(!await _prompter.PromptAdbDisconnect(type))
+            {
+                _prompter.Quit();
             }
         }
 
@@ -130,17 +142,17 @@ namespace QuestPatcher.Core
                 // We repeatedly prompt the user to plug in their quest if it is not plugged in, or the device is offline, or if there are multiple devices
                 if (allOutput.Contains("no devices/emulators found"))
                 {
-                    await _onDisconnect(DisconnectionType.NoDevice);
+                    await OnDisconnect(DisconnectionType.NoDevice);
                 }
                 else if(allOutput.Contains("device offline"))
                 {
-                    await _onDisconnect(DisconnectionType.DeviceOffline);
+                    await OnDisconnect(DisconnectionType.DeviceOffline);
                 }   else if(allOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
                 {
-                    await _onDisconnect(DisconnectionType.MultipleDevices);
+                    await OnDisconnect(DisconnectionType.MultipleDevices);
                 }   else if(allOutput.Contains("unauthorized"))
                 {
-                    await _onDisconnect(DisconnectionType.Unauthorized);
+                    await OnDisconnect(DisconnectionType.Unauthorized);
                 }
                 else
                 {

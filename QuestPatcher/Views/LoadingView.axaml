@@ -21,7 +21,7 @@
         </ExperimentalAcrylicBorder.Material>
         <Panel Margin="20" IsHitTestVisible="True">
           <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="5">
-            <TextBlock TextAlignment="Center">QuestPatcher loading . . .</TextBlock>
+            <TextBlock TextAlignment="Center" Text="{Binding LoadingText}" />
             <UserControl Content="{Binding ProgressView}" Padding="20"/>
             <UserControl Content="{Binding LoggingView}" Width="470" Height="200" IsVisible="{Binding Config.DisplayLogs}" />
           </StackPanel>

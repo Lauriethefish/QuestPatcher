@@ -36,7 +36,7 @@ namespace QuestPatcher
 
         private Queue<FileImportInfo>? _currentImportQueue;
 
-        public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, Logger logger, PatchingManager patchingManager, OperationLocker locker)
+        public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, MainWindow mainWindow, Logger logger, PatchingManager patchingManager, OperationLocker locker)
         {
             _otherFilesManager = otherFilesManager;
             _modManager = modManager;
@@ -51,7 +51,7 @@ namespace QuestPatcher
 
         private static FileDialogFilter GetCosmeticFilter(FileCopyType copyType) 
         {
-            return new FileDialogFilter
+            return new()
             {
                 Name = copyType.NamePlural,
                 Extensions = copyType.SupportedExtensions

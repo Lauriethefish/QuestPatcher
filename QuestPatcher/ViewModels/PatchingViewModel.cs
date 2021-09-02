@@ -30,7 +30,7 @@ namespace QuestPatcher.ViewModels
         private readonly Window _mainWindow;
         private readonly Logger _logger;
 
-        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, Logger logger, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
+        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, MainWindow mainWindow, Logger logger, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
         {
             Config = config;
             Locker = locker;

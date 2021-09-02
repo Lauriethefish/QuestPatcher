@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls;
 using QuestPatcher.Models;
-using QuestPatcher.Services;
 using QuestPatcher.Views;
 using Serilog.Core;
 using System;
@@ -23,6 +22,8 @@ namespace QuestPatcher.ViewModels
 
         public string AdbButtonText => _isAdbLogging ? "Stop ADB Log" : "Start ADB Log";
 
+        public string VersionText => $"QuestPatcher v{VersionUtil.QuestPatcherVersion}";
+
         private bool _isAdbLogging;
 
         private readonly Window _mainWindow;
@@ -30,10 +31,13 @@ namespace QuestPatcher.ViewModels
         private readonly Logger _logger;
         private readonly PatchingManager _patchingManager;
         private readonly AndroidDebugBridge _debugBridge;
-        private readonly QuestPatcherUIService _uiService;
         private readonly InfoDumper _dumper;
+        private readonly QuestPatcherService _qpService;
+        
+        internal OpenChangeAppMenuDelegate? OnChangeApp { get; set; }
 
-        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService, InfoDumper dumper)
+        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, MainWindow mainWindow, SpecialFolders specialFolders,
+                            Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, InfoDumper dumper, QuestPatcherService qpService)
         {
             Config = config;
             ProgressView = progressView;
@@ -44,8 +48,8 @@ namespace QuestPatcher.ViewModels
             _logger = logger;
             _patchingManager = patchingManager;
             _debugBridge = debugBridge;
-            _uiService = uiService;
             _dumper = dumper;
+            _qpService = qpService;
 
             _debugBridge.StoppedLogging += (_, _) =>
             {
@@ -100,7 +104,7 @@ namespace QuestPatcher.ViewModels
             Locker.StartOperation(true); // ADB is not available during a quick fix, as we redownload platform-tools
             try
             {
-                await _uiService.QuickFix();
+                await _qpService.QuickFix();
                 _logger.Information("Done!");
             }
             catch (Exception ex)
@@ -179,7 +183,10 @@ namespace QuestPatcher.ViewModels
 
         public async void ChangeApp()
         {
-            await _uiService.OpenChangeAppMenu(false);
+            if (OnChangeApp != null)
+            {
+                await OnChangeApp(false);
+            }
         }
     }
 }
