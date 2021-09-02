@@ -31,6 +31,7 @@ namespace QuestPatcher.ViewModels
                     _selectedFileCopy = value;
                     this.RaisePropertyChanged();
                     OnSelectedFileCopyChanged();
+                    this.RaisePropertyChanged(nameof(CanUseFileCopies));
                 }
             }
         }
@@ -39,6 +40,8 @@ namespace QuestPatcher.ViewModels
         public ObservableCollection<string> SelectedFiles { get; } = new();
 
         public bool CanDeleteSelectedFiles => SelectedFiles.Count > 0 && Locker.IsFree;
+
+        public bool CanUseFileCopies => _selectedFileCopy != null && Locker.IsFree;
 
         private readonly Window _mainWindow;
         private readonly Logger _logger;
@@ -60,7 +63,7 @@ namespace QuestPatcher.ViewModels
 
             locker.PropertyChanged += (_, args) =>
             {
-                if (args.PropertyName == nameof(locker.IsFree)) { this.RaisePropertyChanged(nameof(CanDeleteSelectedFiles)); }
+                if (args.PropertyName == nameof(locker.IsFree)) { this.RaisePropertyChanged(nameof(CanDeleteSelectedFiles)); this.RaisePropertyChanged(nameof(CanUseFileCopies)); }
             };
             SelectedFiles.CollectionChanged += (_, _) =>
             {
