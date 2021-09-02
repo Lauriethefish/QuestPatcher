@@ -1,7 +1,6 @@
 ﻿using QuestPatcher.Core.Modding;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
-using Serilog;
 using Serilog.Core;
 using System;
 using System.ComponentModel;
@@ -15,20 +14,17 @@ namespace QuestPatcher.Core
     /// The main class that manages most QuestPatcher services.
     /// Allows user prompts etc. to be abstracted through 
     /// </summary>
-    public abstract class QuestPatcherService : INotifyPropertyChanged
+    public class QuestPatcherService : INotifyPropertyChanged, IDisposable
     {
-        protected SpecialFolders SpecialFolders { get; }
-        protected Logger Logger { get; }
-        protected PatchingManager PatchingManager { get; }
-        protected ModManager ModManager { get; }
-        protected AndroidDebugBridge DebugBridge { get; }
-        protected ExternalFilesDownloader FilesDownloader { get; }
-        protected OtherFilesManager OtherFilesManager { get; }
-        protected IUserPrompter Prompter { get; }
-        
-        protected InfoDumper InfoDumper { get; }
+        private readonly SpecialFolders _specialFolders;
+        private readonly Logger _logger;
+        private readonly PatchingManager _patchingManager;
+        private readonly ModManager _modManager;
+        private readonly AndroidDebugBridge _debugBridge;
+        private readonly ExternalFilesDownloader _filesDownloader;
+        private readonly ICallbacks _prompter;
 
-        protected Config Config => _configManager.GetOrLoadConfig();
+        private Config Config => _configManager.GetOrLoadConfig();
         
         private readonly ApkTools _apkTools;
         private readonly ConfigManager _configManager;
@@ -36,25 +32,23 @@ namespace QuestPatcher.Core
         public bool HasLoaded { get => _hasLoaded; private set { if(_hasLoaded != value) { _hasLoaded = value; NotifyPropertyChanged(); } } }
         private bool _hasLoaded;
 
+        private bool _disposed = false;
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected QuestPatcherService(IUserPrompter prompter)
+        public QuestPatcherService(ICallbacks prompter, SpecialFolders specialFolders, Logger logger, ConfigManager configManager, ExternalFilesDownloader filesDownloader, ApkTools apkTools, AndroidDebugBridge debugBridge, PatchingManager patchingManager, ModManager modManager)
         {
-            Prompter = prompter;
-            SpecialFolders = new SpecialFolders(); // Load QuestPatcher application folders
+            _prompter = prompter;
+            _specialFolders = specialFolders;
+            _logger = logger;
+            _configManager = configManager;
+            _filesDownloader = filesDownloader;
+            _apkTools = apkTools;
+            _debugBridge = debugBridge;
+            _patchingManager = patchingManager;
+            _modManager = modManager;
 
-            Logger = SetupLogging();
-            _configManager = new ConfigManager(Logger, SpecialFolders);
-            _configManager.GetOrLoadConfig(); // Load the config file
-            FilesDownloader = new ExternalFilesDownloader(SpecialFolders, Logger);
-            _apkTools = new ApkTools(Logger, FilesDownloader);
-            DebugBridge = new AndroidDebugBridge(Logger, FilesDownloader, OnAdbDisconnect);
-            PatchingManager = new PatchingManager(Logger, Config, DebugBridge, _apkTools, SpecialFolders, FilesDownloader, Prompter, ExitApplication);
-            ModManager = new ModManager(Logger, DebugBridge, SpecialFolders, PatchingManager, Config, FilesDownloader);
-            OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
-            InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager, PatchingManager);
-
-            Logger.Debug($"QuestPatcherService constructed (QuestPatcher version {VersionUtil.QuestPatcherVersion})");
+            _logger.Debug($"QuestPatcherService constructed (QuestPatcher version {VersionUtil.QuestPatcherVersion})");
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -62,73 +56,33 @@ namespace QuestPatcher.Core
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        /// <summary>
-        /// Sets up basic logging to the logs folder and the console.
-        /// Also calls the subclass to allow inheritors to add extra logging options
-        /// </summary>
-        private Logger SetupLogging()
-        {
-            LoggerConfiguration configuration = new();
-
-            SetLoggingOptions(configuration);
-            return configuration.CreateLogger();
-        }
-        
-        /// <summary>
-        /// Adds extra logging options
-        /// </summary>
-        /// <param name="configuration">Logging configuration that will be used to create the logger</param>
-        protected virtual void SetLoggingOptions(LoggerConfiguration configuration) { }
-
-        /// <summary>
-        /// Should exit the underlying application however the implementors see fit
-        /// </summary>
-        protected abstract void ExitApplication();
-
-        /// <summary>
-        /// Should be called upon application exit, cleans up temporary files.
-        /// Note that this isn't called before Exit, since Exit just closes the underlying application, which should call this method.
-        /// This is done to avoid a double call where we clean up, then exit is called, then the underlying application calls to clean up again.
-        /// </summary>
-        public void CleanUp()
-        {
-            Logger.Debug("Closing QuestPatcher . . .");
-            _configManager.SaveConfig();
-            try
-            {
-                Directory.Delete(SpecialFolders.TempFolder, true);
-            }
-            catch (Exception)
-            {
-                Logger.Warning("Failed to delete temporary directory");
-            }
-            Logger.Debug("Goodbye!");
-        }
-
-        protected async Task RunStartup()
+        public async Task RunStartup()
         {
             HasLoaded = false;
-            Logger.Information("Starting QuestPatcher . . .");
+            _logger.Information("Starting QuestPatcher . . .");
             await _apkTools.PrepareJavaInstall();
 
-            if(!await DebugBridge.IsPackageInstalled(Config.AppId))
+            if(!await _debugBridge.IsPackageInstalled(Config.AppId))
             {
-                if (await Prompter.PromptAppNotInstalled())
+                if (await _prompter.PromptAppNotInstalled())
                 {
                     return; // New app ID selected - we will later reload
                 }
-                else
-                {
-                    ExitApplication();
-                }
+                _prompter.Quit();
             }
-            Logger.Information("App is installed");
+            _logger.Information("App is installed");
 
             await MigrateOldFiles();
 
-            await PatchingManager.LoadInstalledApp();
-            await ModManager.LoadInstalledMods();
+            await _patchingManager.LoadInstalledApp();
+            await _modManager.LoadInstalledMods();
             HasLoaded = true;
+        }
+
+        public async Task PrepareReload()
+        {
+            _modManager.OnReload();
+            _patchingManager.ResetInstalledApp();
         }
 
         /// <summary>
@@ -137,18 +91,18 @@ namespace QuestPatcher.Core
         /// </summary>
         private async Task MigrateOldFiles()
         {
-            Logger.Information("Deleting old files. . .");
+            _logger.Information("Deleting old files. . .");
             try
             {
-                string oldPlatformToolsPath = Path.Combine(SpecialFolders.DataFolder, "platform-tools");
+                string oldPlatformToolsPath = Path.Combine(_specialFolders.DataFolder, "platform-tools");
                 if (Directory.Exists(oldPlatformToolsPath))
                 {
                     Directory.Delete(oldPlatformToolsPath, true);
                 }
 
-                string oldLogPath = Path.Combine(SpecialFolders.DataFolder, "log.log");
-                string oldAdbLogPath = Path.Combine(SpecialFolders.DataFolder, "adb.log");
-                string oldApkToolPath = Path.Combine(SpecialFolders.ToolsFolder, "apktool.jar");
+                string oldLogPath = Path.Combine(_specialFolders.DataFolder, "log.log");
+                string oldAdbLogPath = Path.Combine(_specialFolders.DataFolder, "adb.log");
+                string oldApkToolPath = Path.Combine(_specialFolders.ToolsFolder, "apktool.jar");
                 if (File.Exists(oldLogPath))
                 {
                     File.Delete(oldLogPath);
@@ -164,24 +118,12 @@ namespace QuestPatcher.Core
             }
             catch (Exception ex)
             {
-                Logger.Warning($"Failed to delete QP1 files: {ex}");
+                _logger.Warning($"Failed to delete QP1 files: {ex}");
             }
 
-            if(await ModManager.DetectAndRemoveOldMods())
+            if(await _modManager.DetectAndRemoveOldMods())
             {
-                await Prompter.PromptUpgradeFromOld();
-            }
-        }
-
-        /// <summary>
-        /// Repeatedly called while ADB is disconnected until it connects again
-        /// </summary>
-        /// <param name="type">What caused the disconnection</param>
-        private async Task OnAdbDisconnect(DisconnectionType type)
-        {
-            if(!await Prompter.PromptAdbDisconnect(type))
-            {
-                ExitApplication();
+                await _prompter.PromptUpgradeFromOld();
             }
         }
 
@@ -192,12 +134,36 @@ namespace QuestPatcher.Core
         /// </summary>
         public async Task QuickFix()
         {
-            await DebugBridge.KillServer(); // Allow ADB to be deleted
+            await _debugBridge.KillServer(); // Allow ADB to be deleted
 
             // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side
-            await FilesDownloader.ClearCache();
-            await DebugBridge.PrepareAdbPath(); // Re-download ADB if necessary
+            await _filesDownloader.ClearCache();
+            await _debugBridge.PrepareAdbPath(); // Re-download ADB if necessary
             await _apkTools.PrepareJavaInstall(); // Re-download Java if necessary
+        }
+        
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _logger.Debug("Closing QuestPatcher . . .");
+                _configManager.SaveConfig();
+                try
+                {
+                    Directory.Delete(_specialFolders.TempFolder, true);
+                }
+                catch (Exception)
+                {
+                    _logger.Warning("Failed to delete temporary directory");
+                }
+
+                _logger.Debug("Goodbye!");
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
         }
     }
 }

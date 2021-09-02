@@ -44,7 +44,7 @@ namespace QuestPatcher.ViewModels
         private readonly Logger _logger;
         private readonly BrowseImportManager _browseManager;
 
-        public OtherItemsViewModel(OtherFilesManager filesManager, Window mainWindow, Logger logger, BrowseImportManager browseManager, OperationLocker locker, ProgressViewModel progressView)
+        public OtherItemsViewModel(OtherFilesManager filesManager, MainWindow mainWindow, Logger logger, BrowseImportManager browseManager, OperationLocker locker, ProgressViewModel progressView)
         {
             FilesManager = filesManager;
             Locker = locker;
@@ -62,15 +62,13 @@ namespace QuestPatcher.ViewModels
             {
                 if (args.PropertyName == nameof(locker.IsFree)) { this.RaisePropertyChanged(nameof(CanDeleteSelectedFiles)); }
             };
-            SelectedFiles.CollectionChanged += (_, args) =>
+            SelectedFiles.CollectionChanged += (_, _) =>
             {
                 this.RaisePropertyChanged(nameof(CanDeleteSelectedFiles));
             };
-
-            OnCurrentDestinationsChanged();
         }
 
-        private void OnCurrentDestinationsChanged()
+        public void OnCurrentDestinationsChanged()
         {
             if (FilesManager.CurrentDestinations.Count > 0)
             {

@@ -1,4 +1,5 @@
-﻿using QuestPatcher.Core.Models;
+﻿using QuestPatcher.Core;
+using QuestPatcher.Core.Models;
 
 namespace QuestPatcher.ViewModels
 {
@@ -6,6 +7,8 @@ namespace QuestPatcher.ViewModels
     {
         public ProgressViewModel ProgressView { get; }
         public LoggingViewModel LoggingView { get; }
+
+        public string LoadingText => $"QuestPatcher v{VersionUtil.QuestPatcherVersion} loading . . .";
 
         public Config Config { get; }
 

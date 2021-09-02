@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
+using Serilog;
 
 namespace QuestPatcher.Core
 {
-    public interface IUserPrompter
+    public interface ICallbacks
     {
         Task<bool> PromptAppNotInstalled();
 
@@ -15,5 +16,7 @@ namespace QuestPatcher.Core
         Task<bool> PromptPauseBeforeCompile();
 
         Task PromptUpgradeFromOld();
+
+        void Quit();
     }
 }

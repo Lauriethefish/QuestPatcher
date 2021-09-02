@@ -43,13 +43,12 @@ namespace QuestPatcher.Core.Patching
         private readonly ApkTools _apkTools;
         private readonly SpecialFolders _specialFolders;
         private readonly ExternalFilesDownloader _filesDownloader;
-        private readonly IUserPrompter _prompter;
-        private readonly Action _quit;
+        private readonly ICallbacks _prompter;
 
         private readonly string _storedApkPath;
         private Dictionary<string, Dictionary<string, string>>? _libUnityIndex;
 
-        public PatchingManager(Logger logger, Config config, AndroidDebugBridge debugBridge, ApkTools apkTools, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, Action quit)
+        public PatchingManager(Logger logger, Config config, AndroidDebugBridge debugBridge, ApkTools apkTools, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, ICallbacks prompter)
         {
             _logger = logger;
             _config = config;
@@ -58,7 +57,6 @@ namespace QuestPatcher.Core.Patching
             _specialFolders = specialFolders;
             _filesDownloader = filesDownloader;
             _prompter = prompter;
-            _quit = quit;
 
             _storedApkPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
         }
@@ -84,7 +82,7 @@ namespace QuestPatcher.Core.Patching
             await Task.Run(() =>
             {
                 using ZipArchive apkArchive = ZipFile.OpenRead(_storedApkPath);
-
+                
                 // QuestPatcher adds a tag file to determine if the APK is modded later on
                 isModded = apkArchive.GetEntry("modded") != null || apkArchive.GetEntry("BMBF.modded") != null;
                 is64Bit = apkArchive.GetEntry("lib/arm64-v8a/libil2cpp.so") != null;
@@ -431,7 +429,7 @@ namespace QuestPatcher.Core.Patching
         public async Task UninstallCurrentApp()
         {
             await _debugBridge.UninstallApp(_config.AppId);
-            _quit();
+            _prompter.Quit();
         }
     }
 }

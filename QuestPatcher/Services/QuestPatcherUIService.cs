@@ -13,8 +13,10 @@ using System.Threading.Tasks;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Core;
 
+
 namespace QuestPatcher.Services
 {
+    /*
     /// <summary>
     /// Implementation of QuestPatcherService that uses UI message boxes and creates the viewmodel for displaying in UI
     /// </summary>
@@ -38,8 +40,8 @@ namespace QuestPatcher.Services
             _mainWindow = InitialiseUI();
 
             _appLifetime.MainWindow = _mainWindow;
-            UIPrompter prompter = (UIPrompter) Prompter;
-            prompter.Init(_mainWindow, Config, this, SpecialFolders);
+            UIPrompter prompter = (UIPrompter) _prompter;
+            prompter.Init(_mainWindow, Config, this, _specialFolders);
 
             _mainWindow.Opened += async (_, _) => await LoadAndHandleErrors();
             _mainWindow.Closing += OnMainWindowClosing;
@@ -53,21 +55,21 @@ namespace QuestPatcher.Services
             window.Height = 550;
             _operationLocker = new();
             _operationLocker.StartOperation(); // Still loading
-            _browseManager = new(OtherFilesManager, ModManager, window, Logger, PatchingManager, _operationLocker);
-            ProgressViewModel progressViewModel = new(_operationLocker, FilesDownloader);
-            _otherItemsView = new OtherItemsViewModel(OtherFilesManager, window, Logger, _browseManager, _operationLocker, progressViewModel);
+            _browseManager = new(_otherFilesManager, _modManager, window, _logger, _patchingManager, _operationLocker);
+            ProgressViewModel progressViewModel = new(_operationLocker, _filesDownloader);
+            _otherItemsView = new OtherItemsViewModel(_otherFilesManager, window, _logger, _browseManager, _operationLocker, progressViewModel);
 
             MainWindowViewModel mainWindowViewModel = new(
                 new LoadedViewModel(
-                    new PatchingViewModel(Config, _operationLocker, PatchingManager, window, Logger, progressViewModel, FilesDownloader),
-                    new ManageModsViewModel(ModManager, PatchingManager, window, _operationLocker, progressViewModel, _browseManager),
+                    new PatchingViewModel(Config, _operationLocker, _patchingManager, window, _logger, progressViewModel, _filesDownloader),
+                    new ManageModsViewModel(_modManager, _patchingManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
-                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, Logger, PatchingManager, DebugBridge, this, InfoDumper),
+                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, _specialFolders, _logger, _patchingManager, _debugBridge, this, _infoDumper),
                     _otherItemsView,
                     Config,
-                    PatchingManager,
+                    _patchingManager,
                     _browseManager,
-                    Logger
+                    _logger
                 ),
                 new LoadingViewModel(progressViewModel, _loggingViewModel, Config),
                 this
@@ -117,7 +119,7 @@ namespace QuestPatcher.Services
                 // If the user did not select to change app, or closed the dialogue, we exit due to the error
                 if (!await builder.OpenDialogue(_mainWindow))
                 {
-                    Logger.Error($"Exiting QuestPatcher due to unhandled load error: {ex}");
+                    _logger.Error($"Exiting QuestPatcher due to unhandled load error: {ex}");
                     ExitApplication();
                 }
             }   finally
@@ -163,7 +165,7 @@ namespace QuestPatcher.Services
 
             Task windowCloseTask = menuWindow.ShowDialog(_mainWindow);
 
-            viewModel.InstalledApps = await DebugBridge.ListNonDefaultPackages();
+            viewModel.InstalledApps = await _debugBridge.ListNonDefaultPackages();
 
             await windowCloseTask;
             if(viewModel.SelectedApp == Config.AppId || !viewModel.DidConfirm)
@@ -187,15 +189,15 @@ namespace QuestPatcher.Services
                 _loggingViewModel.LoggedText = ""; // Avoid confusing people by not showing existing logs
             }
 
-            ModManager.OnReload();
-            PatchingManager.ResetInstalledApp();
+            _modManager.OnReload();
+            _patchingManager.ResetInstalledApp();
             await LoadAndHandleErrors();
         }
 
         protected override void SetLoggingOptions(LoggerConfiguration configuration)
         {
             configuration.MinimumLevel.Verbose()
-                .WriteTo.File(Path.Combine(SpecialFolders.LogsFolder, "log.log"), LogEventLevel.Verbose, "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File(Path.Combine(_specialFolders.LogsFolder, "log.log"), LogEventLevel.Verbose, "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.Console()
                 .WriteTo.Sink(
                 new StringDelegateSink((str) =>
@@ -215,4 +217,5 @@ namespace QuestPatcher.Services
             _appLifetime.Shutdown();
         }
     }
+    */
 }
