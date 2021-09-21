@@ -27,7 +27,7 @@ namespace QuestPatcher.Axml
             int[] resourcePool = ctx.ResourcePool.Save();
             
             int stringPoolLength = StringPool.CalculatePoolLength(stringPool);
-            int stringPoolPadding = 4 - stringPoolLength % 4;
+            int stringPoolPadding = (4 - stringPoolLength % 4) % 4;
             stringPoolLength += stringPoolPadding; // Add padding to four bytes
             
             int resourcePoolLength = resourcePool.Length * 4; // Each pool item is an integer
