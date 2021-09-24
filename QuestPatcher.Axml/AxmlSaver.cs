@@ -12,7 +12,7 @@ namespace QuestPatcher.Axml
         /// </summary>
         /// <param name="stream">Stream to save to</param>
         /// <param name="rootElement">Root element of the document</param>
-        public static void SaveDocument(Stream stream, AxmlElement rootElement/*, string[]? forcedStringPool = null, int[]? forcedResourcePool = null*/)
+        public static void SaveDocument(Stream stream, AxmlElement rootElement)
         {
             BinaryWriter mainOutput = new BinaryWriter(stream);
 
