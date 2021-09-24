@@ -69,7 +69,7 @@ namespace QuestPatcher.Axml
                 {
                     // The string pool must come before any elements, a check for this is above
                     case ResourceType.StringPool:
-                        stringPool = StringPool.LoadStringPool(input);
+                        stringPool = StringPoolSerializer.LoadStringPool(input);
                         break;
                     case ResourceType.XmlResourceMap:
                         // Divide by 4 because the resource map is made up of integers, subtract 2 for the resource type and length values
@@ -207,7 +207,8 @@ namespace QuestPatcher.Axml
                         
                         break;
                     case ResourceType.XmlEndElement:
-                        elementStack.Pop(); // Current bottom-most element is now the next element up
+                        int lineNumber = input.ReadInt32();
+                        elementStack.Pop().ClosingTextLineNumber = lineNumber; // Current bottom-most element is now the next element up
                         break;
                     case ResourceType.XmlCdata:
                         input.ReadInt32(); // Line number, currently unused

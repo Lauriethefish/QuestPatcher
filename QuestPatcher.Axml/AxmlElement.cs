@@ -11,10 +11,15 @@ namespace QuestPatcher.Axml
     public class AxmlElement
     {
         /// <summary>
-        /// Axml text line number read from the parser.
+        /// Axml text line number for the opening tag read from the parser.
         /// TODO: Automatically set this to a sensible value upon saving?
         /// </summary>
-        public int TextLineNumber { get; set; }
+        public int OpeningTextLineNumber { get; set; }
+        
+        /// <summary>
+        /// Axml text line number for the closing tag read from the parser.
+        /// </summary>
+        public int ClosingTextLineNumber { get; set; }
 
         /// <summary>
         /// Attributes of this element.
@@ -52,24 +57,60 @@ namespace QuestPatcher.Axml
         /// </summary>
         /// <param name="name">The name of the element, without the namespace prefix</param>
         /// <param name="namespaceUri">URI of the namespace that this element is in. Set to <code>null</code> (leave at default value) for no namespace.</param>
-        /// <param name="textLineNumber">Line number of the element, can safely be left at the default value of <code>0</code> - Android will still load elements with out-of-order line numbers.</param>
-        public AxmlElement(string name, Uri? namespaceUri = null, int textLineNumber = 0)
+        /// <param name="openingTextLineNumber">Line number of the opening tag of the element, can safely be left at the default value of <code>0</code> - Android will still load elements with out-of-order line numbers.</param>
+        /// <param name="closingTextLineNumber">Line number of the closing tag of the element</param>
+        public AxmlElement(string name, Uri? namespaceUri = null, int openingTextLineNumber = 0, int closingTextLineNumber = 0)
         {
-            TextLineNumber = textLineNumber;
+            OpeningTextLineNumber = openingTextLineNumber;
+            ClosingTextLineNumber = closingTextLineNumber;
             Name = name;
             NamespaceUri = namespaceUri;
         }
 
-        internal void PrepareResourceIndices(SavingContext ctx)
+        internal void PreparePooling(SavingContext ctx)
         {
-            foreach (AxmlAttribute attribute in Attributes)
+            // First we need to write the namespaces declared within this element
+            foreach (KeyValuePair<string, Uri> pair in DeclaredNamespaces)
             {
-                attribute.PrepareResourceIndices(ctx);
+                ctx.StringPool.Add(pair.Key);
+                ctx.StringPool.Add(pair.Value.ToString());
+            }
+
+            if(NamespaceUri != null)
+            {
+                ctx.StringPool.Add(NamespaceUri.ToString());
+            }
+
+            ctx.StringPool.Add(Name);
+
+            // Sort the attributes in order of increasing resource Id, and alphabetical order in terms of the namespaces
+            // Attributes with a namespace will also come before attributes without a namespace
+            Attributes.Sort((a, b) =>
+            {
+                int resourceIdDiff = (a.ResourceId ?? -1) - (b.ResourceId ?? -1);
+                if(resourceIdDiff != 0)
+                {
+                    return resourceIdDiff;
+                }
+
+                if(a.Namespace == null)
+                {
+                    return b.Namespace == null ? 0 : -1;
+                }
+                else
+                {
+                    return b.Namespace == null ? 1 : String.CompareOrdinal(a.Namespace.ToString(), b.Namespace.ToString());
+                }
+            });
+            
+            foreach(AxmlAttribute attribute in Attributes)
+            {
+                attribute.PreparePooling(ctx);
             }
 
             foreach (AxmlElement element in Children)
             {
-                element.PrepareResourceIndices(ctx);
+                element.PreparePooling(ctx);
             }
         }
 
@@ -79,14 +120,14 @@ namespace QuestPatcher.Axml
             foreach (KeyValuePair<string, Uri> pair in DeclaredNamespaces)
             {
                 ctx.Writer.WriteChunkHeader(ResourceType.XmlStartNamespace, 16); // Each namespace tag is 3 integers, so 3 * 4 = 12 bytes
-                ctx.Writer.Write(TextLineNumber);
+                ctx.Writer.Write(OpeningTextLineNumber);
                 ctx.Writer.Write(0xFFFFFFFF);
                 ctx.Writer.Write(ctx.StringPool.GetIndex(pair.Key));
                 ctx.Writer.Write(ctx.StringPool.GetIndex(pair.Value.ToString()));
             }
 
             ctx.Writer.WriteChunkHeader(ResourceType.XmlStartElement, 28 + 20 * Attributes.Count); // Each attribute is 5 integers, so 5 * 4 = 20 bytes of the tag
-            ctx.Writer.Write(TextLineNumber);
+            ctx.Writer.Write(OpeningTextLineNumber);
             ctx.Writer.Write(0xFFFFFFFF);
             ctx.Writer.Write(NamespaceUri == null ? -1 : ctx.StringPool.GetIndex(NamespaceUri.ToString()));
             ctx.Writer.Write(ctx.StringPool.GetIndex(Name));
@@ -134,7 +175,7 @@ namespace QuestPatcher.Axml
                 child.Save(ctx);
             }
             ctx.Writer.WriteChunkHeader(ResourceType.XmlEndElement, 16);
-            ctx.Writer.Write(-1);
+            ctx.Writer.Write(ClosingTextLineNumber);
             ctx.Writer.Write(0xFFFFFFFF);
             ctx.Writer.Write(NamespaceUri == null ? -1 : ctx.StringPool.GetIndex(NamespaceUri.ToString()));
             ctx.Writer.Write(ctx.StringPool.GetIndex(Name));
@@ -143,7 +184,7 @@ namespace QuestPatcher.Axml
             foreach (KeyValuePair<string, Uri> pair in DeclaredNamespaces.Reverse())
             {
                 ctx.Writer.WriteChunkHeader(ResourceType.XmlEndNamespace, 16); // Each namespace tag is 3 integers, so 3 * 4 = 12 bytes
-                ctx.Writer.Write(TextLineNumber);
+                ctx.Writer.Write(ClosingTextLineNumber);
                 ctx.Writer.Write(0xFFFFFFFF);
                 ctx.Writer.Write(ctx.StringPool.GetIndex(pair.Key));
                 ctx.Writer.Write(ctx.StringPool.GetIndex(pair.Value.ToString()));

@@ -12,21 +12,22 @@ namespace QuestPatcher.Axml
         /// </summary>
         /// <param name="stream">Stream to save to</param>
         /// <param name="rootElement">Root element of the document</param>
-        public static void SaveDocument(Stream stream, AxmlElement rootElement)
+        public static void SaveDocument(Stream stream, AxmlElement rootElement/*, string[]? forcedStringPool = null, int[]? forcedResourcePool = null*/)
         {
             BinaryWriter mainOutput = new BinaryWriter(stream);
 
             // Write the main elements chunk of the file to a MemoryStream first
             SavingContext ctx = new SavingContext();
-            rootElement.PrepareResourceIndices(ctx);
+            rootElement.PreparePooling(ctx);
+            string[] stringPool = ctx.StringPool.PrepareForSavePhase(ctx.ResourceMap);
+
             rootElement.Save(ctx);
             MemoryStream mainChunkStream = (MemoryStream) ctx.Writer.BaseStream;
 
 
-            string[] stringPool = ctx.StringPool.Save();
-            int[] resourcePool = ctx.ResourcePool.Save();
+            int[] resourcePool = ctx.ResourceMap.Save();
             
-            int stringPoolLength = StringPool.CalculatePoolLength(stringPool);
+            int stringPoolLength = StringPoolSerializer.CalculatePoolLength(stringPool);
             int stringPoolPadding = (4 - stringPoolLength % 4) % 4;
             stringPoolLength += stringPoolPadding; // Add padding to four bytes
             
@@ -36,7 +37,7 @@ namespace QuestPatcher.Axml
             mainOutput.WriteChunkHeader(ResourceType.Xml, stringPoolLength + resourcePoolLength + (int) mainChunkStream.Position + 16);
             
             mainOutput.WriteChunkHeader(ResourceType.StringPool, stringPoolLength);
-            StringPool.SaveStringPool(stringPool, mainOutput);
+            StringPoolSerializer.SaveStringPool(stringPool, mainOutput);
             for (int i = 0; i < stringPoolPadding; i++)
             {
                 mainOutput.Write((byte) 0);

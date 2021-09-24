@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 
 namespace QuestPatcher.Axml
 {
@@ -92,26 +91,49 @@ namespace QuestPatcher.Axml
             Debug.Assert(_value != null);
         }
 
-        internal void PrepareResourceIndices(SavingContext ctx)
+        internal void PreparePooling(SavingContext ctx)
         {
-            if (ResourceId != null)
+            if(ResourceId != null)
             {
-                ctx.ResourcePool.GetIndex((int)ResourceId);
-                ctx.StringPool.GetIndex(Name);
+                ctx.ResourceMap.Add(Name, (int) ResourceId);
+            }
+            else
+            {
+                ctx.StringPool.Add(Name);
+            }
+            
+            if(Namespace != null)
+            {
+                ctx.StringPool.Add(Namespace.ToString());
+            }
+
+            if (Value is WrappedValue wrappedValue)
+            {
+                if (wrappedValue.RawValue != null)
+                {
+                    ctx.StringPool.Add(wrappedValue.RawValue);
+                }
+            }    
+            else if(Value is string asString)
+            {
+                ctx.StringPool.Add(asString);
             }
         }
 
         internal void Save(SavingContext ctx)
         {
             ctx.Writer.Write(Namespace == null ? -1 : ctx.StringPool.GetIndex(Namespace.ToString()));
-            int nameIndex = ctx.StringPool.GetIndex(Name);
-            int resourceIdIndex = ResourceId == null ? -1 : ctx.ResourcePool.GetIndex((int)ResourceId);
-            if (ResourceId != null && nameIndex != resourceIdIndex)
-            {
-                throw new InvalidDataException("Name indices and resource indices for attributes must be explicitly matched before saving. They did not match, therefore this step was not completed");
-            }
-            ctx.Writer.Write(nameIndex);
 
+            if(ResourceId != null)
+            {
+                int resourceIdIdx = ctx.ResourceMap.GetIndex(Name, (int) ResourceId);
+                ctx.Writer.Write(resourceIdIdx);
+            }
+            else
+            {
+                ctx.Writer.Write(ctx.StringPool.GetIndex(Name));
+            }
+            
             int rawStringIndex = -1;
             int type = _valueType == null ? -1 : ((int)_valueType << 24) | 0x000008;
             int rawValue;
