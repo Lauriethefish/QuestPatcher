@@ -6,6 +6,8 @@ The AXML isn't completely parsed - styles are not currently supported.
 
 This implementation was based mostly off of this [Java Library](https://github.com/Sable/axml).
 
+*"AXML is an efficient format which is easy to understand and implement."* - No-one ever
+
 ### Why QuestPatcher doesn't use apktool
 QuestPatcher used to use apktool, however it proved quite unreliable, and a lot of its cached local data got continually corrupted.
 
