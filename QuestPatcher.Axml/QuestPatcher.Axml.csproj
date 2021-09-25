@@ -8,7 +8,7 @@
     
   <PropertyGroup>
     <Title>QuestPatcher.Axml</Title>
-    <PackageVersion>1.0.1</PackageVersion>
+    <PackageVersion>1.0.2</PackageVersion>
     <Authors>Lauriethefish</Authors>
     <Description>A library for the parsing and saving of Android binary XML files such as the AndroidManifest.xml file inside an APK. Used in QuestPatcher for patching the manifest with added permissions.</Description>
     <Copyright>Copyright 2021 Laurie ?</Copyright>
@@ -17,6 +17,7 @@
     <RepositoryUrl>https://github.com/Lauriethefish/QuestPatcher.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>axml, android, xml</PackageTags>
+    <PackageReleaseNotes>Fixed attribute order to be in ascending resource ID. This fixed the debuggable attribute not being detected by Android.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
