@@ -9,7 +9,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using QuestPatcher.Axml;
 
@@ -20,12 +22,31 @@ namespace QuestPatcher.Core.Patching
     /// </summary>
     public class PatchingManager : INotifyPropertyChanged
     {
-        private const string ManifestPath = "AndroidManifest.xml";
         private static readonly Uri AndroidNamespaceUri = new("http://schemas.android.com/apk/res/android");
+        private const string ManifestPath = "AndroidManifest.xml";
+        
+        // Attribute resource IDs, used during manifest patching
         private const int NameAttributeResourceId = 16842755;
         private const int RequiredAttributeResourceId = 16843406;
         private const int DebuggableAttributeResourceId = 16842767;
         private const int LegacyStorageAttributeResourceId = 16844291;
+
+        /// <summary>
+        /// Tag added during patching.
+        /// </summary>
+        private const string QuestPatcherTagName = "modded";
+        
+        /// <summary>
+        /// Tags from other installers which use QuestLoader. QP detects these for cross-compatibility.
+        /// </summary>
+        private static readonly string[] OtherTagNames = { "BMBF.modded" };
+        
+        /// <summary>
+        /// Permission to tag the APK with.
+        /// This permission is added to the manifest, and can be easily read from <code>adb shell dumpsys package [packageId]</code> without having to pull the entire APK.
+        /// This makes loading much faster, especially on larger apps.
+        /// </summary>
+        private const string TagPermission = "questpatcher.modded";
 
         public ApkInfo? InstalledApp { get => _installedApp; private set { if (_installedApp != value) { _installedApp = value; NotifyPropertyChanged(); } } }
         private ApkInfo? _installedApp;
@@ -68,28 +89,85 @@ namespace QuestPatcher.Core.Patching
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        /// <summary>
+        /// Finds a string beginning at <paramref name="idx"/> and continuing until a new line character is found.
+        /// The resulting string is then trimmed.
+        /// </summary>
+        /// <param name="str">String to index in</param>
+        /// <param name="idx">Starting index</param>
+        /// <returns>Trimmed string beginning at <paramref name="idx"/> and continuing until a new line</returns>
+        private string ContinueUntilNewline(string str, int idx)
+        {
+            StringBuilder result = new();
+            while(str[idx] != '\n')
+            {
+                result.Append(str[idx]);
+                idx++;
+            }
+
+            return result.ToString().Trim();
+        }
+
+        /// <summary>
+        /// Gets the value in the package dump with the given name.
+        /// </summary>
+        /// <param name="packageDump">Dump of a package from adb shell dumpsys package</param>
+        /// <param name="name">Name of the value to get</param>
+        /// <returns>Value from the package dump, as a trimmed string</returns>
+        private string GetPackageDumpValue(string packageDump, string name)
+        {
+            string fullName = $"{name}=";
+            int idx = packageDump.IndexOf(fullName, StringComparison.Ordinal);
+            return ContinueUntilNewline(packageDump, idx + fullName.Length);
+        }
+
         public async Task LoadInstalledApp()
         {
-            string version = await _debugBridge.GetPackageVersion(_config.AppId);
+            bool is32Bit = false;
+            bool is64Bit = false;
+            bool isModded = false;
+            
+            string packageDump = (await _debugBridge.RunCommand($"shell dumpsys \"package {_config.AppId}\"")).StandardOutput;
+            string version = GetPackageDumpValue(packageDump, "versionName");
             _logger.Information($"App Version: {version}");
 
-            _logger.Information("Downloading APK from the Quest . . .");
-            await _debugBridge.DownloadApk(_config.AppId, _storedApkPath);
+            int beginPermissionsIdx = packageDump.IndexOf("requested permissions:", StringComparison.Ordinal);
+            int endPermissionsIdx = packageDump.IndexOf("install permissions:", StringComparison.Ordinal);
+            string permissionsString = packageDump.Substring(beginPermissionsIdx, endPermissionsIdx - beginPermissionsIdx);
 
-            bool isModded = false;
-            bool is64Bit = false;
-            bool is32Bit = false;
-            // Unfortunately, zip files do not support async, so we Task.Run this operation to avoid blocking
-            _logger.Information("Checking APK modding status . . .");
-            await Task.Run(() =>
+            _logger.Information("Attempting to check modding status from package dump");
+            // If the APK's permissions include the modded tag permission, then we know the APK is modded
+            // This avoids having to pull the APK from the quest to check it if it's modded
+            if(permissionsString.Split("\n").Skip(1).Select(perm => perm.Trim()).Contains(TagPermission))
             {
-                using ZipArchive apkArchive = ZipFile.OpenRead(_storedApkPath);
+                _logger.Information("Modded permission found in dumpsys output.");
+                string cpuAbi = GetPackageDumpValue(packageDump, "primaryCpuAbi");
+                // Currently, these are the only CPU ABIs supported
+                is64Bit = cpuAbi == "arm64-v8a";
+                is32Bit = cpuAbi == "armeabi-v7a";
+                isModded = true;
+            }
+            else
+            {
+                // If the modded permission is not found, it is still possible that the APK is modded
+                // Older QuestPatcher versions did not use a modded permission, and instead used a "modded" file in APK root
+                // (which is still added during patching for backwards compatibility, and so that BMBF can see that the APK is patched)
+                _logger.Information("Modded permission not found, downloading APK from the Quest instead . . .");
+                await _debugBridge.DownloadApk(_config.AppId, _storedApkPath);
 
-                // QuestPatcher adds a tag file to determine if the APK is modded later on
-                isModded = apkArchive.GetEntry("modded") != null || apkArchive.GetEntry("BMBF.modded") != null;
-                is64Bit = apkArchive.GetEntry("lib/arm64-v8a/libil2cpp.so") != null;
-                is32Bit = apkArchive.GetEntry("lib/armeabi-v7a/libil2cpp.so") != null;
-            });
+                // Unfortunately, zip files do not support async, so we Task.Run this operation to avoid blocking
+                _logger.Information("Checking APK modding status . . .");
+                await Task.Run(() =>
+                {
+                    using ZipArchive apkArchive = ZipFile.OpenRead(_storedApkPath);
+
+                    // QuestPatcher adds a tag file to determine if the APK is modded later on
+                    isModded = apkArchive.GetEntry(QuestPatcherTagName) != null || OtherTagNames.Any(tagName => apkArchive.GetEntry(tagName) != null);
+                    is64Bit = apkArchive.GetEntry("lib/arm64-v8a/libil2cpp.so") != null;
+                    is32Bit = apkArchive.GetEntry("lib/armeabi-v7a/libil2cpp.so") != null;
+                });
+            }
+
 
             if (!is64Bit && !is32Bit)
             {
@@ -190,7 +268,8 @@ namespace QuestPatcher.Core.Patching
                 addingPermissions.AddRange(new[] {
                     "android.permission.READ_EXTERNAL_STORAGE", 
                     "android.permission.WRITE_EXTERNAL_STORAGE",
-                    "android.permission.MANAGE_EXTERNAL_STORAGE"
+                    "android.permission.MANAGE_EXTERNAL_STORAGE",
+                    TagPermission
                 });
             }
 
@@ -351,7 +430,7 @@ namespace QuestPatcher.Core.Patching
                     await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Main32), Path.Combine(libsPath, "libmain.so"), true);
                     await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Modloader32), Path.Combine(libsPath, "libmodloader.so"));
                 }
-                
+
 
                 // Add permissions to the manifest
                 _logger.Information("Patching manifest . . .");
@@ -360,7 +439,7 @@ namespace QuestPatcher.Core.Patching
                 _logger.Information("Adding tag . . .");
                 // The disk IO while opening the APK as a zip archive causes a UI freeze, so we run it on another thread
                 // We cannot just create this tag before compiling - apktool will remove it as it isn't a normal part of the APK
-                apkArchive.CreateEntry("modded");
+                apkArchive.CreateEntry(QuestPatcherTagName);
 
                 _logger.Information("Closing APK archive . . .");
             }
