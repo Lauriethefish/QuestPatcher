@@ -150,20 +150,6 @@ namespace QuestPatcher.Core
                     ExtractionFolder = "platform-tools",
                     IsExecutable = true
                 }
-            },
-            {
-                ExternalFileType.Jre,
-                new FileInfo
-                {
-                    SaveName = new()
-                    {
-                        Windows = "jdk-11.0.11+9-jre/bin/java.exe",
-                        Mac = "jdk-11.0.11+9-jre/Contents/Home/bin/java",
-                        Linux = "jdk-11.0.11+9-jre/bin/java"
-                    },
-                    ExtractionFolder = "openjre",
-                    IsExecutable = true
-                }
             }
         };
 

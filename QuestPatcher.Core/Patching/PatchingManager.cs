@@ -60,7 +60,6 @@ namespace QuestPatcher.Core.Patching
         private readonly Logger _logger;
         private readonly Config _config;
         private readonly AndroidDebugBridge _debugBridge;
-        private readonly ApkTools _apkTools;
         private readonly SpecialFolders _specialFolders;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly IUserPrompter _prompter;
@@ -70,12 +69,11 @@ namespace QuestPatcher.Core.Patching
         private readonly string _storedApkPath;
         private Dictionary<string, Dictionary<string, string>>? _libUnityIndex;
 
-        public PatchingManager(Logger logger, Config config, AndroidDebugBridge debugBridge, ApkTools apkTools, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, ApkSigner apkSigner, Action quit)
+        public PatchingManager(Logger logger, Config config, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, ApkSigner apkSigner, Action quit)
         {
             _logger = logger;
             _config = config;
             _debugBridge = debugBridge;
-            _apkTools = apkTools;
             _specialFolders = specialFolders;
             _filesDownloader = filesDownloader;
             _prompter = prompter;

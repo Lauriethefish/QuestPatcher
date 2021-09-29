@@ -30,7 +30,6 @@ namespace QuestPatcher.Core
 
         protected Config Config => _configManager.GetOrLoadConfig();
         
-        private readonly ApkTools _apkTools;
         private readonly ConfigManager _configManager;
 
         public bool HasLoaded { get => _hasLoaded; private set { if(_hasLoaded != value) { _hasLoaded = value; NotifyPropertyChanged(); } } }
@@ -47,9 +46,8 @@ namespace QuestPatcher.Core
             _configManager = new ConfigManager(Logger, SpecialFolders);
             _configManager.GetOrLoadConfig(); // Load the config file
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders, Logger);
-            _apkTools = new ApkTools(Logger, FilesDownloader);
             DebugBridge = new AndroidDebugBridge(Logger, FilesDownloader, OnAdbDisconnect);
-            PatchingManager = new PatchingManager(Logger, Config, DebugBridge, _apkTools, SpecialFolders, FilesDownloader, Prompter, new ApkSigner(), ExitApplication);
+            PatchingManager = new PatchingManager(Logger, Config, DebugBridge, SpecialFolders, FilesDownloader, Prompter, new ApkSigner(), ExitApplication);
             ModManager = new ModManager(Logger, DebugBridge, SpecialFolders, PatchingManager, Config, FilesDownloader);
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
             InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager, PatchingManager);
@@ -109,7 +107,6 @@ namespace QuestPatcher.Core
         {
             HasLoaded = false;
             Logger.Information("Starting QuestPatcher . . .");
-            await _apkTools.PrepareJavaInstall();
 
             if(!await DebugBridge.IsPackageInstalled(Config.AppId))
             {
@@ -197,7 +194,6 @@ namespace QuestPatcher.Core
             // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side
             await FilesDownloader.ClearCache();
             await DebugBridge.PrepareAdbPath(); // Re-download ADB if necessary
-            await _apkTools.PrepareJavaInstall(); // Re-download Java if necessary
         }
     }
 }
