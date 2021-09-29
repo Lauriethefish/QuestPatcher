@@ -8,6 +8,23 @@ namespace QuestPatcher.Core.Patching
     public static class ZipExtensions
     {
         /// <summary>
+        /// Creates a new entry in the archive, deleting it if the name already exists, then opens it.
+        /// </summary>
+        /// <param name="archive">Archive to create the entry in</param>
+        /// <param name="entryName">Name/path of the entry</param>
+        /// <returns>Stream which can be used to read/write to the entry</returns>
+        public static Stream CreateAndOpenEntry(this ZipArchive archive, string entryName)
+        {
+            ZipArchiveEntry? existing = archive.GetEntry(entryName);
+            if(existing != null)
+            {
+                existing.Delete();
+            }
+
+            return archive.CreateEntry(entryName).Open();
+        }
+        
+        /// <summary>
         /// Asynchronously copies a file to the archive, overwriting if <code>overwrite</code> is set to <code>true</code>.
         /// </summary>
         /// <param name="archive">Archive to copy the file to</param>

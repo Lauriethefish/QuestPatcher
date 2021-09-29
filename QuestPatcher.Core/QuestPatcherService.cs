@@ -49,7 +49,7 @@ namespace QuestPatcher.Core
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders, Logger);
             _apkTools = new ApkTools(Logger, FilesDownloader);
             DebugBridge = new AndroidDebugBridge(Logger, FilesDownloader, OnAdbDisconnect);
-            PatchingManager = new PatchingManager(Logger, Config, DebugBridge, _apkTools, SpecialFolders, FilesDownloader, Prompter, ExitApplication);
+            PatchingManager = new PatchingManager(Logger, Config, DebugBridge, _apkTools, SpecialFolders, FilesDownloader, Prompter, new ApkSigner(), ExitApplication);
             ModManager = new ModManager(Logger, DebugBridge, SpecialFolders, PatchingManager, Config, FilesDownloader);
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
             InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager, PatchingManager);

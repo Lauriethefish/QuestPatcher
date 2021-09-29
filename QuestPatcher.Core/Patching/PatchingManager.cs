@@ -9,7 +9,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,12 +64,13 @@ namespace QuestPatcher.Core.Patching
         private readonly SpecialFolders _specialFolders;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly IUserPrompter _prompter;
+        private readonly ApkSigner _apkSigner;
         private readonly Action _quit;
 
         private readonly string _storedApkPath;
         private Dictionary<string, Dictionary<string, string>>? _libUnityIndex;
 
-        public PatchingManager(Logger logger, Config config, AndroidDebugBridge debugBridge, ApkTools apkTools, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, Action quit)
+        public PatchingManager(Logger logger, Config config, AndroidDebugBridge debugBridge, ApkTools apkTools, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, ApkSigner apkSigner, Action quit)
         {
             _logger = logger;
             _config = config;
@@ -79,6 +79,7 @@ namespace QuestPatcher.Core.Patching
             _specialFolders = specialFolders;
             _filesDownloader = filesDownloader;
             _prompter = prompter;
+            _apkSigner = apkSigner;
             _quit = quit;
 
             _storedApkPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
@@ -440,7 +441,17 @@ namespace QuestPatcher.Core.Patching
                 // The disk IO while opening the APK as a zip archive causes a UI freeze, so we run it on another thread
                 // We cannot just create this tag before compiling - apktool will remove it as it isn't a normal part of the APK
                 apkArchive.CreateEntry(QuestPatcherTagName);
+                
+                // Pause patching before compiling the APK in order to give a developer the chance to modify it.
+                if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
+                {
+                    return;
+                }
+                
+                _logger.Information("Signing APK (this might take a while) . . .");
+                PatchingStage = PatchingStage.Signing;
 
+                await _apkSigner.SignApkWithPatchingCertificate(apkArchive);
                 _logger.Information("Closing APK archive . . .");
             }
             finally
@@ -448,45 +459,6 @@ namespace QuestPatcher.Core.Patching
                 await Task.Run(() => { apkArchive.Dispose(); });
             }
 
-            // Pause patching before compiling the APK in order to give a developer the chance to modify it.
-            if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
-            {
-                return;
-            }
-
-            _logger.Information("Signing APK (this might take a while) . . .");
-            PatchingStage = PatchingStage.Signing;
-
-            string signedPath;
-            try
-            {
-                // First attempt to sign the APK with zipalign enabled
-                signedPath = await _apkTools.SignApk(patchedApkPath);
-            }
-            catch (SigningException ex)
-            {
-                _logger.Warning("Signing the APK failed with zipalign enabled. Falling back to non-zipalign . . .");
-                _logger.Verbose(ex.ToString());
-                // Signing with zipalign often fails on macOS, so we fall back to signing without it, which could yield worse performance/RAM usage on the quest
-                // If non-zipalign fails, then we just quit patching
-                signedPath = await _apkTools.SignApk(patchedApkPath, false);
-            }
-
-            try
-            {
-                File.Delete(patchedApkPath); // The patched APK takes up space, and we don't need it now
-            }
-            catch (IOException) // Sometimes a developer might be using the APK, so avoid failing the whole patching process
-            {
-                _logger.Warning("Failed to delete patched APK");
-            }
-
-            // Avoid uninstalling the APK then failing during installation. Fail here instead to preserve the vanilla game
-            if (!File.Exists(signedPath))
-            {
-                throw new PatchingException($"Signed APK ({signedPath}) not found! Signing must have failed");
-            }
-            
             _logger.Information("Uninstalling the default APK . . .");
             PatchingStage = PatchingStage.UninstallingOriginal;
 
@@ -495,8 +467,16 @@ namespace QuestPatcher.Core.Patching
             _logger.Information("Installing the modded APK . . .");
             PatchingStage = PatchingStage.InstallingModded;
 
-            await _debugBridge.InstallApp(signedPath);
-            File.Delete(signedPath);
+            await _debugBridge.InstallApp(patchedApkPath);
+            
+            try
+            {
+                File.Delete(patchedApkPath); // The patched APK takes up space, and we don't need it now
+            }
+            catch (IOException) // Sometimes a developer might be using the APK, so avoid failing the whole patching process
+            {
+                _logger.Warning("Failed to delete patched APK");
+            }
 
             _logger.Information("Patching complete!");
             InstalledApp.IsModded = true;
