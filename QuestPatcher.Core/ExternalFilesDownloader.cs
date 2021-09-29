@@ -104,13 +104,6 @@ namespace QuestPatcher.Core
         private readonly Dictionary<ExternalFileType, FileInfo> _fileTypes = new()
         {
             {
-                ExternalFileType.UberApkSigner,
-                new FileInfo
-                {
-                    SaveName = "uber-apk-signer.jar".ForAllSystems(),
-                }
-            },
-            {
                 ExternalFileType.Modloader64,
                 new FileInfo
                 {
