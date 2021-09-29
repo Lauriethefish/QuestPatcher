@@ -211,11 +211,6 @@ namespace QuestPatcher.Core
             return (await ListPackages()).Where(packageId => !DefaultPackagePrefixes.Any(packageId.StartsWith)).ToList();
         }
 
-        public async Task<string> GetPackageVersion(string packageId)
-        {
-            return (await RunCommand($"shell dumpsys \"package {packageId} | grep versionName\"")).StandardOutput.Remove(0, 16).Trim();
-        }
-
         public async Task InstallApp(string apkPath)
         {
             await RunCommand($"install \"{apkPath}\"");
