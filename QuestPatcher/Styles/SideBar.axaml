@@ -94,10 +94,10 @@ SOFTWARE.
         <Setter Property="IsVisible" Value="False" />
     </Style>
     <Style Selector="TabControl.sidebar > TabItem:selected">
-        <Setter Property="Background" Value="#1fffffff"/>
+        <Setter Property="Background" Value="{DynamicResource TabItemSelected}"/>
     </Style>
 
     <Style Selector="TabControl.sidebar > TabItem:pointerover /template/ Border#PART_LayoutRoot">
-        <Setter Property="Background" Value="#3fffffff"/>
+        <Setter Property="Background" Value="{DynamicResource TabItemHover}"/>
     </Style>
 </Styles>

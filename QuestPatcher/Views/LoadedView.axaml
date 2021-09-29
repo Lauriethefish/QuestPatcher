@@ -18,12 +18,12 @@
           <TextBlock TextAlignment="Center" Text="{Binding SelectedAppText}" FontSize="10" TextTrimming="CharacterEllipsis"/>
         </StackPanel>
         <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
+          <ExperimentalAcrylicMaterial TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
         </ExperimentalAcrylicBorder.Material>
       </ExperimentalAcrylicBorder>
       <ExperimentalAcrylicBorder IsHitTestVisible="False">
         <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial TintColor="#222222" MaterialOpacity="0.85" TintOpacity="1" />
+          <ExperimentalAcrylicMaterial TintColor="{DynamicResource SelectedSectionBackground}" MaterialOpacity="0.85" TintOpacity="1" />
         </ExperimentalAcrylicBorder.Material>
         <TextBlock Text="{Binding #TabControl.SelectedItem.Header}" Margin="40 20" FontSize="32" FontWeight="Light" />
       </ExperimentalAcrylicBorder>

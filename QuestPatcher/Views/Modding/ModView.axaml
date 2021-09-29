@@ -10,7 +10,7 @@
   </Design.DataContext>
   <UserControl.Styles>
     <Style Selector="DockPanel#MainModPanel:pointerover">
-      <Setter Property="Background" Value="#353535"/>
+      <Setter Property="Background" Value="{DynamicResource ModHover}"/>
     </Style>
   </UserControl.Styles>
   

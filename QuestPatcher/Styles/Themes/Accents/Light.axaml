@@ -1,0 +1,11 @@
+﻿<Style xmlns="https://github.com/avaloniaui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style.Resources>
+        <Color x:Key="MainBackground">White</Color>
+        <Color x:Key="TabItemHover">#888888</Color>
+        <Color x:Key="TabItemSelected">#1f000000</Color>
+        <Color x:Key="SelectedSectionBackground">#DDDDDD</Color>
+        <Color x:Key="ModListBackground">#EEEEEE</Color>
+        <Color x:Key="ModHover">#E0E0E0</Color>
+    </Style.Resources>
+</Style>

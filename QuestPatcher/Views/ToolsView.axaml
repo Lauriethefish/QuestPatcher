@@ -57,6 +57,12 @@
             Allows you to select a different application to mod
           </TextBlock>
         </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+              <ToggleSwitch IsChecked="{Binding Config.EnableLightTheme}">Light Theme</ToggleSwitch>
+              <TextBlock VerticalAlignment="Center" FontSize="12">
+                  Enables light theme (Warning: May damage eyes)
+              </TextBlock>
+          </StackPanel>
       </StackPanel>
     </StackPanel>
     <UserControl Width="500" Margin="0 15 0 0" VerticalAlignment="Bottom" Content="{Binding ProgressView}" HorizontalAlignment="Center" DockPanel.Dock="Bottom"/>

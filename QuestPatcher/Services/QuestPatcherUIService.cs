@@ -35,6 +35,8 @@ namespace QuestPatcher.Services
         {
             _appLifetime = appLifetime;
 
+            App.SetTheme(Config.EnableLightTheme);
+            Config.PropertyChanged += OnConfigPropertyChanged;
             _mainWindow = InitialiseUI();
 
             _appLifetime.MainWindow = _mainWindow;
@@ -43,6 +45,14 @@ namespace QuestPatcher.Services
 
             _mainWindow.Opened += async (_, _) => await LoadAndHandleErrors();
             _mainWindow.Closing += OnMainWindowClosing;
+        }
+
+        private void OnConfigPropertyChanged(object? sender, PropertyChangedEventArgs args)
+        {
+            if(args.PropertyName == nameof(Config.EnableLightTheme))
+            {
+                App.SetTheme(Config.EnableLightTheme);
+            }
         }
 
         private Window InitialiseUI()
