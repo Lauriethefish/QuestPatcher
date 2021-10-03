@@ -8,7 +8,6 @@
         Icon="/Assets/questpatcher-logo.ico"
         Title="Change Selected App"
         Background="{x:Null}"
-        Foreground="{StaticResource SystemBaseHighColor}"
         ExtendClientAreaToDecorationsHint="true"
         ExtendClientAreaTitleBarHeightHint="-1">
   <Design.DataContext>

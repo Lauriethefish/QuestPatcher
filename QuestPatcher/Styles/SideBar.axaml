@@ -61,7 +61,7 @@ SOFTWARE.
                       <RowDefinition Height="*" />
                       <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <ScrollViewer Background="{x:Null}" Grid.Column="0" Grid.Row="0"
+                    <ScrollViewer Grid.Column="0" Grid.Row="0"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedItem.(ScrollViewer.VerticalScrollBarVisibility)}">
                         <ContentPresenter
