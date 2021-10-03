@@ -7,5 +7,7 @@
         <Color x:Key="SelectedSectionBackground">#DDDDDD</Color>
         <Color x:Key="ModListBackground">#EEEEEE</Color>
         <Color x:Key="ModHover">#E0E0E0</Color>
+        <ExperimentalAcrylicMaterial x:Key="MainBackgroundMaterial" TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
+        <ExperimentalAcrylicMaterial x:Key="SelectedSectionBackgroundMaterial" TintColor="{DynamicResource SelectedSectionBackground}" MaterialOpacity="0.85" TintOpacity="1" />
     </Style.Resources>
 </Style>

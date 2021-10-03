@@ -16,13 +16,9 @@
   </Design.DataContext>
   
     <DockPanel HorizontalAlignment="Stretch">
-        <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="30">
-            <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
-            </ExperimentalAcrylicBorder.Material>
-        </ExperimentalAcrylicBorder>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="30" Material="{DynamicResource MainBackgroundMaterial}"/>
 
-        <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10" IsHitTestVisible="True">
+            <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10" IsHitTestVisible="True">
           <ExperimentalAcrylicBorder.Material>
             <ExperimentalAcrylicMaterial TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
           </ExperimentalAcrylicBorder.Material>

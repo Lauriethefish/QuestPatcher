@@ -16,7 +16,8 @@
         Background="{x:Null}"
         Foreground="{StaticResource SystemBaseHighColor}"
         ExtendClientAreaToDecorationsHint="true"
-        ExtendClientAreaTitleBarHeightHint="-1">
+        ExtendClientAreaTitleBarHeightHint="-1"
+        TransparencyLevelHint="AcrylicBlur">
   
   <Design.DataContext>
     <viewModels:MainWindowViewModel />

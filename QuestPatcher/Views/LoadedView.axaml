@@ -12,21 +12,16 @@
   
   <Panel>
     <DockPanel HorizontalAlignment="Stretch">
-      <ExperimentalAcrylicBorder DockPanel.Dock="Left" Width="240">
+      <ExperimentalAcrylicBorder DockPanel.Dock="Left" Width="240" Material="{DynamicResource MainBackgroundMaterial}">
         <StackPanel Orientation="Vertical" Margin="10 30 10 10" Spacing="3">
           <TextBlock TextAlignment="Center" Text="{Binding WelcomeText}" />
           <TextBlock TextAlignment="Center" Text="{Binding SelectedAppText}" FontSize="10" TextTrimming="CharacterEllipsis"/>
         </StackPanel>
-        <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
-        </ExperimentalAcrylicBorder.Material>
-      </ExperimentalAcrylicBorder>
-      <ExperimentalAcrylicBorder IsHitTestVisible="False">
-        <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial TintColor="{DynamicResource SelectedSectionBackground}" MaterialOpacity="0.85" TintOpacity="1" />
-        </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+        
+    <ExperimentalAcrylicBorder IsHitTestVisible="False" Material="{DynamicResource SelectedSectionBackgroundMaterial}">
         <TextBlock Text="{Binding #TabControl.SelectedItem.Header}" Margin="40 20" FontSize="32" FontWeight="Light" />
-      </ExperimentalAcrylicBorder>
+    </ExperimentalAcrylicBorder>
     </DockPanel>
     
     <TabControl Classes="sidebar">

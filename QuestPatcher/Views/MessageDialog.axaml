@@ -12,10 +12,7 @@
         ExtendClientAreaToDecorationsHint="true"
         ExtendClientAreaTitleBarHeightHint="-1">
     <DockPanel HorizontalAlignment="Stretch">
-        <ExperimentalAcrylicBorder DockPanel.Dock="Bottom">
-            <ExperimentalAcrylicBorder.Material>
-              <ExperimentalAcrylicMaterial TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
-            </ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicBorder DockPanel.Dock="Bottom" Material="{DynamicResource MainBackgroundMaterial}">
             <DockPanel Margin="0 20 0 0">
               <Panel DockPanel.Dock="Top">
                 <TextBlock Name="TitleText" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline"/>

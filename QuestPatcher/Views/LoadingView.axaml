@@ -10,15 +10,8 @@
   </Design.DataContext>
   
   <DockPanel HorizontalAlignment="Stretch">
-      <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="30">
-        <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
-        </ExperimentalAcrylicBorder.Material>
-      </ExperimentalAcrylicBorder>
-      <ExperimentalAcrylicBorder DockPanel.Dock="Left" IsHitTestVisible="True">
-        <ExperimentalAcrylicBorder.Material>
-          <ExperimentalAcrylicMaterial TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
-        </ExperimentalAcrylicBorder.Material>
+      <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="30" Material="{DynamicResource MainBackgroundMaterial}" />
+    <ExperimentalAcrylicBorder DockPanel.Dock="Left" Material="{DynamicResource MainBackgroundMaterial}" IsHitTestVisible="True">
         <Panel Margin="20" IsHitTestVisible="True">
           <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="5">
             <TextBlock TextAlignment="Center">QuestPatcher loading . . .</TextBlock>
