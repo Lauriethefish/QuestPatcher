@@ -81,21 +81,8 @@ namespace QuestPatcher.Core.Models
             }
         }
         private bool _pauseBeforeCompile;
-
-        [DefaultValue(false)]
-        public bool EnableLightTheme
-        {
-            get => _enableLightTheme;
-            set
-            {
-                if(value != _enableLightTheme)
-                {
-                    _enableLightTheme = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-        private bool _enableLightTheme;
+        
+        public string SelectedThemeName { get; set; } = "Dark";
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

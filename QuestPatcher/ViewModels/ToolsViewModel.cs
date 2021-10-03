@@ -20,6 +20,8 @@ namespace QuestPatcher.ViewModels
         public ProgressViewModel ProgressView { get; }
 
         public OperationLocker Locker { get; }
+        
+        public ThemeManager ThemeManager { get; }
 
         public string AdbButtonText => _isAdbLogging ? "Stop ADB Log" : "Start ADB Log";
 
@@ -33,11 +35,12 @@ namespace QuestPatcher.ViewModels
         private readonly QuestPatcherUIService _uiService;
         private readonly InfoDumper _dumper;
 
-        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService, InfoDumper dumper)
+        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService, InfoDumper dumper, ThemeManager themeManager)
         {
             Config = config;
             ProgressView = progressView;
             Locker = locker;
+            ThemeManager = themeManager;
 
             _mainWindow = mainWindow;
             _specialFolders = specialFolders;
@@ -180,6 +183,16 @@ namespace QuestPatcher.ViewModels
         public async void ChangeApp()
         {
             await _uiService.OpenChangeAppMenu(false);
+        }
+
+        public void OpenThemesFolder()
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = ThemeManager.ThemesDirectory,
+                UseShellExecute = true,
+                Verb = "open"
+            });
         }
     }
 }

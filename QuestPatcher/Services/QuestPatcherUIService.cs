@@ -10,6 +10,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Avalonia.Data;
+using Avalonia.Markup.Xaml;
+using Avalonia.Styling;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Core;
 
@@ -28,15 +31,15 @@ namespace QuestPatcher.Services
         private OperationLocker? _operationLocker;
         private BrowseImportManager? _browseManager;
         private OtherItemsViewModel? _otherItemsView;
+        private readonly ThemeManager _themeManager;
 
         private bool _isShuttingDown;
 
         public QuestPatcherUIService(IClassicDesktopStyleApplicationLifetime appLifetime) : base(new UIPrompter())
         {
             _appLifetime = appLifetime;
+            _themeManager = new ThemeManager(Config, SpecialFolders, Logger);
 
-            App.SetTheme(Config.EnableLightTheme);
-            Config.PropertyChanged += OnConfigPropertyChanged;
             _mainWindow = InitialiseUI();
 
             _appLifetime.MainWindow = _mainWindow;
@@ -45,14 +48,6 @@ namespace QuestPatcher.Services
 
             _mainWindow.Opened += async (_, _) => await LoadAndHandleErrors();
             _mainWindow.Closing += OnMainWindowClosing;
-        }
-
-        private void OnConfigPropertyChanged(object? sender, PropertyChangedEventArgs args)
-        {
-            if(args.PropertyName == nameof(Config.EnableLightTheme))
-            {
-                App.SetTheme(Config.EnableLightTheme);
-            }
         }
 
         private Window InitialiseUI()
@@ -72,7 +67,8 @@ namespace QuestPatcher.Services
                     new PatchingViewModel(Config, _operationLocker, PatchingManager, window, Logger, progressViewModel, FilesDownloader),
                     new ManageModsViewModel(ModManager, PatchingManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
-                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, Logger, PatchingManager, DebugBridge, this, InfoDumper),
+                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, Logger, PatchingManager, DebugBridge, this, InfoDumper,
+                        _themeManager),
                     _otherItemsView,
                     Config,
                     PatchingManager,

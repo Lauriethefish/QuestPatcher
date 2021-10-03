@@ -57,13 +57,26 @@
             Allows you to select a different application to mod
           </TextBlock>
         </StackPanel>
-          <StackPanel Orientation="Horizontal" Spacing="10">
-              <ToggleSwitch IsChecked="{Binding Config.EnableLightTheme}">Light Theme</ToggleSwitch>
-              <TextBlock VerticalAlignment="Center" FontSize="12">
-                  Enables light theme (Warning: May damage eyes)
-              </TextBlock>
-          </StackPanel>
       </StackPanel>
+        <StackPanel Margin="0 20 0 0" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <TextBlock FontSize="20">Theming</TextBlock>
+                <TextBlock FontSize="10" VerticalAlignment="Bottom" FontWeight="Light">Allows UI Customization</TextBlock>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="18">
+                <TextBlock FontSize="15" VerticalAlignment="Center">Select Theme:</TextBlock>
+                <ComboBox Items="{Binding ThemeManager.AvailableThemes}" MinWidth="150" SelectedItem="{Binding ThemeManager.SelectedTheme}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>    
+                </ComboBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Command="{Binding OpenThemesFolder}">Open Themes Folder</Button>
+            </StackPanel>
+        </StackPanel>
     </StackPanel>
     <UserControl Width="500" Margin="0 15 0 0" VerticalAlignment="Bottom" Content="{Binding ProgressView}" HorizontalAlignment="Center" DockPanel.Dock="Bottom"/>
   </DockPanel>
