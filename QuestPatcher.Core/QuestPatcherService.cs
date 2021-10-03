@@ -18,7 +18,7 @@ namespace QuestPatcher.Core
     public abstract class QuestPatcherService : INotifyPropertyChanged
     {
         protected SpecialFolders SpecialFolders { get; }
-        protected Logger Logger { get; }
+        public Logger Logger { get; }
         protected PatchingManager PatchingManager { get; }
         protected ModManager ModManager { get; }
         protected AndroidDebugBridge DebugBridge { get; }
@@ -101,6 +101,7 @@ namespace QuestPatcher.Core
                 Logger.Warning("Failed to delete temporary directory");
             }
             Logger.Debug("Goodbye!");
+            Logger.Dispose();
         }
 
         protected async Task RunStartup()

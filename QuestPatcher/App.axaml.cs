@@ -3,29 +3,43 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Styling;
 using QuestPatcher.Core;
 using QuestPatcher.Services;
-using QuestPatcher.ViewModels;
 using QuestPatcher.Views;
+using Serilog.Core;
 
 namespace QuestPatcher
 {
     public class App : Application
     {
+        private Logger? _logger;
+        
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
+        }
+
+        private void OnAppDomainUnhandledException(object? sender, UnhandledExceptionEventArgs args)
+        {
+            if(!args.IsTerminating)
+            {
+                return;
+            }
+            
+            _logger?.Error($"Unhandled exception, QuestPatcher quitting!: {args.ExceptionObject}");
+            _logger?.Dispose(); // Flush logs
         }
 
         public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
+                
                 try
                 {
                     QuestPatcherService questPatcherService = new QuestPatcherUIService(desktop);
+                    _logger = questPatcherService.Logger;
                     
                     desktop.Exit += (_, _) =>
                     {
