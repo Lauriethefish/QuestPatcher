@@ -15,7 +15,7 @@ namespace QuestPatcher.CLI
     public class PatchCommand : QuestPatcherCommand
     {
         [CommandParameter(0, Name = "apkPath", Description = "Path to the APK to patch")]
-        public string ApkPath { get; init; }
+        public string ApkPath { get; init; } = null!; // null! is to silence the compiler, but hopefully we can find a better way to tell it that this value is assigned by CliFx
         
         [CommandOption("resultPath", 'd', Description = "Path to save the APK to instead of patching in place")]
         public string? DestinationPath { get; init; }
