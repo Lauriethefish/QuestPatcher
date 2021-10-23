@@ -18,8 +18,10 @@ namespace QuestPatcher.Core
     public abstract class QuestPatcherService : INotifyPropertyChanged
     {
         protected SpecialFolders SpecialFolders { get; }
+        
+        protected TempFolders TempFolders { get; }
         public Logger Logger { get; }
-        protected PatchingManager PatchingManager { get; }
+        protected InstallationManager InstallationManager { get; }
         protected ModManager ModManager { get; }
         protected AndroidDebugBridge DebugBridge { get; }
         protected ExternalFilesDownloader FilesDownloader { get; }
@@ -40,17 +42,18 @@ namespace QuestPatcher.Core
         protected QuestPatcherService(IUserPrompter prompter)
         {
             Prompter = prompter;
-            SpecialFolders = new SpecialFolders(); // Load QuestPatcher application folders
+            SpecialFolders = new(); // Load QuestPatcher application folders
+            TempFolders = new();
 
             Logger = SetupLogging();
             _configManager = new ConfigManager(Logger, SpecialFolders);
             _configManager.GetOrLoadConfig(); // Load the config file
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders, Logger);
             DebugBridge = new AndroidDebugBridge(Logger, FilesDownloader, OnAdbDisconnect);
-            PatchingManager = new PatchingManager(Logger, Config, DebugBridge, SpecialFolders, FilesDownloader, Prompter, new ApkSigner(), ExitApplication);
-            ModManager = new ModManager(Logger, DebugBridge, SpecialFolders, PatchingManager, Config, FilesDownloader);
+            InstallationManager = new InstallationManager(Logger, Config, DebugBridge, TempFolders, Prompter, new ApkSigner(), ExitApplication, new AppPatcher(Logger, FilesDownloader));
+            ModManager = new ModManager(Logger, DebugBridge, SpecialFolders, InstallationManager, Config, FilesDownloader);
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
-            InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager, PatchingManager);
+            InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager, InstallationManager);
 
             Logger.Debug($"QuestPatcherService constructed (QuestPatcher version {VersionUtil.QuestPatcherVersion})");
         }
@@ -94,7 +97,7 @@ namespace QuestPatcher.Core
             _configManager.SaveConfig();
             try
             {
-                Directory.Delete(SpecialFolders.TempFolder, true);
+                Directory.Delete(TempFolders.TempFolder, true);
             }
             catch (Exception)
             {
@@ -124,7 +127,7 @@ namespace QuestPatcher.Core
 
             await MigrateOldFiles();
 
-            await PatchingManager.LoadInstalledApp();
+            await InstallationManager.LoadInstalledApp();
             await ModManager.LoadInstalledMods();
             HasLoaded = true;
         }

@@ -25,6 +25,11 @@ namespace QuestPatcher.Core
             _path = path;
         }
 
+        public TempFile()
+        {
+            _path = System.IO.Path.GetTempFileName();
+        }
+
         ~TempFile() { Dispose(); }
 
         public void Dispose()

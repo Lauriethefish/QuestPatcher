@@ -10,9 +10,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Avalonia.Data;
-using Avalonia.Markup.Xaml;
-using Avalonia.Styling;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Core;
 
@@ -44,7 +41,7 @@ namespace QuestPatcher.Services
 
             _appLifetime.MainWindow = _mainWindow;
             UIPrompter prompter = (UIPrompter) Prompter;
-            prompter.Init(_mainWindow, Config, this, SpecialFolders);
+            prompter.Init(_mainWindow, Config, this, SpecialFolders, TempFolders);
 
             _mainWindow.Opened += async (_, _) => await LoadAndHandleErrors();
             _mainWindow.Closing += OnMainWindowClosing;
@@ -58,20 +55,20 @@ namespace QuestPatcher.Services
             window.Height = 550;
             _operationLocker = new();
             _operationLocker.StartOperation(); // Still loading
-            _browseManager = new(OtherFilesManager, ModManager, window, Logger, PatchingManager, _operationLocker);
+            _browseManager = new(OtherFilesManager, ModManager, window, Logger, InstallationManager, _operationLocker);
             ProgressViewModel progressViewModel = new(_operationLocker, FilesDownloader);
             _otherItemsView = new OtherItemsViewModel(OtherFilesManager, window, Logger, _browseManager, _operationLocker, progressViewModel);
 
             MainWindowViewModel mainWindowViewModel = new(
                 new LoadedViewModel(
-                    new PatchingViewModel(Config, _operationLocker, PatchingManager, window, Logger, progressViewModel, FilesDownloader),
-                    new ManageModsViewModel(ModManager, PatchingManager, window, _operationLocker, progressViewModel, _browseManager),
+                    new PatchingViewModel(Config, _operationLocker, InstallationManager, window, Logger, progressViewModel, FilesDownloader),
+                    new ManageModsViewModel(ModManager, InstallationManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
-                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, Logger, PatchingManager, DebugBridge, this, InfoDumper,
+                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, Logger, InstallationManager, DebugBridge, this, InfoDumper,
                         _themeManager),
                     _otherItemsView,
                     Config,
-                    PatchingManager,
+                    InstallationManager,
                     _browseManager,
                     Logger
                 ),
@@ -194,7 +191,7 @@ namespace QuestPatcher.Services
             }
 
             ModManager.OnReload();
-            PatchingManager.ResetInstalledApp();
+            InstallationManager.ResetInstalledApp();
             await LoadAndHandleErrors();
         }
 

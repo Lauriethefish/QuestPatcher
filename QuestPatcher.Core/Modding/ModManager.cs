@@ -39,7 +39,7 @@ namespace QuestPatcher.Core.Modding
         private readonly Logger _logger;
         private readonly AndroidDebugBridge _debugBridge;
         private readonly SpecialFolders _specialFolders;
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallationManager _installationManager;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly Config _config;
 
@@ -47,12 +47,12 @@ namespace QuestPatcher.Core.Modding
         public string ModsPath => $"/sdcard/Android/data/{_config.AppId}/files/mods/";
         public string LibsPath => $"/sdcard/Android/data/{_config.AppId}/files/libs/";
 
-        public ModManager(Logger logger, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, PatchingManager patchingManager, Config config, ExternalFilesDownloader filesDownloader)
+        public ModManager(Logger logger, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, InstallationManager installationManager, Config config, ExternalFilesDownloader filesDownloader)
         {
             _logger = logger;
             _debugBridge = debugBridge;
             _specialFolders = specialFolders;
-            _patchingManager = patchingManager;
+            _installationManager = installationManager;
             _config = config;
             _filesDownloader = filesDownloader;
         }
@@ -475,7 +475,7 @@ namespace QuestPatcher.Core.Modding
 
             _logger.Information($"Installing mod {mod.Id}");
 
-            Debug.Assert(_patchingManager.InstalledApp != null); // We must be past the load app stage to install mods, so this is fine
+            Debug.Assert(_installationManager.InstalledApp != null); // We must be past the load app stage to install mods, so this is fine
 
             installedInBranch.Add(mod.Id); // Add to the installed tree so that dependencies further down on us will trigger a recursive install error
 

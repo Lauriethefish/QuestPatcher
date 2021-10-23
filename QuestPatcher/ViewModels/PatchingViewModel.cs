@@ -26,26 +26,26 @@ namespace QuestPatcher.ViewModels
 
         public ExternalFilesDownloader FilesDownloader { get; }
 
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallationManager _installationManager;
         private readonly Window _mainWindow;
         private readonly Logger _logger;
 
-        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, Logger logger, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
+        public PatchingViewModel(Config config, OperationLocker locker, InstallationManager installationManager, Window mainWindow, Logger logger, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
         {
             Config = config;
             Locker = locker;
             ProgressBarView = progressBarView;
             FilesDownloader = filesDownloader;
 
-            _patchingManager = patchingManager;
+            _installationManager = installationManager;
             _mainWindow = mainWindow;
             _logger = logger;
 
-            _patchingManager.PropertyChanged += (_, args) =>
+            _installationManager.PropertyChanged += (_, args) =>
             {
-                if(args.PropertyName == nameof(_patchingManager.PatchingStage))
+                if(args.PropertyName == nameof(_installationManager.PatchingStage))
                 {
-                    OnPatchingStageChange(_patchingManager.PatchingStage);
+                    OnPatchingStageChange(_installationManager.PatchingStage);
                 }
             };
         }
@@ -56,7 +56,7 @@ namespace QuestPatcher.ViewModels
             Locker.StartOperation();
             try
             {
-                await _patchingManager.PatchApp();
+                await _installationManager.PatchApp();
             }
             catch (Exception ex)
             {
@@ -77,8 +77,8 @@ namespace QuestPatcher.ViewModels
                 Locker.FinishOperation();
             }
 
-            Debug.Assert(_patchingManager.InstalledApp != null); // Cannot get to this screen without having loaded the installed app
-            if (_patchingManager.InstalledApp.IsModded)
+            Debug.Assert(_installationManager.InstalledApp != null); // Cannot get to this screen without having loaded the installed app
+            if (_installationManager.InstalledApp.IsModded)
             {
                 // Display a dialogue to give the user some info about what to expect next, and to avoid them pressing restore app by mistake
                 _logger.Debug("Patching completed successfully, displaying info dialogue");

@@ -391,8 +391,9 @@ namespace QuestPatcher.Core
         /// Finds the location of the specified file, and downloads/extracts it if it does not exist.
         /// </summary>
         /// <param name="fileType">The type of file to download</param>
+        /// <param name="redownloadIfPossible">Whether or not to force re-downloading of the file if it has been already downloaded</param>
         /// <returns>The location of the file</returns>
-        public async Task<string> GetFileLocation(ExternalFileType fileType)
+        public async Task<string> GetFileLocation(ExternalFileType fileType, bool redownloadIfPossible = false)
         {
             
             FileInfo fileInfo = _fileTypes[fileType];
@@ -408,9 +409,21 @@ namespace QuestPatcher.Core
                 saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder, fileInfo.SaveName.Value);
             }
 
-            if(!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation))
+            bool isAlreadyDownloaded = _fullyDownloaded.Contains(fileType) && File.Exists(saveLocation);
+
+            if(!isAlreadyDownloaded || redownloadIfPossible)
             {
-                await DownloadFile(fileType, fileInfo, (await PrepareDownloadUrls())[fileType].Value, saveLocation);
+                try
+                {
+                    await DownloadFile(fileType, fileInfo, (await PrepareDownloadUrls())[fileType].Value, saveLocation);
+                }
+                catch(Exception)
+                {
+                    if(!(redownloadIfPossible && isAlreadyDownloaded))
+                    {
+                        throw;
+                    }
+                }
             }
 
             return saveLocation;

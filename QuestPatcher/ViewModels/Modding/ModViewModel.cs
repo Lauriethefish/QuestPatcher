@@ -45,17 +45,17 @@ namespace QuestPatcher.ViewModels.Modding
         public OperationLocker Locker { get; }
 
         private readonly ModManager _modManager;
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallationManager _installationManager;
         private readonly Window _mainWindow;
 
         private bool _isToggling; // Used to temporarily display the mod with the new toggle value until the toggle succeeds or fails
 
-        public ModViewModel(Mod inner, ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker)
+        public ModViewModel(Mod inner, ModManager modManager, InstallationManager installationManager, Window mainWindow, OperationLocker locker)
         {
             Inner = inner;
             Locker = locker;
             _modManager = modManager;
-            _patchingManager = patchingManager;
+            _installationManager = installationManager;
             _mainWindow = mainWindow;
 
             inner.PropertyChanged += (_, args) =>
@@ -111,14 +111,14 @@ namespace QuestPatcher.ViewModels.Modding
         /// </summary>
         private async Task InstallSafely()
         {
-            Debug.Assert(_patchingManager.InstalledApp != null);
+            Debug.Assert(_installationManager.InstalledApp != null);
             // Check game version, and prompt if it is incorrect to avoid users installing mods that may crash their game
-            if(Inner.PackageVersion != _patchingManager.InstalledApp.Version)
+            if(Inner.PackageVersion != _installationManager.InstalledApp.Version)
             {
                 DialogBuilder builder = new()
                 {
                     Title = "Outdated Mod",
-                    Text = $"The mod you are trying to install is for game version {Inner.PackageVersion}, however you have {_patchingManager.InstalledApp.Version}. The mod may fail to load, it may crash the game, or it might even work just fine."
+                    Text = $"The mod you are trying to install is for game version {Inner.PackageVersion}, however you have {_installationManager.InstalledApp.Version}. The mod may fail to load, it may crash the game, or it might even work just fine."
                 };
                 builder.OkButton.Text = "Continue Anyway";
 

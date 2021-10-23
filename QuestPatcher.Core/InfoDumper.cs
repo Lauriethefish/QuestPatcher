@@ -22,7 +22,7 @@ namespace QuestPatcher.Core
         private readonly Logger _logger;
         private readonly ConfigManager _configManager;
         private readonly Config _config;
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallationManager _installationManager;
 
         private const string LogsDirectory = "logs";
         private string GameLogsDirectory => $"logs/{_config.AppId}";
@@ -30,7 +30,7 @@ namespace QuestPatcher.Core
         private string GameConfigsPath => $"/sdcard/ModData/{_config.AppId}/Configs/";
         private string GameConfigsDirectory => $"configs/{_config.AppId}";
 
-        public InfoDumper(SpecialFolders specialFolders, AndroidDebugBridge debugBridge, ModManager modManager, Logger logger, ConfigManager configManager, PatchingManager patchingManager)
+        public InfoDumper(SpecialFolders specialFolders, AndroidDebugBridge debugBridge, ModManager modManager, Logger logger, ConfigManager configManager, InstallationManager installationManager)
         {
             _specialFolders = specialFolders;
             _debugBridge = debugBridge;
@@ -38,7 +38,7 @@ namespace QuestPatcher.Core
             _logger = logger;
             _configManager = configManager;
             _config = configManager.GetOrLoadConfig();
-            _patchingManager = patchingManager;
+            _installationManager = installationManager;
         }
         
         /// <summary>
@@ -170,7 +170,7 @@ namespace QuestPatcher.Core
             await writer.WriteLineAsync("QuestPatcher Information dump");
             await writer.WriteLineAsync("=============================");
 
-            ApkInfo? app = _patchingManager.InstalledApp;
+            ApkInfo? app = _installationManager.InstalledApp;
             if (app != null)
             {
                 await writer.WriteLineAsync(

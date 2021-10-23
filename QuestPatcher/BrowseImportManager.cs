@@ -29,20 +29,20 @@ namespace QuestPatcher
         private readonly ModManager _modManager;
         private readonly Window _mainWindow;
         private readonly Logger _logger;
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallationManager _installationManager;
         private readonly OperationLocker _locker;
 
         private readonly FileDialogFilter _modsFilter = new();
 
         private Queue<FileImportInfo>? _currentImportQueue;
 
-        public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, Logger logger, PatchingManager patchingManager, OperationLocker locker)
+        public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, Logger logger, InstallationManager installationManager, OperationLocker locker)
         {
             _otherFilesManager = otherFilesManager;
             _modManager = modManager;
             _mainWindow = mainWindow;
             _logger = logger;
-            _patchingManager = patchingManager;
+            _installationManager = installationManager;
             _locker = locker;
 
             _modsFilter.Name = "Quest Mods";
@@ -377,15 +377,15 @@ namespace QuestPatcher
             // Import the mod file and copy it to the quest
             Mod mod = await _modManager.LoadMod(path);
 
-            Debug.Assert(_patchingManager.InstalledApp != null);
+            Debug.Assert(_installationManager.InstalledApp != null);
 
             // Prompt the user for outdated mods instead of enabling them automatically
-            if(mod.PackageVersion != _patchingManager.InstalledApp.Version)
+            if(mod.PackageVersion != _installationManager.InstalledApp.Version)
             {
                 DialogBuilder builder = new()
                 {
                     Title = "Outdated Mod",
-                    Text = $"The mod just installed is for version {mod.PackageVersion} of your app, however you have {_patchingManager.InstalledApp.Version}. Enabling the mod may crash the game, or not work."
+                    Text = $"The mod just installed is for version {mod.PackageVersion} of your app, however you have {_installationManager.InstalledApp.Version}. Enabling the mod may crash the game, or not work."
                 };
                 builder.OkButton.Text = "Enable Now";
                 builder.CancelButton.Text = "Cancel";

@@ -15,17 +15,19 @@ namespace QuestPatcher
         private Config? _config;
         private QuestPatcherUIService? _uiService;
         private SpecialFolders? _specialFolders;
+        private TempFolders? _tempFolders;
 
         /// <summary>
         /// This exists instead of a constructor since the prompter must be immediately passed on QuestPatcherService's creation, so we initialise its members after the fact.
         /// Maybe there's a better workaround, but this works fine for now
         /// </summary>
-        public void Init(Window mainWindow, Config config, QuestPatcherUIService uiService, SpecialFolders specialFolders)
+        public void Init(Window mainWindow, Config config, QuestPatcherUIService uiService, SpecialFolders specialFolders, TempFolders tempFolders)
         {
             _mainWindow = mainWindow;
             _config = config;
             _uiService = uiService;
             _specialFolders = specialFolders;
+            _tempFolders = tempFolders;
         }
 
         public Task<bool> PromptAppNotInstalled()
@@ -144,7 +146,7 @@ namespace QuestPatcher
                     Debug.Assert(_specialFolders != null);
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = _specialFolders.PatchingFolder,
+                        FileName = _tempFolders!.PatchingFolder,
                         UseShellExecute = true,
                         Verb = "open"
                     });

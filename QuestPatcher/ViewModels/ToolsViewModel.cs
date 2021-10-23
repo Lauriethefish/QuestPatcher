@@ -30,12 +30,12 @@ namespace QuestPatcher.ViewModels
         private readonly Window _mainWindow;
         private readonly SpecialFolders _specialFolders;
         private readonly Logger _logger;
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallationManager _installationManager;
         private readonly AndroidDebugBridge _debugBridge;
         private readonly QuestPatcherUIService _uiService;
         private readonly InfoDumper _dumper;
 
-        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService, InfoDumper dumper, ThemeManager themeManager)
+        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, Logger logger, InstallationManager installationManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService, InfoDumper dumper, ThemeManager themeManager)
         {
             Config = config;
             ProgressView = progressView;
@@ -45,7 +45,7 @@ namespace QuestPatcher.ViewModels
             _mainWindow = mainWindow;
             _specialFolders = specialFolders;
             _logger = logger;
-            _patchingManager = patchingManager;
+            _installationManager = installationManager;
             _debugBridge = debugBridge;
             _uiService = uiService;
             _dumper = dumper;
@@ -74,7 +74,7 @@ namespace QuestPatcher.ViewModels
                     try
                     {
                         _logger.Information("Uninstalling app . . .");
-                        await _patchingManager.UninstallCurrentApp();
+                        await _installationManager.UninstallCurrentApp();
                     }
                     finally
                     {

@@ -43,16 +43,16 @@ namespace QuestPatcher.ViewModels
         {
             get
             {
-                Debug.Assert(_patchingManager.InstalledApp != null);
-                return _patchingManager.InstalledApp;
+                Debug.Assert(_installationManager.InstalledApp != null);
+                return _installationManager.InstalledApp;
             }
         }
 
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallationManager _installationManager;
         private readonly BrowseImportManager _browseManager;
         private readonly Logger _logger;
 
-        public LoadedViewModel(PatchingViewModel patchingView, ManageModsViewModel manageModsView, LoggingViewModel loggingView, ToolsViewModel toolsView, OtherItemsViewModel otherItemsView, Config config, PatchingManager patchingManager, BrowseImportManager browseManager, Logger logger)
+        public LoadedViewModel(PatchingViewModel patchingView, ManageModsViewModel manageModsView, LoggingViewModel loggingView, ToolsViewModel toolsView, OtherItemsViewModel otherItemsView, Config config, InstallationManager installationManager, BrowseImportManager browseManager, Logger logger)
         {
             PatchingView = patchingView;
             LoggingView = loggingView;
@@ -61,13 +61,13 @@ namespace QuestPatcher.ViewModels
             OtherItemsView = otherItemsView;
 
             Config = config;
-            _patchingManager = patchingManager;
+            _installationManager = installationManager;
             _browseManager = browseManager;
             _logger = logger;
 
-            _patchingManager.PropertyChanged += (_, args) =>
+            _installationManager.PropertyChanged += (_, args) =>
             {
-                if(args.PropertyName == nameof(_patchingManager.InstalledApp) && _patchingManager.InstalledApp != null)
+                if(args.PropertyName == nameof(_installationManager.InstalledApp) && _installationManager.InstalledApp != null)
                 {
                     this.RaisePropertyChanged(nameof(AppInfo));
                     this.RaisePropertyChanged(nameof(SelectedAppText));
