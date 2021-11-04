@@ -168,30 +168,23 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
         /// <summary>
         /// Signs the given APK with the QuestPatcher patching certificate.
         /// </summary>
-        /// <param name="apkArchive">APK to sign</param>
-        public async Task SignApkWithPatchingCertificate(ZipArchive apkArchive)
+        /// <param name="path">Path to the APK to sign</param>
+        public async Task SignApkWithPatchingCertificate(string path)
         {
-            await SignApk(apkArchive, PatchingCertificatePem);
+            await SignApk(path, PatchingCertificatePem);
         }
 
         /// <summary>
         /// Signs the archive with the given PEM certificate and private key. 
         /// </summary>
-        /// <param name="apkArchive">APK to sign</param>
+        /// <param name="path">Path to the APK to sign</param>
         /// <param name="pemData">PEM of the certificate and private key</param>
-        public async Task SignApk(ZipArchive apkArchive, string pemData)
+        public async Task SignApk(string path, string pemData)
         {
-            // Delete existing signature related files
-            foreach(ZipArchiveEntry entry in apkArchive.Entries.Where(entry => entry.FullName.StartsWith("META-INF")).ToList())
-            {
-                entry.Delete();
-            }
-            
-            await using Stream manifestFile = apkArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
-            await using Stream signaturesFile = apkArchive.CreateAndOpenEntry("META-INF/BS.SF");
-            await using Stream rsaFile = apkArchive.CreateAndOpenEntry("META-INF/BS.RSA");
+            //await using Stream manifestFile = apkArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
+            await using Stream manifestFile = new MemoryStream();
+            //await using Stream signaturesFile = apkArchive.CreateAndOpenEntry("META-INF/BS.SF");
             await using Stream sigFileBody = new MemoryStream();
-
             await using(StreamWriter manifestWriter = OpenStreamWriter(manifestFile))
             {
                 await manifestWriter.WriteLineAsync("Manifest-Version: 1.0");
@@ -199,31 +192,61 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                 await manifestWriter.WriteLineAsync();
             }
 
-            foreach(ZipArchiveEntry entry in apkArchive.Entries.Where(entry => !entry.FullName.StartsWith("META-INF")))
+            // Temporarily open the archive in order to calculate these hashes
+            // This is done because opening all of the entries will cause them all to be recompressed if using ZipArchiveMode.Update, thus causing a long dispose time
+            using(ZipArchive apkArchive = ZipFile.OpenRead(path))
             {
-                await WriteEntryHash(entry, manifestFile, sigFileBody);
+                foreach(ZipArchiveEntry entry in apkArchive.Entries.Where(entry =>
+                    !entry.FullName.StartsWith("META-INF"))) // Skip other signature related files
+                {
+                    await WriteEntryHash(entry, manifestFile, sigFileBody);
+                }
             }
 
-            manifestFile.Position = 0;
-            byte[] manifestHash = await Sha.ComputeHashAsync(manifestFile);
+            using(ZipArchive apkArchive = ZipFile.Open(path, ZipArchiveMode.Update))
+            {
+                // Delete existing signature related files
+                foreach(ZipArchiveEntry entry in apkArchive.Entries.Where(entry => entry.FullName.StartsWith("META-INF")).ToList())
+                {
+                    entry.Delete();
+                }
+                
+                
+                await using Stream signaturesFile = apkArchive.CreateAndOpenEntry("META-INF/BS.SF");
+                await using Stream rsaFile = apkArchive.CreateAndOpenEntry("META-INF/BS.RSA");
+                await using Stream manifestStream = apkArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
+
+                // Find the hash of the manifest
+                manifestFile.Position = 0;
+                byte[] manifestHash = await Sha.ComputeHashAsync(manifestFile);
+                
+                // Finally, copy it to the output file
+                manifestFile.Position = 0;
+                await manifestFile.CopyToAsync(manifestStream);
+                
+                // Write the signature information
+                await using(StreamWriter signatureWriter = OpenStreamWriter(signaturesFile))
+                {
+                    await signatureWriter.WriteLineAsync("Signature-Version: 1.0");
+                    await signatureWriter.WriteLineAsync($"SHA1-Digest-Manifest: {Convert.ToBase64String(manifestHash)}");
+                    await signatureWriter.WriteLineAsync("Created-By: QuestPatcher");
+                    await signatureWriter.WriteLineAsync();
+                }
+                
+                // Copy the body of signatures for each file into the signature file
+                sigFileBody.Position = 0;
+                await sigFileBody.CopyToAsync(signaturesFile);
+                signaturesFile.Position = 0;
+
+                // Get the bytes in the signature file for signing
+                await using MemoryStream sigFileMs = new();
+                await signaturesFile.CopyToAsync(sigFileMs);
+
+                // Sign the signature file, and save the signature
+                byte[] keyFile = GetSignature(sigFileMs.ToArray(), pemData);
+                await rsaFile.WriteAsync(keyFile);
+            }
             
-            await using (StreamWriter signatureWriter = OpenStreamWriter(signaturesFile))
-            {
-                await signatureWriter.WriteLineAsync("Signature-Version: 1.0");
-                await signatureWriter.WriteLineAsync($"SHA1-Digest-Manifest: {Convert.ToBase64String(manifestHash)}");
-                await signatureWriter.WriteLineAsync("Created-By: QuestPatcher");
-                await signatureWriter.WriteLineAsync();
-            }
-
-            sigFileBody.Position = 0;
-            await sigFileBody.CopyToAsync(signaturesFile);
-            signaturesFile.Position = 0;
-
-            await using MemoryStream sigFileMs = new();
-            await signaturesFile.CopyToAsync(sigFileMs);
-
-            byte[] keyFile = GetSignature(sigFileMs.ToArray(), pemData);
-            await rsaFile.WriteAsync(keyFile);
         }
 
         /// <summary>
@@ -234,6 +257,7 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
             await using Stream sourceStream = entry.Open();
             byte[] hash = await Sha.ComputeHashAsync(sourceStream);
 
+            // First write the digest of the file to a section of the manifest file
             await using MemoryStream sectStream = new();
             await using(StreamWriter sectWriter = OpenStreamWriter(sectStream))
             {
@@ -242,6 +266,7 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                 await sectWriter.WriteLineAsync();
             }
 
+            // Then write the hash for the section of the manifest file to the signature file
             sectStream.Position = 0;
             string sectHash = Convert.ToBase64String(await Sha.ComputeHashAsync(sectStream));
             await using(StreamWriter signatureWriter = OpenStreamWriter(signatureStream))

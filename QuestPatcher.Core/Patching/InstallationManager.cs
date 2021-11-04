@@ -177,23 +177,24 @@ namespace QuestPatcher.Core.Patching
                 {
                     return;
                 }
-                
-                // Pause patching before compiling the APK in order to give a developer the chance to modify it.
-                if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
-                {
-                    return;
-                }
-                
-                _logger.Information("Signing APK (this might take a while) . . .");
-                PatchingStage = PatchingStage.Signing;
-
-                await _apkSigner.SignApkWithPatchingCertificate(apkArchive);
-                _logger.Information("Closing APK archive . . .");
             }
             finally
             {
+                // The disk IO while opening the APK as a zip archive causes a UI freeze, so we run it on another thread
+                _logger.Information("Closing APK archive . . .");
                 await Task.Run(() => { apkArchive.Dispose(); });
             }
+            
+            // Pause patching before compiling the APK in order to give a developer the chance to modify it.
+            if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
+            {
+                return;
+            }
+            
+            _logger.Information("Signing APK (this might take a while) . . .");
+            PatchingStage = PatchingStage.Signing;
+
+            await _apkSigner.SignApkWithPatchingCertificate(patchedApkPath);
 
             _logger.Information("Uninstalling the default APK . . .");
             PatchingStage = PatchingStage.UninstallingOriginal;

@@ -44,12 +44,12 @@ namespace QuestPatcher.CLI
             {
                 throw new CommandException($"The specified APK path (\"{ApkPath}\") did not exist!");
             }
-            
-            ZipArchive apkArchive;
+
+            string patchingApkPath;
             if(DestinationPath == null)
             {
                 Logger.Information("Starting patch (in-place) . . .");
-                apkArchive = ZipFile.Open(ApkPath, ZipArchiveMode.Update);
+                patchingApkPath = ApkPath;
             }
             else
             {
@@ -67,19 +67,26 @@ namespace QuestPatcher.CLI
                 }
                 
                 File.Copy(ApkPath, DestinationPath);
-                apkArchive = ZipFile.Open(DestinationPath, ZipArchiveMode.Update);
+                patchingApkPath = DestinationPath;
             }
 
-            AppPatcher patcher = new(Logger, FilesDownloader);
-            if(!await patcher.Patch(apkArchive, () => Task.FromResult(true), new PatchingPermissions
+            using(ZipArchive apkArchive = ZipFile.Open(patchingApkPath, ZipArchiveMode.Update))
             {
-                ExternalFiles = !DisableExternalFiles,
-                HandTracking = AddHandTracking,
-                Debuggable = AddDebuggable
-            }, !DisableTag))
-            {
-                // Patching cancelled
-                return;
+                AppPatcher patcher = new(Logger, FilesDownloader);
+                if(await patcher.Patch(apkArchive, () => Task.FromResult(true),
+                    new PatchingPermissions
+                    {
+                        ExternalFiles = !DisableExternalFiles,
+                        HandTracking = AddHandTracking,
+                        Debuggable = AddDebuggable
+                    }, !DisableTag))
+                {
+                    Logger.Information("APK saving . . .");
+                }   else
+                {
+                    // Patching cancelled
+                    return;
+                }  
             }
 
             if(DisableSign)
@@ -88,14 +95,13 @@ namespace QuestPatcher.CLI
             }
             else
             {
-                Logger.Information("Signing and saving APK . . .");
+                Logger.Information("Signing APK . . .");
                 ApkSigner signer = new();
-                await signer.SignApkWithPatchingCertificate(apkArchive);
+                await signer.SignApkWithPatchingCertificate(patchingApkPath);
             }
 
-            apkArchive.Dispose();
             console.ForegroundColor = ConsoleColor.Green;
-            await console.Output.WriteLineAsync("APK Saved");
+            await console.Output.WriteLineAsync("Signed APK Saved");
             console.ResetColor();
         }
     }
