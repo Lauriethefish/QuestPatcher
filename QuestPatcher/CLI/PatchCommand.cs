@@ -81,7 +81,7 @@ namespace QuestPatcher.CLI
                         Debuggable = AddDebuggable
                     }, !DisableTag))
                 {
-                    Logger.Information("APK saving . . .");
+                    Logger.Information("Unsigned APK saving . . .");
                 }   else
                 {
                     // Patching cancelled
@@ -101,7 +101,7 @@ namespace QuestPatcher.CLI
             }
 
             console.ForegroundColor = ConsoleColor.Green;
-            await console.Output.WriteLineAsync("Signed APK Saved");
+            await console.Output.WriteLineAsync("APK Saved");
             console.ResetColor();
         }
     }
