@@ -70,13 +70,13 @@ namespace QuestPatcher.Core
             /// Range of QuestPatcher versions supported by this set
             /// </summary>
             [JsonIgnore]
-            public SemVer.Range SupportedVersions { get; set; }
+            public SemanticVersioning.Range SupportedVersions { get; set; }
             
             [JsonProperty(PropertyName = "supportedVersions")]
             public string SupportedVersion
             {
                 get => SupportedVersions.ToString();
-                set => SupportedVersions = SemVer.Range.Parse(value);
+                set => SupportedVersions = SemanticVersioning.Range.Parse(value);
             }
 
             /// <summary>
@@ -246,7 +246,7 @@ namespace QuestPatcher.Core
                 downloadSets = LoadDownloadSetsFromResources();
             }
 
-            SemVer.Version qpVersion = VersionUtil.QuestPatcherVersion;
+            SemanticVersioning.Version qpVersion = VersionUtil.QuestPatcherVersion;
 
             // Download sets are in order, highest priority comes first
             foreach (DownloadSet downloadSet in downloadSets)

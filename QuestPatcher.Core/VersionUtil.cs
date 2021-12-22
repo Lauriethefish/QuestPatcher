@@ -11,7 +11,7 @@ namespace QuestPatcher.Core
         /// <summary>
         /// The current version of QuestPatcher
         /// </summary>
-        public static SemVer.Version QuestPatcherVersion { get; }
+        public static SemanticVersioning.Version QuestPatcherVersion { get; }
 
         static VersionUtil()
         {
@@ -21,7 +21,7 @@ namespace QuestPatcher.Core
                 throw new NullReferenceException("Assembly version was null, unable to get version of QuestPatcher");
             }
 
-            QuestPatcherVersion = new SemVer.Version(assemblyVersion.Major, assemblyVersion.Minor, assemblyVersion.Build);
+            QuestPatcherVersion = new SemanticVersioning.Version(assemblyVersion.Major, assemblyVersion.Minor, assemblyVersion.Build);
         }
     }
 }

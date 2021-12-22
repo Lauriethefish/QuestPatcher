@@ -47,18 +47,18 @@ namespace QuestPatcher.Core.Modding
 #nullable disable
 
         [JsonIgnore]
-        public SemVer.Range SemVersion
+        public SemanticVersioning.Range SemVersion
         {
             get
             {
                 if (_semVersion == null)
                 {
-                    _semVersion = SemVer.Range.Parse(Version);
+                    _semVersion = SemanticVersioning.Range.Parse(Version);
                 }
                 return _semVersion;
             }
         }
-        private SemVer.Range _semVersion;
+        private SemanticVersioning.Range _semVersion;
     }
     public class Mod : INotifyPropertyChanged
     {
@@ -172,18 +172,18 @@ namespace QuestPatcher.Core.Modding
 #nullable enable
 
         [JsonIgnore]
-        public SemVer.Version SemVersion
+        public SemanticVersioning.Version SemVersion
         {
             get
             {
                 if(_semVersion == null)
                 {
-                    _semVersion = SemVer.Version.Parse(Version);
+                    _semVersion = SemanticVersioning.Version.Parse(Version);
                 }
                 return _semVersion;
             }
         }
-        private SemVer.Version? _semVersion;
+        private SemanticVersioning.Version? _semVersion;
 
         private static JSchema Schema
         {
