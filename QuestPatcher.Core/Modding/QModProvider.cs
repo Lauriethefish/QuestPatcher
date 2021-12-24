@@ -75,7 +75,7 @@ namespace QuestPatcher.Core.Modding
                 await PrepareVersionChange(existingInstall, mod);
             }
             
-            string pushPath = Path.Combine("/data/local/tmp", $"{qmod.Id}.temp.modextract");
+            string pushPath = Path.Combine("/data/local/tmp/", $"{qmod.Id}.temp.modextract");
             // Save the mod files to the quest for later installing
             _logger.Information("Pushing & extracting on to quest . . .");
             await _debugBridge.UploadFile(modPath, pushPath);
