@@ -10,9 +10,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Avalonia.Data;
-using Avalonia.Markup.Xaml;
-using Avalonia.Styling;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Core;
 
@@ -193,7 +190,7 @@ namespace QuestPatcher.Services
                 _loggingViewModel.LoggedText = ""; // Avoid confusing people by not showing existing logs
             }
 
-            ModManager.OnReload();
+            ModManager.Reset();
             PatchingManager.ResetInstalledApp();
             await LoadAndHandleErrors();
         }
@@ -204,7 +201,7 @@ namespace QuestPatcher.Services
                 .WriteTo.File(Path.Combine(SpecialFolders.LogsFolder, "log.log"), LogEventLevel.Verbose, "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.Console()
                 .WriteTo.Sink(
-                new StringDelegateSink((str) =>
+                new StringDelegateSink(str =>
                 {
                     if (_loggingViewModel != null)
                     {

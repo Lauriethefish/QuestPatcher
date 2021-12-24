@@ -2,14 +2,11 @@
 using Avalonia.Media.Imaging;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using QuestPatcher.Views;
 using QuestPatcher.Models;
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Core.Patching;
-using System.IO;
 using System.Diagnostics;
 
 namespace QuestPatcher.ViewModels.Modding
@@ -20,27 +17,27 @@ namespace QuestPatcher.ViewModels.Modding
     /// </summary>
     public class ModViewModel : ViewModelBase
     {
-        public string Name => Inner.Name;
-        public string Author => Inner.Porter == null ? $"(By {Inner.Author})" : $"(By {Inner.Author} - ported by {Inner.Porter})";
+        public string Name => Mod.Name;
+        public string Author => Mod.Porter == null ? $"(By {Mod.Author})" : $"(By {Mod.Author} - ported by {Mod.Porter})";
 
-        public string Version => $"v{Inner.Version}";
+        public string Version => $"v{Mod.Version}";
 
-        public string? Description => Inner.Description;
-        public Bitmap? CoverImage { get; }
+        public string? Description => Mod.Description;
+        public Bitmap? CoverImage { get; set; }
 
         public bool IsInstalled
         {
-            get => _isToggling ? !Inner.IsInstalled : Inner.IsInstalled;
+            get => _isToggling ? !Mod.IsInstalled : Mod.IsInstalled;
             set
             {
-                if (value != Inner.IsInstalled)
+                if (value != Mod.IsInstalled)
                 {
                     OnToggle(value);
                 }
             }
         }
 
-        public Mod Inner { get; }
+        public IMod Mod { get; }
 
         public OperationLocker Locker { get; }
 
@@ -50,35 +47,38 @@ namespace QuestPatcher.ViewModels.Modding
 
         private bool _isToggling; // Used to temporarily display the mod with the new toggle value until the toggle succeeds or fails
 
-        public ModViewModel(Mod inner, ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker)
+        public ModViewModel(IMod mod, ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker)
         {
-            Inner = inner;
+            Mod = mod;
             Locker = locker;
             _modManager = modManager;
             _patchingManager = patchingManager;
             _mainWindow = mainWindow;
 
-            inner.PropertyChanged += (_, args) =>
+            mod.PropertyChanged += (_, args) =>
             {
                 if (!_isToggling)
                 {
-                    if (args.PropertyName == nameof(Inner.IsInstalled))
+                    if (args.PropertyName == nameof(Mod.IsInstalled))
                     {
                         this.RaisePropertyChanged(nameof(IsInstalled));
                     }
                 }
             };
 
-            // Load the cover image, and just silently fail if loading it fails.
-            // It shouldn't fail unless the mod has a corrupt cover image. No cover image or missing cover image is handled separately
-            if (inner.CoverImage != null)
+            LoadCoverImage();
+        }
+
+        private async void LoadCoverImage()
+        {
+            try
             {
-                try
-                {
-                    using MemoryStream coverStream = new(inner.CoverImage);
-                    CoverImage = new Bitmap(coverStream);
-                }
-                catch (Exception) { }
+                CoverImage = new Bitmap(await Mod.OpenCover());
+                this.RaisePropertyChanged(nameof(CoverImage));
+            }
+            catch(Exception)
+            {
+                // ignored
             }
         }
 
@@ -96,6 +96,7 @@ namespace QuestPatcher.ViewModels.Modding
                 {
                     await UninstallSafely();
                 }
+                await _modManager.SaveMods();
             }
             finally
             {
@@ -113,12 +114,12 @@ namespace QuestPatcher.ViewModels.Modding
         {
             Debug.Assert(_patchingManager.InstalledApp != null);
             // Check game version, and prompt if it is incorrect to avoid users installing mods that may crash their game
-            if(Inner.PackageVersion != _patchingManager.InstalledApp.Version)
+            if(Mod.PackageVersion != _patchingManager.InstalledApp.Version)
             {
                 DialogBuilder builder = new()
                 {
                     Title = "Outdated Mod",
-                    Text = $"The mod you are trying to install is for game version {Inner.PackageVersion}, however you have {_patchingManager.InstalledApp.Version}. The mod may fail to load, it may crash the game, or it might even work just fine."
+                    Text = $"The mod you are trying to install is for game version {Mod.PackageVersion}, however you have {_patchingManager.InstalledApp.Version}. The mod may fail to load, it may crash the game, or it might even work just fine."
                 };
                 builder.OkButton.Text = "Continue Anyway";
 
@@ -130,7 +131,7 @@ namespace QuestPatcher.ViewModels.Modding
 
             try
             {
-                await _modManager.InstallMod(Inner);
+                await Mod.Install();
             }
             catch (Exception ex)
             {
@@ -144,7 +145,8 @@ namespace QuestPatcher.ViewModels.Modding
         /// <returns></returns>
         private async Task<bool> UninstallSafely()
         {
-            List<Mod> dependingOn = _modManager.FindModsDependingOn(Inner, true);
+            /*
+            List<Mod> dependingOn = _modManager.FindModsDependingOn(Mod, true);
             // If the mod is depended on by other installed mods, we should ask the user before uninstalling it, since these mods will fail to load without it
             // This is a bit of a mess to make it work with both a both singular and plural number of mods
             if(dependingOn.Count > 0)
@@ -182,11 +184,11 @@ namespace QuestPatcher.ViewModels.Modding
                 {
                     return false;
                 }
-            }
+            }*/ // TODO: Reimplement ^^
 
             try
             {
-                await _modManager.UninstallMod(Inner);
+                await Mod.Uninstall();
                 return true;
             }
             catch (Exception ex)
@@ -203,7 +205,7 @@ namespace QuestPatcher.ViewModels.Modding
             {
                 // Always uninstall mods before deleting.
                 // DeleteMod does this is the mod is installed, but we want to use our "safe" removal method to make sure that no mods depend on this one
-                if (Inner.IsInstalled)
+                if (Mod.IsInstalled)
                 {
                     if (!await UninstallSafely())
                     {
@@ -211,7 +213,8 @@ namespace QuestPatcher.ViewModels.Modding
                     }
                 }
 
-                await _modManager.DeleteMod(Inner);
+                await _modManager.DeleteMod(Mod);
+                await _modManager.SaveMods();
             }
             catch (Exception ex)
             {

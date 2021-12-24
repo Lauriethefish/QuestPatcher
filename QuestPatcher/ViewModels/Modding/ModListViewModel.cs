@@ -19,7 +19,7 @@ namespace QuestPatcher.ViewModels.Modding
 
         private readonly BrowseImportManager _browseManager;
 
-        public ModListViewModel(string title, bool showBrowse, ObservableCollection<Mod> mods, ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker, BrowseImportManager browseManager)
+        public ModListViewModel(string title, bool showBrowse, ObservableCollection<IMod> mods, ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker, BrowseImportManager browseManager)
         {
             Title = title;
             ShowBrowse = showBrowse;
@@ -39,16 +39,16 @@ namespace QuestPatcher.ViewModels.Modding
 
                 if (args.NewItems != null)
                 {
-                    foreach (Mod mod in args.NewItems)
+                    foreach (IMod mod in args.NewItems)
                     {
                         DisplayedMods.Add(new ModViewModel(mod, modManager, patchingManager, mainWindow, locker));
                     }
                 }
                 if(args.OldItems != null)
                 {
-                    foreach (Mod mod in args.OldItems)
+                    foreach (IMod mod in args.OldItems)
                     {
-                        DisplayedMods.Remove(DisplayedMods.Single(modView => modView.Inner == mod));
+                        DisplayedMods.Remove(DisplayedMods.Single(modView => modView.Mod == mod));
                     }
                 }
             };

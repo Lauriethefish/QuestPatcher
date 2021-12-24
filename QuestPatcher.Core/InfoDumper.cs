@@ -183,7 +183,7 @@ namespace QuestPatcher.Core
             
             await writer.WriteLineAsync($"Total loaded mods: {_modManager.AllMods.Count}. {_modManager.AllMods.Count(mod => mod.IsInstalled)} Installed");
 
-            foreach (Mod mod in _modManager.AllMods)
+            foreach (IMod mod in _modManager.AllMods)
             {
                 string authorText = mod.Porter == null ? $"by {mod.Author}" : $"by {mod.Author} ported by {mod.Porter}";
                 await writer.WriteLineAsync($"{mod.Id} v{mod.Version} {authorText}. Installed: {mod.IsInstalled}. Is Library: {mod.IsLibrary}. Package version: {mod.PackageVersion}");

@@ -48,7 +48,8 @@ namespace QuestPatcher.Core
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders, Logger);
             DebugBridge = new AndroidDebugBridge(Logger, FilesDownloader, OnAdbDisconnect);
             PatchingManager = new PatchingManager(Logger, Config, DebugBridge, SpecialFolders, FilesDownloader, Prompter, new ApkSigner(), ExitApplication);
-            ModManager = new ModManager(Logger, DebugBridge, SpecialFolders, PatchingManager, Config, FilesDownloader);
+            ModManager = new ModManager(Config, DebugBridge, Logger);
+            ModManager.RegisterModProvider(new QModProvider(ModManager, Config, Logger, DebugBridge, FilesDownloader));
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
             InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, Logger, _configManager, PatchingManager);
 
@@ -125,7 +126,7 @@ namespace QuestPatcher.Core
             await MigrateOldFiles();
 
             await PatchingManager.LoadInstalledApp();
-            await ModManager.LoadInstalledMods();
+            await ModManager.LoadModsForCurrentApp();
             HasLoaded = true;
         }
 
@@ -165,10 +166,11 @@ namespace QuestPatcher.Core
                 Logger.Warning($"Failed to delete QP1 files: {ex}");
             }
 
-            if(await ModManager.DetectAndRemoveOldMods())
-            {
-                await Prompter.PromptUpgradeFromOld();
-            }
+            // TODO: reimplement
+            //if(await ModManager.DetectAndRemoveOldMods())
+            //{
+            //    await Prompter.PromptUpgradeFromOld();
+            //}
         }
 
         /// <summary>

@@ -279,9 +279,8 @@ namespace QuestPatcher
             string extension = Path.GetExtension(path).ToLower();
 
             // Attempt to install as a mod first
-            if(extension == ".qmod")
+            if(await TryImportMod(path))
             {
-                await ImportMod(path);
                 return;
             }
 
@@ -372,11 +371,16 @@ namespace QuestPatcher
         /// Will prompt to ask the user if they want to install the mod in the case that it is outdated
         /// </summary>
         /// <param name="path">The path of the mod</param>
-        private async Task ImportMod(string path)
+        /// <returns>Whether or not the file could be imported as a mod</returns>
+        private async Task<bool> TryImportMod(string path)
         {
             // Import the mod file and copy it to the quest
-            Mod mod = await _modManager.LoadMod(path);
-
+            IMod? mod = await _modManager.TryParseMod(path);
+            if(mod is null)
+            {
+                return false;
+            }
+            
             Debug.Assert(_patchingManager.InstalledApp != null);
 
             // Prompt the user for outdated mods instead of enabling them automatically
@@ -392,13 +396,15 @@ namespace QuestPatcher
 
                 if(!await builder.OpenDialogue(_mainWindow))
                 {
-                    return;
+                    return true;
                 }
             }
 
             // Automatically install the mod once it has been imported
             // TODO: Is this desirable? Would it make sense to require it to be enabled manually
-            await _modManager.InstallMod(mod);
+            await mod.Install();
+            await _modManager.SaveMods();
+            return true;
         }
     }
 }
