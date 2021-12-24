@@ -94,13 +94,13 @@ namespace QuestPatcher.Core.Modding
             foreach(string libraryPath in Manifest.LibraryFileNames)
             {
                 _logger.Information($"Starting library file copy {libraryPath} . . .");
-                copyPaths.Add(new(Path.Combine(extractPath, libraryPath), Path.Combine(_modManager.ModsPath, Path.GetFileName(libraryPath))));
+                copyPaths.Add(new(Path.Combine(extractPath, libraryPath), Path.Combine(_modManager.LibsPath, Path.GetFileName(libraryPath))));
             }
 
             foreach(string modPath in Manifest.ModFileNames)
             {
                 _logger.Information($"Starting mod file copy {modPath} . . .");
-                copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(_modManager.LibsPath, Path.GetFileName(modPath))));
+                copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(_modManager.ModsPath, Path.GetFileName(modPath))));
             }
 
             foreach (FileCopy fileCopy in Manifest.FileCopies)
