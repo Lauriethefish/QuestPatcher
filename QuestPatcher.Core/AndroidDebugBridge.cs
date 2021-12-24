@@ -445,5 +445,23 @@ namespace QuestPatcher.Core
         {
             await RunCommand($"kill-server");
         }
+
+        /// <summary>
+        /// Finds if a file with the given path exists
+        /// </summary>
+        /// <param name="path">File to find if exists</param>
+        /// <returns>True if the file exists, false otherwise</returns>
+        /// <exception cref="InvalidOperationException">If the given path did not contain a directory name</exception>
+        public async Task<bool> FileExists(string path)
+        {
+            string? dirName = Path.GetDirectoryName(path);
+            if(dirName is null)
+            {
+                throw new InvalidOperationException("Attempted to find if a file without a directory name exists");
+            }
+
+            List<string> directoryFiles = await ListDirectoryFiles(dirName, true);
+            return directoryFiles.Contains(Path.GetFileName(path));
+        }
     }
 }
