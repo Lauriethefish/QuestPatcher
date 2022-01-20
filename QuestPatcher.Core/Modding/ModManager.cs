@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using QuestPatcher.Core.Models;
 using Serilog.Core;
@@ -34,7 +35,7 @@ namespace QuestPatcher.Core.Modding
         private readonly JsonSerializerOptions _configSerializationOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            IgnoreNullValues = true
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         private ModConfig? _modConfig;

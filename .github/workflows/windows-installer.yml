@@ -26,7 +26,7 @@ jobs:
     - name: Set version
       run: '"${{ github.event.release.tag_name }}" | Out-File -NoNewline -FilePath ./VERSION'
     - name: Build QuestPatcher
-      run: dotnet publish QuestPatcher/QuestPatcher.csproj -c Release -r win-x64
+      run: dotnet publish QuestPatcher/QuestPatcher.csproj -c Release -r win-x64 --self-contained
     - name: Compile Installer
       run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /f installer/installer.iss'
     - name: Upload Release Asset

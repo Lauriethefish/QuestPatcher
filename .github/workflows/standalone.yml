@@ -28,7 +28,7 @@ jobs:
       if: ${{ github.event_name == 'release' }}
       run: '"${{ github.event.release.tag_name }}" | Out-File -NoNewline -FilePath ./VERSION'
     - name: Build ${{ matrix.target.runtime }}
-      run: dotnet publish QuestPatcher/QuestPatcher.csproj -r ${{ matrix.target.runtime }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -c Release
+      run: dotnet publish QuestPatcher/QuestPatcher.csproj -r ${{ matrix.target.runtime }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -c Release --self-contained
     - name: Copy license
       run: cp LICENSE QuestPatcher/bin/Release/net6.0/${{ matrix.target.runtime }}/publish/LICENSE.txt
     - name: Artifact Upload ${{ matrix.target.runtime }}
