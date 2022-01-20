@@ -15,7 +15,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.102
+        dotnet-version: 6.0.101
     - name: Set version
       run: 'echo "${{ github.event.release.tag_name }}" > ./VERSION'
     - name: Write Info.plist with correct version
@@ -46,7 +46,7 @@ jobs:
     - name: Create app contents folder
       run: mkdir -p macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS
     - name: Copy built files to app contents
-      run: cp -r QuestPatcher/bin/Release/net5.0/osx-x64/publish/* macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS/
+      run: cp -r QuestPatcher/bin/Release/net6.0/osx-x64/publish/* macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS/
     - name: Add LICENSE to app contents
       run: cp LICENSE macos-dmg/dmg-root/LICENSE.txt
     - name: Detach existing DMGs

@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationIcon>Assets\questpatcher-logo.ico</ApplicationIcon>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
   </PropertyGroup>
 
   <Target Name="SetVersionFromFile" BeforeTargets="BeforeBuild">
@@ -25,6 +26,7 @@
     <DebugType>embedded</DebugType>
     <SelfContained>true</SelfContained>
     <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>Link</TrimMode>
   </PropertyGroup>
 
   <ItemGroup>
