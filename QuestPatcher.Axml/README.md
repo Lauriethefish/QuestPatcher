@@ -2,8 +2,6 @@
 
 This project is used for the parsing and writing of the AXML format used for the `AndroidManifest.xml` file inside the APK.
 
-The AXML isn't completely parsed - styles are not currently supported.
-
 This implementation was based mostly off of this [Java Library](https://github.com/Sable/axml).
 
 *"AXML is an efficient format which is easy to understand and implement."* - No-one ever
