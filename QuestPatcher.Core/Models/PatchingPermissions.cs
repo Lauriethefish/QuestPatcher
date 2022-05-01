@@ -10,10 +10,18 @@ namespace QuestPatcher.Core.Models
 
         public bool Debuggable { get; set; } // Allows debugging with GDB or LLDB
 
-        public bool HandTracking { get; set; } // Enables Oculus hand tracking permissions. Doesn't make the game use hand tracking - that's the job of a mod
+        /// <summary>
+        /// Used to support loading legacy configs
+        /// </summary>
+        public bool HandTracking
+        {
+            set
+            {
+                HandTrackingType = value ? HandTrackingVersion.V1 : HandTrackingVersion.None;
+            }
+        }
 
-        public double Handtracking_versvalue { get; set; }
-     
+        public HandTrackingVersion HandTrackingType { get; set; }
 
     }
 }

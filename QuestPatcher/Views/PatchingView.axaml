@@ -15,18 +15,17 @@
             <StackPanel IsVisible="{Binding Config.ShowPatchingOptions}" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="25">
                 <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.ExternalFiles}" IsEnabled="False">Allow External Files</ToggleSwitch>
                 <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.Debuggable}">Allow Debugging</ToggleSwitch>
-                <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.HandTracking}">Allow Hand Tracking</ToggleSwitch>
+                <StackPanel Orientation="Vertical">
+                    <TextBlock>Hand Tracking Type</TextBlock>
+                    <ComboBox Margin="20" SelectedIndex="{Binding Config.PatchingPermissions.HandTrackingType}">
+                        <ComboBoxItem>None</ComboBoxItem>
+                        <ComboBoxItem>V1</ComboBoxItem>
+                        <ComboBoxItem>V1 High Frequency</ComboBoxItem>
+                        <ComboBoxItem>V2</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
             </StackPanel>
             <ToggleButton IsChecked="{Binding Config.ShowPatchingOptions}" VerticalAlignment="Top" HorizontalAlignment="Right">Customise Permissions</ToggleButton>
-        </Panel>
-        <Panel Margin="20" DockPanel.Dock="Top"  IsVisible="{Binding Config.ShowPatchingOptions}">
-            <StackPanel Orientation="Vertical" Spacing="5">
-                <TextBlock TextAlignment="Left">1 = Handtracking V1 - Normal</TextBlock>
-                <TextBlock TextAlignment="Left">2 = Handtracking V1 - High-frequency</TextBlock>
-                <TextBlock TextAlignment="Left">3 = Handtracking V2 - Newest</TextBlock>
-            </StackPanel>
-            <TextBlock Margin="20" TextAlignment="Right" Text="{Binding Value, ElementName=MySlider1, StringFormat='{} Handtracking Type: {0}'}" />
-            <Slider Value="{Binding Config.PatchingPermissions.Handtracking_versvalue}" Name="MySlider1" Minimum="1" Maximum="3" Width="100" TickFrequency="1" IsSnapToTickEnabled="True"></Slider>
         </Panel>
         
         <StackPanel HorizontalAlignment="Center" Orientation="Vertical" VerticalAlignment="Center" Spacing="20">
