@@ -29,6 +29,7 @@ namespace QuestPatcher.Core.Patching
         private const int RequiredAttributeResourceId = 16843406;
         private const int DebuggableAttributeResourceId = 16842767;
         private const int LegacyStorageAttributeResourceId = 16844291;
+        private const int ValueAttributeResourceId = 16842788;
 
         /// <summary>
         /// Tag added during patching.
@@ -336,14 +337,14 @@ namespace QuestPatcher.Core.Patching
                     _logger.Information("Adding high-frequency V1 hand-tracking. . .");
                     AxmlElement frequencyElement = new("meta-data");
                     AddNameAttribute(frequencyElement, "com.oculus.handtracking.frequency");
-                    frequencyElement.Attributes.Add(new AxmlAttribute("value", AndroidNamespaceUri, 16842788, "HIGH"));
+                    frequencyElement.Attributes.Add(new AxmlAttribute("value", AndroidNamespaceUri, ValueAttributeResourceId, "HIGH"));
                     appElement.Children.Add(frequencyElement);
                     break;
                 case HandTrackingVersion.V2:
                     _logger.Information("Adding V2 hand-tracking. . .");
                     frequencyElement = new("meta-data");
                     AddNameAttribute(frequencyElement, "com.oculus.handtracking.version");
-                    frequencyElement.Attributes.Add(new AxmlAttribute("value", AndroidNamespaceUri, 16842788, "V2.0"));
+                    frequencyElement.Attributes.Add(new AxmlAttribute("value", AndroidNamespaceUri, ValueAttributeResourceId, "V2.0"));
                     appElement.Children.Add(frequencyElement);
                     break;
             }
