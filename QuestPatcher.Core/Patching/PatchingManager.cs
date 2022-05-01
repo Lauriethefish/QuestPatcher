@@ -324,7 +324,34 @@ namespace QuestPatcher.Core.Patching
                 _logger.Information("Adding legacy external storage flag . . .");
                 appElement.Attributes.Add(new AxmlAttribute("requestLegacyExternalStorage", AndroidNamespaceUri, LegacyStorageAttributeResourceId, true));
             }
-            
+
+            if(permissions.HandTracking)
+            {
+                if(permissions.Handtracking_versvalue == 1.0) 
+                {
+                    // No need to any extra meta-data
+                    _logger.Information("Adding normal V1 hand-tracking. . .");
+                }
+                
+                else if(permissions.Handtracking_versvalue == 2.0)
+                {
+                    _logger.Information("Adding high-frequency V1 hand-tracking. . .");
+                    AxmlElement frequencyElement = new("meta-data");
+                    AddNameAttribute(frequencyElement, "com.oculus.handtracking.frequency");
+                    frequencyElement.Attributes.Add(new AxmlAttribute("value", AndroidNamespaceUri, 16842788, "HIGH"));
+                    appElement.Children.Add(frequencyElement);
+                }
+                else if(permissions.Handtracking_versvalue == 3.0)
+                {
+                    _logger.Information("Adding V2 hand-tracking. . .");
+                    AxmlElement frequencyElement = new("meta-data");
+                    AddNameAttribute(frequencyElement, "com.oculus.handtracking.version");
+                    frequencyElement.Attributes.Add(new AxmlAttribute("value", AndroidNamespaceUri, 16842788, "V2.0"));
+                    appElement.Children.Add(frequencyElement);
+                }
+
+            }
+
             // Save the manifest using our AXML library
             // TODO: The AXML library is missing some features such as styles.
             _logger.Information("Saving manifest as AXML . . .");
