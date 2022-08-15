@@ -16,8 +16,8 @@
                 <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.ExternalFiles}" IsEnabled="False">Allow External Files</ToggleSwitch>
                 <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.Debuggable}">Allow Debugging</ToggleSwitch>
                 <StackPanel Orientation="Vertical">
-                    <TextBlock>Hand Tracking Type</TextBlock>
-                    <ComboBox Margin="20" SelectedIndex="{Binding Config.PatchingPermissions.HandTrackingType}">
+                    <TextBlock Margin="0 25 0 0">Hand Tracking Type</TextBlock>
+                    <ComboBox Margin="20 10 20 20" SelectedIndex="{Binding Config.PatchingPermissions.HandTrackingType}">
                         <ComboBoxItem>None</ComboBoxItem>
                         <ComboBoxItem>V1</ComboBoxItem>
                         <ComboBoxItem>V1 High Frequency</ComboBoxItem>
