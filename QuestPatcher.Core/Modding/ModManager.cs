@@ -131,7 +131,7 @@ namespace QuestPatcher.Core.Modding
                     {
                         modConfig.Mods.ForEach(ModLoadedCallback);
                         _modConfig = modConfig;
-                        _logger.Debug($"{AllMods.Count()} mods loaded");
+                        _logger.Debug($"{AllMods.Count} mods loaded");
                     }
                 }
                 catch(Exception ex)
