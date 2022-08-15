@@ -20,6 +20,8 @@ namespace QuestPatcher.Core.Models
                 HandTrackingType = value ? HandTrackingVersion.V1 : HandTrackingVersion.None;
             }
         }
+        
+        public bool FlatScreenSupport { get; set; }
 
         public HandTrackingVersion HandTrackingType { get; set; }
 

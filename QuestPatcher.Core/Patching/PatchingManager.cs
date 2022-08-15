@@ -12,6 +12,8 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using AssetsTools.NET;
+using AssetsTools.NET.Extra;
 using QuestPatcher.Axml;
 
 namespace QuestPatcher.Core.Patching
@@ -394,6 +396,84 @@ namespace QuestPatcher.Core.Patching
             element.Attributes.Add(new AxmlAttribute("name", AndroidNamespaceUri, NameAttributeResourceId, name));
         }
 
+        private async Task AddFlatscreenSupport(ZipArchive apkArchive)
+        {
+            const string bootCfgPath = "assets/bin/Data/boot.config";
+            const string globalGameManagersPath = "assets/bin/Data/globalgamemanagers";
+            const string ovrPlatformLoaderPath = "lib/arm64-v8a/libovrplatformloader.so";
+            
+            var bootCfgEntry = apkArchive.GetEntry(bootCfgPath)
+                               ?? throw new PatchingException(
+                                   "boot.config must exist on a Beat Saber installation");
+
+
+            string bootCfgContents;
+            using(var reader = new StreamReader(bootCfgEntry.Open()))
+            {
+                bootCfgContents = (await reader.ReadToEndAsync())
+                    .Replace("vr-enabled=1", "vr-enabled=0")
+                    .Replace("vr-device-list=Oculus", "vr-device-list=");
+            }
+
+            bootCfgEntry.Delete();
+            bootCfgEntry = apkArchive.CreateEntry(bootCfgPath);
+            await using(var writer = new StreamWriter(bootCfgEntry.Open()))
+            {
+                await writer.WriteAsync(bootCfgContents);
+            }
+
+            var gameManagersEntry = apkArchive.GetEntry(globalGameManagersPath) ?? throw new PatchingException(
+                "globalgamemanagers must exist on a Beat Saber installation");
+
+            var am = new AssetsManager();
+            
+            var replacementEntry = apkArchive.CreateEntry("_QP/replacementGameManagers");
+
+            using(var gameManagersStream = gameManagersEntry.Open())
+            {
+                var inst = am.LoadAssetsFile(gameManagersStream, "globalgamemanagers", false);
+
+                var inf = inst.table.GetAssetsOfType((int) AssetClassID.BuildSettings).Single();
+                
+                am.LoadClassPackage("classdata.tpk");
+                am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+                
+                var type = am.GetTypeInstance(inst, inf);
+                var baseField = type.GetBaseField();
+
+                baseField.Get("enabledVRDevices").GetChildrenList()[0].SetChildrenList(Array.Empty<AssetTypeValueField>());
+                var newBytes = baseField.WriteToByteArray();
+                
+                var replacer = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xffff, newBytes);
+
+                using var replacementStream = replacementEntry.Open();
+                using var writer = new AssetsFileWriter(replacementStream);
+                inst.file.Write(writer, 0, new List<AssetsReplacer> { replacer });
+                am.UnloadAllAssetsFiles();
+            }
+            
+            gameManagersEntry.Delete();
+            gameManagersEntry = apkArchive.CreateEntry(globalGameManagersPath);
+            using(var newGameManagers = gameManagersEntry.Open())
+            using(var replacement = replacementEntry.Open())
+            {
+                await replacement.CopyToAsync(newGameManagers);
+            }
+
+            replacementEntry.Delete();
+
+            using var sdkArchive = ZipFile.OpenRead(await _filesDownloader.GetFileLocation(ExternalFileType.OvrPlatformSdk));
+            var downgradedLoaderEntry = sdkArchive.GetEntry("Android/libs/arm64-v8a/libovrplatformloader.so")
+                                        ?? throw new PatchingException("No libovrplatformloader.so found in downloaded OvrPlatformSdk");
+            using var downloadedLoaderStream = downgradedLoaderEntry.Open();
+
+            apkArchive.GetEntry(ovrPlatformLoaderPath)?.Delete();
+            var platformLoaderEntry = apkArchive.CreateEntry(ovrPlatformLoaderPath);
+            using var platformLoaderStream = platformLoaderEntry.Open();
+
+            await downloadedLoaderStream.CopyToAsync(platformLoaderStream);
+        }
+
         /// <summary>
         /// Begins patching the currently installed APK. (must be pulled before calling this)
         /// </summary>
@@ -457,6 +537,12 @@ namespace QuestPatcher.Core.Patching
                 // Add permissions to the manifest
                 _logger.Information("Patching manifest . . .");
                 await PatchManifest(apkArchive);
+
+                if(_config.PatchingPermissions.FlatScreenSupport)
+                {
+                    _logger.Information("Adding flatscreen support . . .");
+                    await AddFlatscreenSupport(apkArchive);
+                }
 
                 _logger.Information("Adding tag . . .");
                 // The disk IO while opening the APK as a zip archive causes a UI freeze, so we run it on another thread
