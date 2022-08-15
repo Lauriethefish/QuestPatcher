@@ -48,7 +48,7 @@
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10">
           <ToggleButton IsChecked="{Binding Config.PauseBeforeCompile}">Pause after Patching</ToggleButton>
-          <TextBlock VerticalAlignment="Center" FontSize="12">Shows a prompt after patching the APK, but before recompiling.
+          <TextBlock VerticalAlignment="Center" FontSize="12">Shows a prompt after patching the APK, but before signing.
   Useful to manually modify the APK during testing.</TextBlock>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10">
