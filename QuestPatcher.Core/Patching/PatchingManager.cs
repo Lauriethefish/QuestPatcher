@@ -55,7 +55,7 @@ namespace QuestPatcher.Core.Patching
 
         public PatchingStage PatchingStage { get => _patchingStage; private set { if(_patchingStage != value) { _patchingStage = value; NotifyPropertyChanged(); } } }
         private PatchingStage _patchingStage = PatchingStage.NotStarted;
-
+        
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public event EventHandler? PatchingCompleted;
@@ -490,6 +490,7 @@ namespace QuestPatcher.Core.Patching
 
             // There is no async file copy method, so we Task.Run it (we could make our own with streams, that's another option)
             await Task.Run(() => { File.Copy(_storedApkPath, patchedApkPath, true); });
+            Dictionary<string, ApkSigner.PrePatchHash>? prePatchHashes;
             
             _logger.Information("Copying files to patch APK . . .");
 
@@ -497,6 +498,9 @@ namespace QuestPatcher.Core.Patching
             ZipArchive apkArchive = ZipFile.Open(patchedApkPath, ZipArchiveMode.Update);
             try
             {
+                _logger.Information("Preparing hashes for after signing");
+                prePatchHashes = await _apkSigner.CollectPrePatchHashes(apkArchive);
+                
                 string libsPath = InstalledApp.Is64Bit ? "lib/arm64-v8a" : "lib/armeabi-v7a";
 
                 if (!InstalledApp.Is64Bit)
@@ -563,7 +567,7 @@ namespace QuestPatcher.Core.Patching
             _logger.Information("Signing APK (this might take a while) . . .");
             PatchingStage = PatchingStage.Signing;
 
-            await _apkSigner.SignApkWithPatchingCertificate(patchedApkPath);
+            await _apkSigner.SignApkWithPatchingCertificate(patchedApkPath, prePatchHashes);
 
             _logger.Information("Uninstalling the default APK . . .");
             PatchingStage = PatchingStage.UninstallingOriginal;

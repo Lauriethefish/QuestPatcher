@@ -45,6 +45,7 @@ using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 using QuestPatcher.Core.Patching;
+using Serilog;
 using PemReader = Org.BouncyCastle.OpenSsl.PemReader;
 
 namespace QuestPatcher.Core
@@ -97,7 +98,115 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
 -----END RSA PRIVATE KEY-----";
         
         private static readonly Encoding Encoding = new UTF8Encoding();
-        private static readonly SHA1 Sha = SHA1.Create();
+        private static readonly SHA256 Sha = SHA256.Create();
+
+        /// <summary>
+        /// Stores the hash of a file within an APK, scraped from the signature before patching.
+        /// </summary>
+        public struct PrePatchHash
+        {
+            internal string Hash { get; }
+            
+            internal DateTimeOffset LastModified { get; }
+
+            internal PrePatchHash(string hash, DateTimeOffset lastModified)
+            {
+                Hash = hash;
+                LastModified = lastModified;
+            }
+        }
+
+        /// <summary>
+        /// Parses the META-INF/MANIFEST.MF file within <paramref name="apkArchive"/> and uses it to collect
+        /// the hashes of the entries within the given APK.
+        /// </summary>
+        /// <param name="apkArchive">The archive to get the entry hashes of</param>
+        /// <returns>A dictionary of the full entry names and entry hashes, or null if parsing the manifest failed.</returns>
+        public async Task<Dictionary<string, PrePatchHash>?> CollectPrePatchHashes(ZipArchive apkArchive)
+        {
+            var manifestEntry = apkArchive.GetEntry("META-INF/MANIFEST.MF");
+            // Fallback failure if the APK isn't signed
+            if(manifestEntry == null)
+            {
+                return null;
+            }
+
+            await using var manifestStream = manifestEntry.Open();
+            using var manifestReader = new StreamReader(manifestStream);
+
+            // Fallback failure if the manifest version isn't what we're expecting.
+            if((await manifestReader.ReadLineAsync()) != "Manifest-Version: 1.0")
+            {
+                return null;
+            }
+            
+            // Read the remaining lines of the MANIFEST.MF header, when we reach a blank line, the header is over
+            // This skips information such as the piece of software that was doing the signing.
+            while(await manifestReader.ReadLineAsync() != "") {}
+            
+            var result = new Dictionary<string, PrePatchHash>();
+            while(true)
+            {
+                // Sometimes the names of files within a hash are formatted with multiple lines
+                // In this case, the files will be formatted like:
+                // |Name: myFileNameIsReallyReally
+                // | LongItIsVeryLong.txt
+                // So, each newline and space indicates an extension of the file name.
+                var nameBuilder = new StringBuilder();
+                string? firstLineOfName = await manifestReader.ReadLineAsync();
+                // We have reached the end of the file, or there is a formatting issue, so we quit parsing
+                if(firstLineOfName == null)
+                {
+                    return result;
+                }
+                // Skip the "Name: " prefix.
+                nameBuilder.Append(firstLineOfName[6..]);
+
+                string digest;
+                // Now we will parse the remaining lines within the name of the file
+                while(true)
+                {
+                    string? nextLineOfName = await manifestReader.ReadLineAsync();
+                    if(nextLineOfName == null)
+                    {
+                        // We have reached the end of the file, or there is a formatting issue, so we quit parsing
+                        return result;
+                    }
+                    if(nextLineOfName.StartsWith(" "))
+                    {
+                        // A space at the beginning of the line indicates that it is a continuation of the current file's name
+                        nameBuilder.Append(nextLineOfName[1..]);
+                    }
+                    else if(nextLineOfName.StartsWith("SHA-256-Digest: "))
+                    {
+                        // We have now reached the end of the name of the file, and the start of the SHA-256 digest.
+                        // Skip the "SHA-256-Digest: " prefix.
+                        digest = nextLineOfName[16..];
+                        break;
+                    }
+                    else
+                    {
+                        // If the next line does not start with a space, and is not a SHA-256 digest, then this manifest
+                        // format/hash type is unsupported, so we will quit parsing here.
+                        return result;
+                    }
+                }
+                string entryName = nameBuilder.ToString();
+
+                // Make sure that an entry actually exits with the given name
+                ZipArchiveEntry? entry = apkArchive.GetEntry(entryName);
+                if(entry == null)
+                {
+                    continue;
+                }
+
+                result[entryName] = new PrePatchHash(digest, entry.LastWriteTime);
+                Log.Debug($"Added hash {digest} for {entryName}");
+
+                // Skip the newline after each entry.
+                await manifestReader.ReadLineAsync();
+            }
+        }
 
         /// <summary>
         /// Signs the signature file's content using the given certificate, and returns the RSA signature.
@@ -169,9 +278,11 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
         /// Signs the given APK with the QuestPatcher patching certificate.
         /// </summary>
         /// <param name="path">Path to the APK to sign</param>
-        public async Task SignApkWithPatchingCertificate(string path)
+        /// <param name="knownHashes">Optionally, the hashes of the files within the APK at some earlier point.
+        /// Using existing hashes reduces signing time, since only the files within the APK that have actually changed have to get signed.</param>
+        public async Task SignApkWithPatchingCertificate(string path, Dictionary<string, PrePatchHash>? knownHashes = null)
         {
-            await SignApk(path, PatchingCertificatePem);
+            await SignApk(path, PatchingCertificatePem, knownHashes);
         }
 
         /// <summary>
@@ -179,7 +290,9 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
         /// </summary>
         /// <param name="path">Path to the APK to sign</param>
         /// <param name="pemData">PEM of the certificate and private key</param>
-        public async Task SignApk(string path, string pemData)
+        /// <param name="knownHashes">Optionally, the hashes of the files within the APK at some earlier point.
+        /// Using existing hashes reduces signing time, since only the files within the APK that have actually changed have to get signed.</param>
+        public async Task SignApk(string path, string pemData, Dictionary<string, PrePatchHash>? knownHashes = null)
         {
             //await using Stream manifestFile = apkArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
             await using Stream manifestFile = new MemoryStream();
@@ -196,10 +309,10 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
             // This is done because opening all of the entries will cause them all to be recompressed if using ZipArchiveMode.Update, thus causing a long dispose time
             using(ZipArchive apkArchive = ZipFile.OpenRead(path))
             {
-                foreach(ZipArchiveEntry entry in apkArchive.Entries.Where(entry =>
-                    !entry.FullName.StartsWith("META-INF"))) // Skip other signature related files
+                foreach(ZipArchiveEntry entry in apkArchive.Entries
+                            .Where(entry => !entry.FullName.StartsWith("META-INF"))) // Skip other signature related files
                 {
-                    await WriteEntryHash(entry, manifestFile, sigFileBody);
+                    await WriteEntryHash(entry, manifestFile, sigFileBody, knownHashes);
                 }
             }
 
@@ -228,7 +341,7 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                 await using(StreamWriter signatureWriter = OpenStreamWriter(signaturesFile))
                 {
                     await signatureWriter.WriteLineAsync("Signature-Version: 1.0");
-                    await signatureWriter.WriteLineAsync($"SHA1-Digest-Manifest: {Convert.ToBase64String(manifestHash)}");
+                    await signatureWriter.WriteLineAsync($"SHA-256-Digest-Manifest: {Convert.ToBase64String(manifestHash)}");
                     await signatureWriter.WriteLineAsync("Created-By: QuestPatcher");
                     await signatureWriter.WriteLineAsync();
                 }
@@ -252,17 +365,29 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
         /// <summary>
         /// Writes the MANIFEST.MF and signature file hashes for the given entry
         /// </summary>
-        private async Task WriteEntryHash(ZipArchiveEntry entry, Stream manifestStream, Stream signatureStream)
+        private async Task WriteEntryHash(ZipArchiveEntry entry, Stream manifestStream, Stream signatureStream, Dictionary<string, PrePatchHash>? prePatchHashes)
         {
-            await using Stream sourceStream = entry.Open();
-            byte[] hash = await Sha.ComputeHashAsync(sourceStream);
+            string hash;
+            if(prePatchHashes != null && 
+               prePatchHashes.TryGetValue(entry.FullName, out var prePatchHash) &&
+               entry.LastWriteTime == prePatchHash.LastModified)
+            {
+                Log.Verbose("Using existing hash for " + entry.FullName);
+                hash = prePatchHash.Hash;
+            }
+            else
+            {
+                Log.Verbose("Hashing " + entry.FullName);
+                await using Stream sourceStream = entry.Open();
+                hash = Convert.ToBase64String(await Sha.ComputeHashAsync(sourceStream));
+            }
 
             // First write the digest of the file to a section of the manifest file
             await using MemoryStream sectStream = new();
             await using(StreamWriter sectWriter = OpenStreamWriter(sectStream))
             {
                 await sectWriter.WriteLineAsync($"Name: {entry.FullName}");
-                await sectWriter.WriteLineAsync($"SHA1-Digest: {Convert.ToBase64String(hash)}");
+                await sectWriter.WriteLineAsync($"SHA-256-Digest: {hash}");
                 await sectWriter.WriteLineAsync();
             }
 
@@ -272,7 +397,7 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
             await using(StreamWriter signatureWriter = OpenStreamWriter(signatureStream))
             {
                 await signatureWriter.WriteLineAsync($"Name: {entry.FullName}");
-                await signatureWriter.WriteLineAsync($"SHA1-Digest: {sectHash}");
+                await signatureWriter.WriteLineAsync($"SHA-256-Digest: {sectHash}");
                 await signatureWriter.WriteLineAsync(); 
             }
 

@@ -43,6 +43,7 @@ namespace QuestPatcher.Core
             SpecialFolders = new SpecialFolders(); // Load QuestPatcher application folders
 
             Logger = SetupLogging();
+            Log.Logger = Logger;
             _configManager = new ConfigManager(Logger, SpecialFolders);
             _configManager.GetOrLoadConfig(); // Load the config file
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders, Logger);
