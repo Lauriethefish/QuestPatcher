@@ -26,6 +26,7 @@ namespace QuestPatcher.Core
         UberApkSigner,
         PlatformTools,
         Jre,
+        OvrPlatformSdk
     }
 
     /// <summary>
@@ -142,6 +143,13 @@ namespace QuestPatcher.Core
                     },
                     ExtractionFolder = "platform-tools",
                     IsExecutable = true
+                }
+            },
+            {
+                ExternalFileType.OvrPlatformSdk,
+                new FileInfo
+                {
+                    SaveName = "OVRPlatformSDK.zip".ForAllSystems()
                 }
             }
         };
