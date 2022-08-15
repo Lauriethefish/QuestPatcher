@@ -9,6 +9,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -435,7 +436,13 @@ namespace QuestPatcher.Core.Patching
 
                 var inf = inst.table.GetAssetsOfType((int) AssetClassID.BuildSettings).Single();
                 
-                am.LoadClassPackage("classdata.tpk");
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                await using Stream? classPkgStream = assembly.GetManifestResourceStream("QuestPatcher.Core.Resources.classdata.tpk");
+                if (classPkgStream == null)
+                {
+                    throw new NullReferenceException("Could not find classdata.tpk in resources");
+                }
+                am.LoadClassPackage(classPkgStream);
                 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
                 
                 var type = am.GetTypeInstance(inst, inf);
