@@ -38,10 +38,10 @@ namespace QuestPatcher.Core
 
         protected QuestPatcherService(IUserPrompter prompter)
         {
+            Log.Logger = SetupLogging();
+
             Prompter = prompter;
             SpecialFolders = new SpecialFolders(); // Load QuestPatcher application folders
-
-            Log.Logger = SetupLogging();
             _configManager = new ConfigManager(SpecialFolders);
             _configManager.GetOrLoadConfig(); // Load the config file
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders);
