@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -24,6 +25,8 @@ namespace QuestPatcher.Core.Modding
         public string Author => Manifest.Author;
         public string? Porter => Manifest.Porter;
         public bool IsLibrary => Manifest.IsLibrary;
+
+        public IEnumerable<FileCopyType> FileCopyTypes { get; }
 
         public bool IsInstalled
         {
@@ -54,6 +57,14 @@ namespace QuestPatcher.Core.Modding
             _debugBridge = debugBridge;
             _filesDownloader = filesDownloader;
             _modManager = modManager;
+
+            FileCopyTypes = manifest.CopyExtensions.Select(copyExt => new FileCopyType(debugBridge)
+            {
+                NameSingular = $"{manifest.Name} .{copyExt.Extension} file",
+                NamePlural = $"{manifest.Name} .{copyExt.Extension} files",
+                Path = copyExt.Destination,
+                SupportedExtensions = new List<string> { copyExt.Destination }
+            }).ToList();
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")

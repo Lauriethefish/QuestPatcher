@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Serialization;
 using QuestPatcher.Core.Models;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -13,11 +14,11 @@ namespace QuestPatcher.Core.Modding
 {
     public class OtherFilesManager : INotifyPropertyChanged
     {
-        public IReadOnlyList<FileCopyType> CurrentDestinations {
+        public ObservableCollection<FileCopyType> CurrentDestinations {
             get
             {
                 // If file copy types for this app are available in the index, return those
-                if(_copyIndex.TryGetValue(_config.AppId, out List<FileCopyType>? copyTypes))
+                if(_copyIndex.TryGetValue(_config.AppId, out var copyTypes))
                 {
                     return copyTypes;
                 }
@@ -25,9 +26,9 @@ namespace QuestPatcher.Core.Modding
                 return _noTypesAvailable;
             }
         }
-        private readonly List<FileCopyType> _noTypesAvailable = new();
+        private readonly ObservableCollection<FileCopyType> _noTypesAvailable = new();
 
-        private readonly Dictionary<string, List<FileCopyType>> _copyIndex;
+        private readonly Dictionary<string, ObservableCollection<FileCopyType>> _copyIndex;
 
         private readonly Config _config;
 
@@ -63,7 +64,7 @@ namespace QuestPatcher.Core.Modding
             // File copies require a debug bridge reference, so we use a converter to pass this in
             serializer.Converters.Add(new FileCopyConverter(debugBridge));
 
-            var copyIndex = serializer.Deserialize<Dictionary<string, List<FileCopyType>>>(jsonReader);
+            var copyIndex = serializer.Deserialize<Dictionary<string, ObservableCollection<FileCopyType>>>(jsonReader);
             Debug.Assert(copyIndex != null);
             _copyIndex = copyIndex;
         }
@@ -84,6 +85,32 @@ namespace QuestPatcher.Core.Modding
             extension = extension.Replace(".", "").ToLower();
 
             return CurrentDestinations.Where(copyType => copyType.SupportedExtensions.Contains(extension)).ToList();
+        }
+
+        /// <summary>
+        /// Adds the given file copy.
+        /// </summary>
+        /// <param name="packageId">The package ID that files of this type are intended for</param>
+        /// <param name="type">The <see cref="FileCopyType"/> to add</param>
+        public void RegisterFileCopy(string packageId, FileCopyType type)
+        {
+            if(!_copyIndex.TryGetValue(packageId, out var copyTypes))
+            {
+                copyTypes = new();
+                _copyIndex[packageId] = copyTypes;
+            }
+            
+            copyTypes.Add(type);
+        }
+
+        /// <summary>
+        /// Removes the given file copy.
+        /// </summary>
+        /// <param name="packageId">The package ID that files of this type are intended for</param>
+        /// <param name="type">The <see cref="FileCopyType"/> to remove</param>
+        public void RemoveFileCopy(string packageId, FileCopyType type)
+        {
+            _copyIndex[packageId].Remove(type);
         }
     }
 }

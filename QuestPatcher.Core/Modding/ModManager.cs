@@ -30,6 +30,7 @@ namespace QuestPatcher.Core.Modding
         private readonly ModConverter _modConverter = new();
         private readonly Config _config;
         private readonly AndroidDebugBridge _debugBridge;
+        private readonly OtherFilesManager _otherFilesManager;
         private readonly JsonSerializerOptions _configSerializationOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -38,12 +39,14 @@ namespace QuestPatcher.Core.Modding
 
         private ModConfig? _modConfig;
         private bool _awaitingConfigSave;
+        
 
-        public ModManager(Config config, AndroidDebugBridge debugBridge)
+        public ModManager(Config config, AndroidDebugBridge debugBridge, OtherFilesManager otherFilesManager)
         {
             _config = config;
             _debugBridge = debugBridge;
             _configSerializationOptions.Converters.Add(_modConverter);
+            _otherFilesManager = otherFilesManager;
         }
 
         private string NormalizeFileExtension(string extension)
@@ -177,12 +180,20 @@ namespace QuestPatcher.Core.Modding
         {
             (mod.IsLibrary ? Libraries : Mods).Add(mod);
             _modConfig?.Mods.Add(mod);
+            foreach (var copyType in mod.FileCopyTypes)
+            {
+                _otherFilesManager.RegisterFileCopy(_config.AppId, copyType);
+            }
             _awaitingConfigSave = true;
         }
         
         internal void ModRemovedCallback(IMod mod)
         {
             (mod.IsLibrary ? Libraries : Mods).Remove(mod);
+            foreach (var copyType in mod.FileCopyTypes)
+            {
+                _otherFilesManager.RemoveFileCopy(_config.AppId, copyType);
+            }
             _modConfig?.Mods.Remove(mod);
             _awaitingConfigSave = true;
         }
