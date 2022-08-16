@@ -59,13 +59,7 @@ namespace QuestPatcher.Core
             
             PatchingFolder = Path.Combine(TempFolder, "patching");
             StagingArea = Path.Combine(TempFolder, "stagingArea");
-        }
-
-        /// <summary>
-        /// Deletes the existing temporary folder, and recreates the required folder structure within it.
-        /// </summary>
-        public void PrepareTemporaryFolders()
-        {
+            
             if(Directory.Exists(TempFolder)) // Sometimes windows fails to delete this upon closing, and we have to do it ourselves
             {
                 Directory.Delete(TempFolder, true);
@@ -74,7 +68,7 @@ namespace QuestPatcher.Core
             Directory.CreateDirectory(PatchingFolder);
             Directory.CreateDirectory(StagingArea);
         }
-
+        
         /// <summary>
         /// Finds a path to write a file to before using ADB to push it
         /// </summary>
