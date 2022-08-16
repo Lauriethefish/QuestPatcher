@@ -31,10 +31,10 @@ namespace QuestPatcher.ViewModels
         private readonly SpecialFolders _specialFolders;
         private readonly PatchingManager _patchingManager;
         private readonly AndroidDebugBridge _debugBridge;
-        private readonly QuestPatcherUIService _uiService;
+        private readonly QuestPatcherUiService _uiService;
         private readonly InfoDumper _dumper;
 
-        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUIService uiService, InfoDumper dumper, ThemeManager themeManager)
+        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUiService uiService, InfoDumper dumper, ThemeManager themeManager)
         {
             Config = config;
             ProgressView = progressView;

@@ -3,7 +3,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using QuestPatcher.Core;
 using QuestPatcher.Services;
 using QuestPatcher.Views;
 using Serilog;
@@ -36,7 +35,7 @@ namespace QuestPatcher
                 
                 try
                 {
-                    QuestPatcherService questPatcherService = new QuestPatcherUIService(desktop);
+                    var questPatcherService = new QuestPatcherUiService(desktop);
                     desktop.Exit += (_, _) =>
                     {
                         questPatcherService.CleanUp();

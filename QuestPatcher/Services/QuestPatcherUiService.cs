@@ -18,7 +18,7 @@ namespace QuestPatcher.Services
     /// <summary>
     /// Implementation of QuestPatcherService that uses UI message boxes and creates the viewmodel for displaying in UI
     /// </summary>
-    public class QuestPatcherUIService : QuestPatcherService
+    public class QuestPatcherUiService : QuestPatcherService
     {
         private readonly Window _mainWindow;
 
@@ -32,7 +32,7 @@ namespace QuestPatcher.Services
 
         private bool _isShuttingDown;
 
-        public QuestPatcherUIService(IClassicDesktopStyleApplicationLifetime appLifetime) : base(new UIPrompter())
+        public QuestPatcherUiService(IClassicDesktopStyleApplicationLifetime appLifetime) : base(new UIPrompter())
         {
             _appLifetime = appLifetime;
             _themeManager = new ThemeManager(Config, SpecialFolders);

@@ -54,16 +54,24 @@ namespace QuestPatcher.Core
             Directory.CreateDirectory(ToolsFolder);
 
             TempFolder = Path.Combine(Path.GetTempPath(), "QuestPatcher");
+            PatchingFolder = Path.Combine(TempFolder, "patching");
+            StagingArea = Path.Combine(TempFolder, "stagingArea");
+            
+            PatchingFolder = Path.Combine(TempFolder, "patching");
+            StagingArea = Path.Combine(TempFolder, "stagingArea");
+        }
+
+        /// <summary>
+        /// Deletes the existing temporary folder, and recreates the required folder structure within it.
+        /// </summary>
+        public void PrepareTemporaryFolders()
+        {
             if(Directory.Exists(TempFolder)) // Sometimes windows fails to delete this upon closing, and we have to do it ourselves
             {
                 Directory.Delete(TempFolder, true);
             }
             Directory.CreateDirectory(TempFolder);
-
-            PatchingFolder = Path.Combine(TempFolder, "patching");
             Directory.CreateDirectory(PatchingFolder);
-
-            StagingArea = Path.Combine(TempFolder, "stagingArea");
             Directory.CreateDirectory(StagingArea);
         }
 
