@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 using QuestPatcher.Core.Models;
-using Serilog.Core;
 using System;
 using System.IO;
 using System.Reflection;
 using Newtonsoft.Json.Serialization;
+using Serilog;
 
 namespace QuestPatcher.Core
 {
@@ -22,12 +22,10 @@ namespace QuestPatcher.Core
         public string ConfigPath { get; }
 
         private Config? _loadedConfig;
-        private readonly Logger _logger;
         private readonly string _legacyAppIdPath;
 
-        public ConfigManager(Logger logger, SpecialFolders specialFolders)
+        public ConfigManager(SpecialFolders specialFolders)
         {
-            _logger = logger;
             ConfigPath = Path.Combine(specialFolders.DataFolder, "config.json");
             _legacyAppIdPath = Path.Combine(specialFolders.DataFolder, "appId.txt");
         }
@@ -51,10 +49,10 @@ namespace QuestPatcher.Core
                     if (ex is FormatException or JsonException)
                     {
                         // Attempt to respond to config load errors by overwriting with the default config file
-                        _logger.Warning($"Failed to load the config file, overwriting with default config instead! ({ex})");
+                        Log.Warning($"Failed to load the config file, overwriting with default config instead! ({ex})");
                         SaveDefaultConfig(true);
                         _loadedConfig = LoadConfig();
-                        _logger.Information("Overwriting with default config fixed the issue, continuing");
+                        Log.Information("Overwriting with default config fixed the issue, continuing");
                     }
                     else
                     {
@@ -77,7 +75,7 @@ namespace QuestPatcher.Core
             // If not forcing an overwrite of the config, and the config exists, we don't need to save the default config.
             if (File.Exists(ConfigPath) && !overwrite) { return; }
             
-            _logger.Debug("Saving default config file . . .");
+            Log.Debug("Saving default config file . . .");
             using Stream? resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.default-config.json");
             if(resourceStream == null)
             {
@@ -95,7 +93,7 @@ namespace QuestPatcher.Core
         /// <exception cref="FormatException">If the loaded config did not contain a config object, i.e. it was empty</exception>
         private Config LoadConfig()
         {
-            _logger.Information("Loading config . . .");
+            Log.Information("Loading config . . .");
             
             // Load the config
             using StreamReader streamReader = new(ConfigPath);
@@ -110,7 +108,7 @@ namespace QuestPatcher.Core
             // Load this into the config, then delete the old file
             if (File.Exists(_legacyAppIdPath))
             {
-                _logger.Information("Loading app ID from legacy appId.txt");
+                Log.Information("Loading app ID from legacy appId.txt");
                 newConfig.AppId = File.ReadAllText(_legacyAppIdPath);
                 File.Delete(_legacyAppIdPath);
                 SaveConfig();
@@ -127,7 +125,7 @@ namespace QuestPatcher.Core
         {
             if (_loadedConfig == null) { throw new InvalidOperationException("Cannot save the config as it has not been loaded yet"); }
             
-            _logger.Information("Saving config file . . .");
+            Log.Information("Saving config file . . .");
             using StreamWriter streamWriter = new(ConfigPath);
             using JsonTextWriter writer = new(streamWriter);
             Serializer.Serialize(writer, _loadedConfig);

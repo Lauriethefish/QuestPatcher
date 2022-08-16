@@ -6,10 +6,10 @@ using ReactiveUI;
 using Avalonia.Controls;
 using QuestPatcher.Views;
 using System.Diagnostics;
-using Serilog.Core;
 using System.IO;
 using QuestPatcher.Models;
 using System.Collections.ObjectModel;
+using Serilog;
 
 namespace QuestPatcher.ViewModels
 {
@@ -44,16 +44,14 @@ namespace QuestPatcher.ViewModels
         public bool CanUseFileCopies => _selectedFileCopy != null && Locker.IsFree;
 
         private readonly Window _mainWindow;
-        private readonly Logger _logger;
         private readonly BrowseImportManager _browseManager;
 
-        public OtherItemsViewModel(OtherFilesManager filesManager, Window mainWindow, Logger logger, BrowseImportManager browseManager, OperationLocker locker, ProgressViewModel progressView)
+        public OtherItemsViewModel(OtherFilesManager filesManager, Window mainWindow, BrowseImportManager browseManager, OperationLocker locker, ProgressViewModel progressView)
         {
             FilesManager = filesManager;
             Locker = locker;
             ProgressView = progressView;
             _mainWindow = mainWindow;
-            _logger = logger;
             _browseManager = browseManager;
 
             // Whenever the App ID changes, reset the selected file copy to the first in this list
@@ -137,7 +135,7 @@ namespace QuestPatcher.ViewModels
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error($"Failed to delete file {filePath}: {ex}");
+                        Log.Error($"Failed to delete file {filePath}: {ex}");
                         lastException = ex;
                         lastFailed = filePath;
                         failed++;

@@ -35,9 +35,9 @@ namespace QuestPatcher.Services
         public QuestPatcherUIService(IClassicDesktopStyleApplicationLifetime appLifetime) : base(new UIPrompter())
         {
             _appLifetime = appLifetime;
-            _themeManager = new ThemeManager(Config, SpecialFolders, Logger);
+            _themeManager = new ThemeManager(Config, SpecialFolders);
 
-            _mainWindow = InitialiseUI();
+            _mainWindow = PrepareUi();
 
             _appLifetime.MainWindow = _mainWindow;
             UIPrompter prompter = (UIPrompter) Prompter;
@@ -47,7 +47,7 @@ namespace QuestPatcher.Services
             _mainWindow.Closing += OnMainWindowClosing;
         }
 
-        private Window InitialiseUI()
+        private Window PrepareUi()
         {
             _loggingViewModel = new LoggingViewModel();
             MainWindow window = new();
@@ -55,22 +55,21 @@ namespace QuestPatcher.Services
             window.Height = 550;
             _operationLocker = new();
             _operationLocker.StartOperation(); // Still loading
-            _browseManager = new(OtherFilesManager, ModManager, window, Logger, PatchingManager, _operationLocker);
+            _browseManager = new(OtherFilesManager, ModManager, window, PatchingManager, _operationLocker);
             ProgressViewModel progressViewModel = new(_operationLocker, FilesDownloader);
-            _otherItemsView = new OtherItemsViewModel(OtherFilesManager, window, Logger, _browseManager, _operationLocker, progressViewModel);
+            _otherItemsView = new OtherItemsViewModel(OtherFilesManager, window, _browseManager, _operationLocker, progressViewModel);
 
             MainWindowViewModel mainWindowViewModel = new(
                 new LoadedViewModel(
-                    new PatchingViewModel(Config, _operationLocker, PatchingManager, window, Logger, progressViewModel, FilesDownloader),
+                    new PatchingViewModel(Config, _operationLocker, PatchingManager, window, progressViewModel, FilesDownloader),
                     new ManageModsViewModel(ModManager, PatchingManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
-                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, Logger, PatchingManager, DebugBridge, this, InfoDumper,
+                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, PatchingManager, DebugBridge, this, InfoDumper,
                         _themeManager),
                     _otherItemsView,
                     Config,
                     PatchingManager,
-                    _browseManager,
-                    Logger
+                    _browseManager
                 ),
                 new LoadingViewModel(progressViewModel, _loggingViewModel, Config),
                 this
@@ -120,7 +119,7 @@ namespace QuestPatcher.Services
                 // If the user did not select to change app, or closed the dialogue, we exit due to the error
                 if (!await builder.OpenDialogue(_mainWindow))
                 {
-                    Logger.Error($"Exiting QuestPatcher due to unhandled load error: {ex}");
+                    Log.Error($"Exiting QuestPatcher due to unhandled load error: {ex}");
                     ExitApplication();
                 }
             }   finally

@@ -1,5 +1,4 @@
 ﻿using ICSharpCode.SharpZipLib.Tar;
-using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Serilog;
 
 namespace QuestPatcher.Core
 {
@@ -193,14 +193,12 @@ namespace QuestPatcher.Core
         private readonly List<ExternalFileType> _fullyDownloaded = new();
 
         private readonly SpecialFolders _specialFolders;
-        private readonly Logger _logger;
         private readonly WebClient _webClient = new();
         private readonly bool _isUnix = OperatingSystem.IsMacOS() || OperatingSystem.IsLinux();
 
-        public ExternalFilesDownloader(SpecialFolders specialFolders, Logger logger)
+        public ExternalFilesDownloader(SpecialFolders specialFolders)
         {
             _specialFolders = specialFolders;
-            _logger = logger;
             _fullyDownloadedPath = Path.Combine(_specialFolders.ToolsFolder, "completedDownloads.dat");
 
             // Load which dependencies have been fully downloaded from disk
@@ -243,14 +241,14 @@ namespace QuestPatcher.Core
             // Only pull the download URLs if we haven't already
             if (_downloadUrls != null) { return _downloadUrls; }
             
-            _logger.Debug("Preparing URLs to download files from . . .");
+            Log.Debug("Preparing URLs to download files from . . .");
             List<DownloadSet> downloadSets;
             try
             {
                 downloadSets = await LoadDownloadSetsFromWeb();
             }
             catch(Exception ex) {
-                _logger.Debug($"Failed to download download URLs ({ex}), pulling from resources instead . . .");
+                Log.Debug($"Failed to download download URLs ({ex}), pulling from resources instead . . .");
                 downloadSets = LoadDownloadSetsFromResources();
             }
 
@@ -261,7 +259,7 @@ namespace QuestPatcher.Core
             {
                 if (downloadSet.SupportedVersions.IsSatisfied(qpVersion))
                 {
-                    _logger.Debug($"Using download set for versions {downloadSet.SupportedVersions}");
+                    Log.Debug($"Using download set for versions {downloadSet.SupportedVersions}");
                     _downloadUrls = downloadSet.Downloads;
                     return _downloadUrls;
                 }
@@ -302,7 +300,7 @@ namespace QuestPatcher.Core
         /// <exception cref="NullReferenceException">If no download sets were in the pulled file, i.e. it was empty</exception>
         private async Task<List<DownloadSet>> LoadDownloadSetsFromWeb()
         {
-            _logger.Debug($"Getting download URLs from {DownloadsUrl} . . .");
+            Log.Debug($"Getting download URLs from {DownloadsUrl} . . .");
             string data = await _webClient.DownloadStringTaskAsync(DownloadsUrl);
             using StringReader stringReader = new(data);
             using JsonReader jsonReader = new JsonTextReader(stringReader);
@@ -320,8 +318,8 @@ namespace QuestPatcher.Core
         {
             try
             {
-                _logger.Information($"Downloading {fileInfo.Name} . . .");
-                _logger.Debug($"Download URL: {downloadUrl}");
+                Log.Information($"Downloading {fileInfo.Name} . . .");
+                Log.Debug($"Download URL: {downloadUrl}");
                 DownloadProgress = 0.0;
                 DownloadingFileName = fileInfo.Name;
 
@@ -332,7 +330,7 @@ namespace QuestPatcher.Core
                     using MemoryStream stream = new(archiveData); // Temporarily download the archive in order to extract it
 
                     // There is no way to asynchronously ExtractToDirectory (or ExtractContents with TAR archives), so we use Task.Run to avoid blocking
-                    _logger.Information("Extracting . . .");
+                    Log.Information("Extracting . . .");
                     IsExtracting = true;
                     await Task.Run(() =>
                     {
@@ -454,14 +452,14 @@ namespace QuestPatcher.Core
         /// </summary>
         public async Task ClearCache()
         {
-            _logger.Information("Clearing downloaded file cache . . .");
+            Log.Information("Clearing downloaded file cache . . .");
             await Task.Run(() =>
             {
-                _logger.Debug($"Deleting {_specialFolders.ToolsFolder} . . .");
+                Log.Debug($"Deleting {_specialFolders.ToolsFolder} . . .");
                 Directory.Delete(_specialFolders.ToolsFolder, true); // Also deletes the saved downloaded files file
                 _fullyDownloaded.Clear();
             });
-            _logger.Information("Recreating tools folder . . .");
+            Log.Information("Recreating tools folder . . .");
             Directory.CreateDirectory(_specialFolders.ToolsFolder);
         }
     }

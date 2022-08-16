@@ -1,5 +1,4 @@
 ﻿
-using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Text;
+using Serilog;
 
 namespace QuestPatcher.Core
 {
@@ -62,7 +62,6 @@ namespace QuestPatcher.Core
 
         public event EventHandler? StoppedLogging;
 
-        private readonly Logger _logger;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly Func<DisconnectionType, Task> _onDisconnect;
         private readonly string _adbExecutableName = OperatingSystem.IsWindows() ? "adb.exe" : "adb";
@@ -70,9 +69,8 @@ namespace QuestPatcher.Core
         private string? _adbPath;
         private Process? _logcatProcess;
 
-        public AndroidDebugBridge(Logger logger, ExternalFilesDownloader filesDownloader, Func<DisconnectionType, Task> onDisconnect)
+        public AndroidDebugBridge(ExternalFilesDownloader filesDownloader, Func<DisconnectionType, Task> onDisconnect)
         {
-            _logger = logger;
             _filesDownloader = filesDownloader;
             _onDisconnect = onDisconnect;
         }
@@ -87,7 +85,7 @@ namespace QuestPatcher.Core
                 await ProcessUtil.InvokeAndCaptureOutput(_adbExecutableName, "-version");
                 // If the ADB EXE is already on PATH, we can just use that
                 _adbPath = _adbExecutableName;
-                _logger.Information("Located ADB install on PATH");
+                Log.Information("Located ADB install on PATH");
             }
             catch (Win32Exception) // Thrown if the file we attempted to execute does not exist (on mac & linux as well, despite saying Win32)
             {
@@ -110,16 +108,16 @@ namespace QuestPatcher.Core
             }
             Debug.Assert(_adbPath != null);
 
-            _logger.Debug($"Executing ADB command: adb {command}");
+            Log.Debug($"Executing ADB command: adb {command}");
             while (true)
             {
                 ProcessOutput output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, command);
-                _logger.Verbose($"Standard output: \"{output.StandardOutput}\"");
+                Log.Verbose($"Standard output: \"{output.StandardOutput}\"");
                 if (output.ErrorOutput.Length > 0)
                 {
-                    _logger.Verbose($"Error output: \"{output.ErrorOutput}\"");
+                    Log.Verbose($"Error output: \"{output.ErrorOutput}\"");
                 }
-                _logger.Verbose($"Exit code: {output.ExitCode}");
+                Log.Verbose($"Exit code: {output.ExitCode}");
 
                 // Command execution was a success if the exit code was zero or an allowed exit code
                 // -1073740940 is always allowed as some ADB installations return it randomly, even when commands are successful.
@@ -419,7 +417,7 @@ namespace QuestPatcher.Core
                 }
                 catch (ObjectDisposedException)
                 {
-                    _logger.Debug("ADB attempted to send data after it was closed");
+                    Log.Debug("ADB attempted to send data after it was closed");
                 }
             };
 

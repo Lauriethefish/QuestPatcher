@@ -6,14 +6,12 @@ using Avalonia.Markup.Xaml;
 using QuestPatcher.Core;
 using QuestPatcher.Services;
 using QuestPatcher.Views;
-using Serilog.Core;
+using Serilog;
 
 namespace QuestPatcher
 {
     public class App : Application
     {
-        private Logger? _logger;
-        
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -26,8 +24,8 @@ namespace QuestPatcher
                 return;
             }
             
-            _logger?.Error($"Unhandled exception, QuestPatcher quitting!: {args.ExceptionObject}");
-            _logger?.Dispose(); // Flush logs
+            Log.Error($"Unhandled exception, QuestPatcher quitting!: {args.ExceptionObject}");
+            Log.CloseAndFlush();
         }
 
         public override void OnFrameworkInitializationCompleted()
@@ -39,8 +37,6 @@ namespace QuestPatcher
                 try
                 {
                     QuestPatcherService questPatcherService = new QuestPatcherUIService(desktop);
-                    _logger = questPatcherService.Logger;
-                    
                     desktop.Exit += (_, _) =>
                     {
                         questPatcherService.CleanUp();

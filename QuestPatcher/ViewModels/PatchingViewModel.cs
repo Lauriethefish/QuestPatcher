@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls;
 using QuestPatcher.Views;
-using Serilog.Core;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -8,6 +7,7 @@ using QuestPatcher.Models;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
 using QuestPatcher.Core;
+using Serilog;
 
 namespace QuestPatcher.ViewModels
 {
@@ -28,9 +28,8 @@ namespace QuestPatcher.ViewModels
 
         private readonly PatchingManager _patchingManager;
         private readonly Window _mainWindow;
-        private readonly Logger _logger;
 
-        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, Logger logger, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
+        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
         {
             Config = config;
             Locker = locker;
@@ -39,7 +38,6 @@ namespace QuestPatcher.ViewModels
 
             _patchingManager = patchingManager;
             _mainWindow = mainWindow;
-            _logger = logger;
 
             _patchingManager.PropertyChanged += (_, args) =>
             {
@@ -61,7 +59,7 @@ namespace QuestPatcher.ViewModels
             catch (Exception ex)
             {
                 // Print troubleshooting information for debugging
-                _logger.Error($"Patching failed!: {ex}");
+                Log.Error($"Patching failed!: {ex}");
                 DialogBuilder builder = new()
                 {
                     Title = "Patching Failed",
@@ -81,7 +79,7 @@ namespace QuestPatcher.ViewModels
             if (_patchingManager.InstalledApp.IsModded)
             {
                 // Display a dialogue to give the user some info about what to expect next, and to avoid them pressing restore app by mistake
-                _logger.Debug("Patching completed successfully, displaying info dialogue");
+                Log.Debug("Patching completed successfully, displaying info dialogue");
                 DialogBuilder builder = new()
                 {
                     Title = "Patching Complete!",
