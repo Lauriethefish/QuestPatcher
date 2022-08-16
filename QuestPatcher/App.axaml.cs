@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using QuestPatcher.Models;
 using QuestPatcher.Services;
 using QuestPatcher.Views;
 using Serilog;
@@ -43,6 +44,13 @@ namespace QuestPatcher
                 }
                 catch (Exception ex)
                 {
+                    // Load the default dark theme if we crashed so early in startup that themes hadn't yet been loaded
+                    if(Styles.Count == 1)
+                    {
+                        Styles.Insert(0,
+                            Theme.LoadEmbeddedTheme("Styles/Themes/QuestPatcherDark.axaml", "Dark").ThemeStying);
+                    }
+
                     DialogBuilder dialog = new()
                     {
                         Title = "Critical Error",
