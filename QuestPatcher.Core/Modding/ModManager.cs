@@ -10,8 +10,6 @@ using Serilog;
 
 namespace QuestPatcher.Core.Modding
 {
-    // TODO: Upgrade from old mod system
-    // TODO: And old old mod system notice
     public class ModManager
     {
         public ObservableCollection<IMod> Mods { get; } = new();
@@ -24,7 +22,7 @@ namespace QuestPatcher.Core.Modding
         public string LibsPath => $"/sdcard/Android/data/{_config.AppId}/files/libs/";
         
         private string ConfigPath => $"/sdcard/QuestPatcher/{_config.AppId}/modsStatus.json";
-        private string ModsExtractPath => $"/sdcard/QuestPatcher/{_config.AppId}/installedMods/";
+        public string ModsExtractPath => $"/sdcard/QuestPatcher/{_config.AppId}/installedMods/";
         
         private readonly Dictionary<string, IModProvider> _modProviders = new();
         private readonly ModConverter _modConverter = new();
@@ -141,10 +139,16 @@ namespace QuestPatcher.Core.Modding
             }
             else
             {
-                Log.Debug("No mod status config found, defaulting to no mods");
-            }
+                Log.Debug("No mod status config found, attempting to load legacy mods");
+                
+                _modConfig = new();
+                foreach (var provider in _modProviders.Values)
+                {
+                    await provider.LoadLegacyMods();
+                }
 
-            _modConfig ??= new();
+                await SaveMods();
+            }
             
             foreach(IModProvider provider in _modProviders.Values)
             {

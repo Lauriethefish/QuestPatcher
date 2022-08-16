@@ -250,5 +250,26 @@ namespace QuestPatcher.Core.Modding
         {
             ModsById.Clear();
         }
+        
+        public override async Task LoadLegacyMods()
+        {
+            var legacyFolders = await _debugBridge.ListDirectoryFolders(_modManager.ModsExtractPath);
+            Log.Information($"Attempting to load {legacyFolders.Count} legacy mods");
+            foreach(var legacyFolder in legacyFolders)
+            {
+                Log.Debug($"Loading legacy mod at {legacyFolder}");
+                var modJsonPath = Path.Combine(legacyFolder, "mod.json");
+                using var tmp = new TempFile();
+                await _debugBridge.DownloadFile(modJsonPath, tmp.Path);
+
+                await using var modJsonStream = File.OpenRead(tmp.Path);
+                var manifest = await QModManifest.ParseAsync(modJsonStream);
+                
+                var mod = new QPMod(this, manifest, _debugBridge, _filesDownloader, _modManager);
+                
+                AddMod(mod);
+                _modManager.ModLoadedCallback(mod);
+            }    
+        }
     }
 }
