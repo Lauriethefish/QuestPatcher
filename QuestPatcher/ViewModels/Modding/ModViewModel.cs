@@ -114,7 +114,7 @@ namespace QuestPatcher.ViewModels.Modding
         {
             Debug.Assert(_patchingManager.InstalledApp != null);
             // Check game version, and prompt if it is incorrect to avoid users installing mods that may crash their game
-            if(Mod.PackageVersion != _patchingManager.InstalledApp.Version)
+            if(Mod.PackageVersion != null && Mod.PackageVersion != _patchingManager.InstalledApp.Version)
             {
                 DialogBuilder builder = new()
                 {

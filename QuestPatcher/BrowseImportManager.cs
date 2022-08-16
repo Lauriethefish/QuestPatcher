@@ -3,7 +3,6 @@ using QuestPatcher.Core.Modding;
 using QuestPatcher.Core.Patching;
 using QuestPatcher.Models;
 using QuestPatcher.Views;
-using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -383,7 +382,7 @@ namespace QuestPatcher
             Debug.Assert(_patchingManager.InstalledApp != null);
 
             // Prompt the user for outdated mods instead of enabling them automatically
-            if(mod.PackageVersion != _patchingManager.InstalledApp.Version)
+            if(mod.PackageVersion != null && mod.PackageVersion != _patchingManager.InstalledApp.Version)
             {
                 DialogBuilder builder = new()
                 {

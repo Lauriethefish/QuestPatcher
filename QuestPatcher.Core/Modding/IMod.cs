@@ -34,7 +34,7 @@ namespace QuestPatcher.Core.Modding
         /// <summary>
         /// Version of the package that the mod is intended for
         /// </summary>
-        string PackageVersion { get; }
+        string? PackageVersion { get; }
         
         /// <summary>
         /// Author of the mod
