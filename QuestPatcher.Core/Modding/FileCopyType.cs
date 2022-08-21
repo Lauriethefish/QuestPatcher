@@ -136,7 +136,7 @@ namespace QuestPatcher.Core.Modding
         /// <returns></returns>
         public async Task RemoveFile(string name)
         {
-            await _debugBridge.RemoveFile(name);
+            await _debugBridge.DeleteFile(name);
             ExistingFiles.Remove(name);
         }
     }

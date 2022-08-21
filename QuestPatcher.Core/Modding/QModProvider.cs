@@ -78,7 +78,7 @@ namespace QuestPatcher.Core.Modding
             Log.Information("Pushing & extracting on to quest . . .");
             await _debugBridge.UploadFile(modPath, pushPath);
             await _debugBridge.ExtractArchive(pushPath, GetExtractDirectory(qmod.Id));
-            await _debugBridge.RemoveFile(pushPath);
+            await _debugBridge.DeleteFile(pushPath);
 
             AddMod(mod);
             _modManager.ModLoadedCallback(mod);
