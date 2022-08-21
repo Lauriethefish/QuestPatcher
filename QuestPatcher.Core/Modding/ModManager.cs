@@ -109,10 +109,15 @@ namespace QuestPatcher.Core.Modding
             _awaitingConfigSave = false;
         }
 
+        public async Task CreateModDirectories()
+        {
+            await _debugBridge.CreateDirectories(new List<string> {ModsPath, LibsPath, ModsExtractPath});
+        }
+
         public async Task LoadModsForCurrentApp()
         {
             Log.Information("Loading mods . . .");
-            await _debugBridge.CreateDirectories(new List<string> {ModsPath, LibsPath, ModsExtractPath});
+            await CreateModDirectories();
 
             // If a config file exists, we'll need to load our mods from it
             if(await _debugBridge.FileExists(ConfigPath))

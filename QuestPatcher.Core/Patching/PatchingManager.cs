@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using QuestPatcher.Core.Models;
-using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,6 +15,7 @@ using System.Threading.Tasks;
 using AssetsTools.NET;
 using AssetsTools.NET.Extra;
 using QuestPatcher.Axml;
+using QuestPatcher.Core.Modding;
 using Serilog;
 
 namespace QuestPatcher.Core.Patching
@@ -27,6 +27,8 @@ namespace QuestPatcher.Core.Patching
     {
         private static readonly Uri AndroidNamespaceUri = new("http://schemas.android.com/apk/res/android");
         private const string ManifestPath = "AndroidManifest.xml";
+        private const string DataDirectoryTemplate = "/sdcard/Android/data/{0}/files";
+        private const string DataBackupTemplate = "/sdcard/QuestPatcher/{0}/backup";
         
         // Attribute resource IDs, used during manifest patching
         private const int NameAttributeResourceId = 16842755;
@@ -69,11 +71,12 @@ namespace QuestPatcher.Core.Patching
         private readonly IUserPrompter _prompter;
         private readonly ApkSigner _apkSigner;
         private readonly Action _quit;
+        private readonly ModManager _modManager;
 
         private readonly string _storedApkPath;
         private Dictionary<string, Dictionary<string, string>>? _libUnityIndex;
 
-        public PatchingManager(Config config, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, ApkSigner apkSigner, Action quit)
+        public PatchingManager(Config config, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, ApkSigner apkSigner, Action quit, ModManager modManager)
         {
             _config = config;
             _debugBridge = debugBridge;
@@ -82,6 +85,7 @@ namespace QuestPatcher.Core.Patching
             _prompter = prompter;
             _apkSigner = apkSigner;
             _quit = quit;
+            _modManager = modManager;
 
             _storedApkPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
         }
@@ -489,7 +493,7 @@ namespace QuestPatcher.Core.Patching
             {
                 throw new NullReferenceException("Cannot patch before installed app has been checked");
             }
-            
+
             _patchingStage = PatchingStage.MovingToTemp;
             Log.Information("Copying APK to patched location . . .");
             string patchedApkPath = Path.Combine(_specialFolders.PatchingFolder, "patched.apk");
@@ -574,8 +578,29 @@ namespace QuestPatcher.Core.Patching
             PatchingStage = PatchingStage.Signing;
 
             await _apkSigner.SignApkWithPatchingCertificate(patchedApkPath, prePatchHashes);
+            
 
             Log.Information("Uninstalling the default APK . . .");
+            Log.Information("Backing up data directory");
+            string dataPath = string.Format(DataDirectoryTemplate, _config.AppId);
+            string? backupPath = string.Format(DataBackupTemplate, _config.AppId);
+            try
+            {
+                // Avoid failing if no files are present in the data directory
+                // TODO: Perhaps check if it exists first and then skip backup if missing? This is more complex.
+                await _debugBridge.CreateDirectory(dataPath);
+                // Remove the backup path if it already exists and then recreate it
+                await _debugBridge.RemoveDirectory(backupPath);
+                await _debugBridge.CreateDirectory(backupPath);
+                // Copy all the files to the data backup
+                await _debugBridge.Move(dataPath, backupPath);
+            }
+            catch(Exception ex)
+            {
+                Log.Error($"Failed to create data backup: {ex}");
+                backupPath = null; // Indicate that the backup failed
+            }
+
             PatchingStage = PatchingStage.UninstallingOriginal;
 
             await _debugBridge.UninstallApp(_config.AppId);
@@ -584,6 +609,25 @@ namespace QuestPatcher.Core.Patching
             PatchingStage = PatchingStage.InstallingModded;
 
             await _debugBridge.InstallApp(patchedApkPath);
+
+            if(backupPath != null)
+            {
+                Log.Information("Restoring data backup");
+                try
+                {
+                    string dataParentPath = Path.GetDirectoryName(dataPath)!;
+                    await _debugBridge.CreateDirectory(dataParentPath); // This is deleted upon uninstall
+                    // Move the "files" folder within the backup to the "data" folder for the app.
+                    await _debugBridge.Move(Path.Combine(backupPath, "files"), dataParentPath);
+                    // Delete mod/library files to avoid old mods causing crashes
+                    await _debugBridge.RemoveDirectory(Path.Combine(dataPath, "libs"));
+                    await _debugBridge.RemoveDirectory(Path.Combine(dataPath, "mods"));
+                }
+                catch(Exception ex)
+                {
+                    Log.Error($"Failed to restore data backup: {ex}");
+                }
+            }
             
             try
             {
@@ -593,6 +637,9 @@ namespace QuestPatcher.Core.Patching
             {
                 Log.Warning("Failed to delete patched APK");
             }
+
+            // Recreate the mod directories as they will not be present after the uninstall/backup restore
+            await _modManager.CreateModDirectories();
 
             Log.Information("Patching complete!");
             InstalledApp.IsModded = true;
