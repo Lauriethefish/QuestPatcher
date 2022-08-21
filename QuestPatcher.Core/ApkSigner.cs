@@ -316,18 +316,18 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                 }
             }
 
-            using(ZipArchive apkArchive = ZipFile.Open(path, ZipArchiveMode.Update))
+            ZipArchive writingArchive = ZipFile.Open(path, ZipArchiveMode.Update);
+            try
             {
                 // Delete existing signature related files
-                foreach(ZipArchiveEntry entry in apkArchive.Entries.Where(entry => entry.FullName.StartsWith("META-INF")).ToList())
+                foreach(ZipArchiveEntry entry in writingArchive.Entries.Where(entry => entry.FullName.StartsWith("META-INF")).ToList())
                 {
                     entry.Delete();
                 }
-                
-                
-                await using Stream signaturesFile = apkArchive.CreateAndOpenEntry("META-INF/BS.SF");
-                await using Stream rsaFile = apkArchive.CreateAndOpenEntry("META-INF/BS.RSA");
-                await using Stream manifestStream = apkArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
+
+                await using Stream signaturesFile = writingArchive.CreateAndOpenEntry("META-INF/BS.SF");
+                await using Stream rsaFile = writingArchive.CreateAndOpenEntry("META-INF/BS.RSA");
+                await using Stream manifestStream = writingArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
 
                 // Find the hash of the manifest
                 manifestFile.Position = 0;
@@ -359,7 +359,12 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                 byte[] keyFile = GetSignature(sigFileMs.ToArray(), pemData);
                 await rsaFile.WriteAsync(keyFile);
             }
-            
+            finally
+            {
+                // Dispose in Task.Run, to avoid UI freezes
+                Log.Information("Disposing signed archive");
+                await Task.Run(() => writingArchive.Dispose());
+            }
         }
 
         /// <summary>
