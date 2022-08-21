@@ -238,6 +238,12 @@ namespace QuestPatcher.Core
             await RunShellCommand($"mkdir -p {path.WithForwardSlashes().EscapeBash()}");
         }
 
+        public async Task Move(string from, string to)
+        {
+            await RunShellCommand(
+                $"mv {from.WithForwardSlashes().EscapeBash()} {to.WithForwardSlashes().EscapeBash()}");
+        }
+
         public async Task DeleteFile(string path)
         {
             await RunShellCommand($"rm -f {path.WithForwardSlashes().EscapeBash()}");
@@ -245,7 +251,7 @@ namespace QuestPatcher.Core
 
         public async Task RemoveDirectory(string path)
         {
-            await RunShellCommand($"rm -r {path.WithForwardSlashes().EscapeBash()}");
+            await RunShellCommand($"rm -rf {path.WithForwardSlashes().EscapeBash()}");
         }
 
         public async Task CopyFile(string path, string destination)
