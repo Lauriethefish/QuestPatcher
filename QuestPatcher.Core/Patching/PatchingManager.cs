@@ -129,7 +129,7 @@ namespace QuestPatcher.Core.Patching
             bool is64Bit = false;
             bool isModded = false;
             
-            string packageDump = (await _debugBridge.RunCommand($"shell dumpsys \"package {_config.AppId}\"")).StandardOutput;
+            string packageDump = (await _debugBridge.RunShellCommand($"dumpsys package {_config.AppId}")).StandardOutput;
             string version = GetPackageDumpValue(packageDump, "versionName");
             Log.Information($"App Version: {version}");
 

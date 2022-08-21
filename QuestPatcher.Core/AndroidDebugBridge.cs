@@ -99,6 +99,8 @@ namespace QuestPatcher.Core
         /// AdbException is thrown if the return code is non-zero, unless the return code is in allowedExitCodes.
         /// </summary>
         /// <param name="command">The command to execute, without the <code>adb</code> executable name</param>
+        /// <param name="allowedExitCodes">Non-zero exit codes that will be ignored and will not produce an <see cref="AdbException"/></param>
+        /// <exception cref="AdbException">If a non-zero exit code is returned by ADB that is not within <paramref name="allowedExitCodes"/></exception>
         /// <returns>The process output from executing the file</returns>
         public async Task<ProcessOutput> RunCommand(string command, params int[] allowedExitCodes)
         {
@@ -148,32 +150,49 @@ namespace QuestPatcher.Core
             }
         }
 
+        /// <summary>
+        /// Executes the shell commands given using one ADB shell call, or multiple calls if there are too many for one call.
+        /// </summary>
+        /// <param name="commands">The commands to execute</param>
+        public async Task RunShellCommands(List<string> commands)
+        {
+            if(commands.Count == 0) { return; } // Return blank output if no commands to avoid errors
+
+            var currentCommand = new StringBuilder();
+            for(int i = 0; i < commands.Count; i++)
+            {
+                currentCommand.Append(commands[i]); // Add the next command
+                // If the current batch command + the next command will be greater than our command length limit (or we're at the last command), we stop the current batch command and add the result to the list
+                if ((commands.Count - i >= 2 && currentCommand.Length + commands[i + 1].Length + 4 >= CommandLengthLimit) || i == commands.Count - 1)
+                {
+                    await RunShellCommand(currentCommand.ToString());
+                    continue;
+                }
+
+                // Otherwise, add an && for the next command
+                currentCommand.Append(" && ");
+            }
+        }
+
+        public async Task<ProcessOutput> RunShellCommand(string command, params int[] allowedExitCodes)
+        {
+            return await RunCommand($"shell {command.EscapeProc()}", allowedExitCodes);
+        }
+        
         public async Task DownloadFile(string name, string destination)
         {
-            await RunCommand($"pull \"{FixPath(name)}\" \"{destination}\"");
+            await RunCommand($"pull {name.WithForwardSlashes().EscapeProc()} {destination.EscapeProc()}");
         }
 
         public async Task UploadFile(string name, string destination)
         {
-            await RunCommand($"push \"{name}\" \"{FixPath(destination)}\"");
-        }
-
-        /// <summary>
-        /// ADB does not like backward slashes in upload/download paths.
-        /// This fixes the paths to not contain these slashes.
-        /// The backslashes are added by Path.Combine on the windows side
-        /// </summary>
-        /// <param name="path">The path to fix</param>
-        /// <returns>The fixed path</returns>
-        private static string FixPath(string path)
-        {
-            return path.Replace('\\', '/');
+            await RunCommand($"push {name.EscapeProc()} {destination.WithForwardSlashes().EscapeProc()}");
         }
 
         public async Task DownloadApk(string packageId, string destination)
         {
             // Pull the path of the app from the Android package manager, then remove the formatting that ADB adds
-            string rawAppPath = (await RunCommand($"shell pm path {packageId}")).StandardOutput;
+            string rawAppPath = (await RunShellCommand($"pm path {packageId}")).StandardOutput;
             string appPath = rawAppPath.Remove(0, 8).Replace("\n", "").Replace("'", "").Replace("\r", "");
 
             await DownloadFile(appPath, destination);
@@ -186,13 +205,13 @@ namespace QuestPatcher.Core
 
         public async Task<bool> IsPackageInstalled(string packageId)
         {
-            string result = (await RunCommand($"shell pm list packages {packageId}")).StandardOutput; // List packages with the specified ID
+            string result = (await RunShellCommand($"pm list packages {packageId}")).StandardOutput; // List packages with the specified ID
             return result.Contains(packageId); // The result is "package:packageId", so we check if the packageId is within that result. If it isn't the result will be empty, so this will return false
         }
 
         public async Task<List<string>> ListPackages()
         {
-            string output = (await RunCommand($"shell pm list packages")).StandardOutput;
+            string output = (await RunShellCommand("pm list packages")).StandardOutput;
             List<string> result = new();
             foreach(string package in output.Split("\n"))
             {
@@ -211,62 +230,28 @@ namespace QuestPatcher.Core
 
         public async Task InstallApp(string apkPath)
         {
-            await RunCommand($"install \"{apkPath}\"");
+            await RunCommand($"install {apkPath.EscapeProc()}");
         }
 
         public async Task CreateDirectory(string path)
         {
-            await RunCommand($"shell \"mkdir -p '{FixPath(path)}'\"");
+            await RunShellCommand($"mkdir -p {path.WithForwardSlashes().EscapeBash()}");
         }
 
         public async Task RemoveFile(string path)
         {
-            await RunCommand($"shell \"rm '{FixPath(path)}'\"");
+            await RunShellCommand($"rm {path.WithForwardSlashes().EscapeBash()}");
         }
 
         public async Task RemoveDirectory(string path)
         {
-            await RunCommand($"shell \"rm -r '{FixPath(path)}'\"");
+            await RunShellCommand($"rm -r {path.WithForwardSlashes().EscapeBash()}");
         }
 
         public async Task CopyFile(string path, string destination)
         {
-            await RunCommand($"shell \"cp '{FixPath(path)}' '{FixPath(destination)}'\"");
-        }
-
-        /// <summary>
-        /// Executes the shell commands given using one ADB shell call, or multiple calls if there are too many for one call.
-        /// NOTE: The commands should use single ('here') quotes on arguments, since double quotes are used around the command.
-        /// </summary>
-        /// <param name="commands">The commands to execute</param>
-        public async Task RunShellCommands(List<string> commands)
-        {
-            if(commands.Count == 0) { return; } // Return blank output if no commands to avoid errors
-
-            const string initialCommmand = "shell \"";
-            List<string> awaitingRun = new();
-            StringBuilder result = new(initialCommmand);
-            for(int i = 0; i < commands.Count; i++)
-            {
-                result.Append(commands[i]); // Add the next command
-                // If the current batch command + the next command will be greater than our command length limit (or we're at the last command), we stop the current batch command and add the result to the list
-                if ((commands.Count - i >= 2 && result.Length + commands[i + 1].Length + 4 >= CommandLengthLimit) || i == commands.Count - 1)
-                {
-                    result.Append('\"');
-                    awaitingRun.Add(result.ToString());
-                    result = new StringBuilder(initialCommmand);
-                    continue;
-                }
-
-                // Otherwise, add an && for the next command
-                result.Append(" && ");
-            }
-
-            // Run all the queued commands
-            foreach(string command in awaitingRun)
-            {
-                await RunCommand(command);
-            }
+            await RunShellCommand(
+                $"cp {path.WithForwardSlashes().EscapeBash()} {destination.WithForwardSlashes().EscapeBash()}");
         }
 
         /// <summary>
@@ -281,7 +266,7 @@ namespace QuestPatcher.Core
 
             foreach(KeyValuePair<string, string> path in paths)
             {
-                commands.Add($"cp '{FixPath(path.Key)}' '{FixPath(path.Value)}'");
+                commands.Add($"cp {path.Key.WithForwardSlashes().EscapeBash()} {path.Value.WithForwardSlashes().EscapeBash()}");
             }
 
             await RunShellCommands(commands);
@@ -297,7 +282,7 @@ namespace QuestPatcher.Core
             List<string> commands = new();
             foreach(string path in paths)
             {
-                commands.Add($"mkdir -p '{FixPath(path)}'");
+                commands.Add($"mkdir -p {path.WithForwardSlashes().EscapeBash()}");
             }
 
             await RunShellCommands(commands);
@@ -314,7 +299,7 @@ namespace QuestPatcher.Core
             List<string> commands = new();
             foreach (string path in paths)
             {
-                commands.Add($"rm '{FixPath(path)}'");
+                commands.Add($"rm {path.WithForwardSlashes().EscapeBash()}");
             }
 
             await RunShellCommands(commands);
@@ -323,13 +308,12 @@ namespace QuestPatcher.Core
         public async Task ExtractArchive(string path, string outputFolder)
         {
             await CreateDirectory(outputFolder);
-            await RunCommand($"shell unzip \"{path}\" -o -d \"{outputFolder}\"");
+            await RunShellCommand($"unzip {path.WithForwardSlashes().EscapeBash()} -o -d {outputFolder.WithForwardSlashes().EscapeBash()}");
         }
 
         public async Task<List<string>> ListDirectoryFiles(string path, bool onlyFileName = false)
         {
-            path = FixPath(path);
-            ProcessOutput output = await RunCommand($"shell \"ls -p \\\"{path}\\\" | grep -v /\"", 1);
+            ProcessOutput output = await RunShellCommand($"ls -p {path.WithForwardSlashes().EscapeBash()}", 1);
             string filesNonSplit = output.StandardOutput;
             
             // Exit code 1 is only allowed if it is returned with no files, as this is what the LS command returns
@@ -338,13 +322,12 @@ namespace QuestPatcher.Core
                 throw new AdbException(output.AllOutput);
             }
             
-            return ParsePaths(filesNonSplit, path, onlyFileName);
+            return ParsePaths(filesNonSplit, path, onlyFileName, false);
         }
 
         public async Task<List<string>> ListDirectoryFolders(string path, bool onlyFolderName = false)
         {
-            path = FixPath(path);
-            ProcessOutput output = await RunCommand($"shell \"ls -p \\\"{path}\\\" | grep /\"", 1);
+            ProcessOutput output = await RunShellCommand($"ls -p {path.WithForwardSlashes().EscapeBash()}", 1);
             string foldersNonSplit = output.StandardOutput;
 
             // Exit code 1 is only allowed if it is returned with no folders, as this is what the LS command returns
@@ -353,10 +336,15 @@ namespace QuestPatcher.Core
                 throw new AdbException(output.AllOutput);
             }
             
-            return ParsePaths(foldersNonSplit, path, onlyFolderName);
+            return ParsePaths(foldersNonSplit, path, onlyFolderName, true);
+        }
+        
+        public async Task KillServer()
+        {
+            await RunCommand("kill-server");
         }
 
-        private static List<string> ParsePaths(string str, string path, bool onlyNames)
+        private static List<string> ParsePaths(string str, string path, bool onlyNames, bool directories)
         {
             // Remove unnecessary padding that ADB adds to get purely the paths
             string[] rawPaths = str.Split("\n");
@@ -367,6 +355,25 @@ namespace QuestPatcher.Core
                 if (currentPath[^1] == ':') // Directories within this one that aren't the first index lead to this
                 {
                     break;
+                }
+
+                // The directory listing passed to this method should be that from "ls -p"
+                // This means that directories will end with a / and files will never end with a /
+                if(currentPath.EndsWith("/"))
+                {
+                    // If only looking for files, and our path ends with a /, it must be a folder, so we skip it
+                    if(!directories)
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    // If only looking for directories, and our path doesn't end with a /, it must be a file, so we skip it
+                    if(directories)
+                    {
+                        continue;
+                    }
                 }
 
                 if (onlyNames)
@@ -437,11 +444,6 @@ namespace QuestPatcher.Core
         public void StopLogging()
         {
             _logcatProcess?.Kill();
-        }
-
-        public async Task KillServer()
-        {
-            await RunCommand($"kill-server");
         }
 
         /// <summary>
