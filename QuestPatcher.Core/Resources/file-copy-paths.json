@@ -61,6 +61,24 @@
       "nameSingular": "Pillow Constellation",
       "namePlural": "Pillow Constellations",
       "supportedExtensions": [ "json" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.beatgames.beatsaber/Mods/Qosmetics/Whackers/",
+      "nameSingular": "Whacker",
+      "namePlural": "Whackers",
+      "supportedExtensions": [ "whacker" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.beatgames.beatsaber/Mods/Qosmetics/Cyoobs/",
+      "nameSingular": "Cyoob",
+      "namePlural": "Cyoobs",
+      "supportedExtensions": [ "cyoob" ]
+    },
+    {
+      "path": "/sdcard/ModData/com.beatgames.beatsaber/Mods/Qosmetics/Boxes/",
+      "nameSingular": "Box",
+      "namePlural": "Boxes",
+      "supportedExtensions": [ "box" ]
     }
   ]
 }
