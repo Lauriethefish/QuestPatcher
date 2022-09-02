@@ -59,6 +59,7 @@ namespace QuestPatcher.Core.Modding
 
             // Check if upgrading from a previous version is OK, or if we have to fail the import
             ModsById.TryGetValue(qmod.Id, out QPMod? existingInstall);
+            bool needImmediateInstall = false;
             if (existingInstall != null)
             {
                 if (existingInstall.Version == qmod.Version)
@@ -70,7 +71,7 @@ namespace QuestPatcher.Core.Modding
                     throw new InstallationException($"Version of existing {existingInstall.Id} ({existingInstall.Version}) is greater than installing version ({mod.Version}). Direct version downgrades are not permitted");
                 }
                 // Uninstall the existing mod. May throw an exception if other mods depend on the older version
-                await PrepareVersionChange(existingInstall, mod);
+                needImmediateInstall = await PrepareVersionChange(existingInstall, mod);
             }
             
             string pushPath = Path.Combine("/data/local/tmp/", $"{qmod.Id}.temp.modextract");
@@ -83,6 +84,11 @@ namespace QuestPatcher.Core.Modding
             AddMod(mod);
             _modManager.ModLoadedCallback(mod);
 
+            if(needImmediateInstall)
+            {
+                await mod.Install();
+            }
+
             Log.Information("Import complete");
             return mod;
         }
@@ -94,27 +100,39 @@ namespace QuestPatcher.Core.Modding
         /// </summary>
         /// <param name="currentlyInstalled">The installed version of the mod</param>
         /// <param name="newVersion">The version of the mod to be upgraded to</param>
-        private async Task PrepareVersionChange(QPMod currentlyInstalled, QPMod newVersion)
+        /// <returns>True if the mod had installed dependants, and thus needs to be immediately installed</returns>
+        private async Task<bool> PrepareVersionChange(QPMod currentlyInstalled, QPMod newVersion)
         {
             Debug.Assert(currentlyInstalled.Id == newVersion.Id);
             Log.Information($"Attempting to upgrade {currentlyInstalled.Id} v{currentlyInstalled.Version} to {newVersion.Id} v{newVersion.Version}");
 
             bool didFailToMatch = false;
-
             StringBuilder errorBuilder = new();
             errorBuilder.AppendLine($"Failed to upgrade installation of mod {currentlyInstalled.Id} to {newVersion.Version}: ");
+            bool installedDependants = false;
             foreach (QPMod mod in ModsById.Values)
             {
+                if(!mod.IsInstalled)
+                {
+                    continue;
+                }
 
                 foreach (Dependency dependency in mod.Manifest.Dependencies)
                 {
-                    if (dependency.Id == currentlyInstalled.Id && !dependency.VersionRange.IsSatisfied(newVersion.Version))
+                    if (dependency.Id == currentlyInstalled.Id)
                     {
-                        string errorLine = $"Dependency of mod {mod.Id} requires version range {dependency.VersionRange} of {currentlyInstalled.Id}, however the version of {currentlyInstalled.Id} being upgraded to ({newVersion.Version}) does not intersect this range";
-                        errorBuilder.AppendLine(errorLine);
-                        
-                        Log.Error(errorLine);
-                        didFailToMatch = true;
+                        if(dependency.VersionRange.IsSatisfied(newVersion.Version))
+                        {
+                            installedDependants = true;
+                        }
+                        else
+                        {
+                            string errorLine = $"Dependency of mod {mod.Id} requires version range {dependency.VersionRange} of {currentlyInstalled.Id}, however the version of {currentlyInstalled.Id} being upgraded to ({newVersion.Version}) does not intersect this range";
+                            errorBuilder.AppendLine(errorLine);
+
+                            Log.Error(errorLine);
+                            didFailToMatch = true;
+                        }
                     }
                 }
             }
@@ -127,6 +145,7 @@ namespace QuestPatcher.Core.Modding
             {
                 Log.Information($"Deleting old version of {newVersion.Id} to prepare for upgrade . . .");
                 await DeleteMod(currentlyInstalled);
+                return installedDependants;
             }
         }
 
