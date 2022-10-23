@@ -15,7 +15,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.101
+        dotnet-version: 6.0.402
     - name: Set version
       run: 'echo "${{ github.event.release.tag_name }}" > ./VERSION'
     - name: Write Info.plist with correct version
