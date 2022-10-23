@@ -4,6 +4,7 @@ on:
   release:
     types:
       - created
+  push:
 
 jobs:
   build:
@@ -17,46 +18,37 @@ jobs:
       with:
         dotnet-version: 6.0.402
     - name: Set version
+      if: ${{ github.event_name == 'release' }}
       run: 'echo "${{ github.event.release.tag_name }}" > ./VERSION'
-    - name: Write Info.plist with correct version
-      run: 'echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-<plist version=\"1.0\">
-    <dict>
-        <key>CFBundleExecutable</key>
-        <string>QuestPatcher</string>
-        <key>CFBundleName</key>
-        <string>QuestPatcher</string>
-        <key>CFBundleIdentifier</key>
-        <string>dev.lauriethefish.QuestPatcher</string>
-        <key>NSHighResolutionCapable</key>
-        <true />
-        <key>CFBundleVersion</key>
-        <string>${{ github.event.release.tag_name }}</string>
-        <key>CFBundleShortVersionString</key>
-        <string>${{ github.event.release.tag_name }}</string>
-        <key>CFBundleIconFile</key>
-        <string>iconfile</string>
-    </dict>
-</plist>" > ./macos-dmg/dmg-root/QuestPatcher.app/Contents/Info.plist'
+    - name: Restore
+      run: dotnet restore -r osx-x64
     - name: Build QuestPatcher
-      run: dotnet publish -c Release -r osx-x64 --self-contained
+      run: dotnet msbuild ./QuestPatcher/QuestPatcher.csproj -t:BundleApp -p:RuntimeIdentifier=osx-x64 -p:Configuration=Release -p:UseAppHost=true
+    - name: Make DMG root
+      run: mkdir -p ./macos-dmg/dmg-root/
     - name: Create applications symlink
       run: ln -sfn "/Applications" "macos-dmg/dmg-root/Applications"
-    - name: Create app contents folder
-      run: mkdir -p macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS
-    - name: Copy built files to app contents
-      run: cp -r QuestPatcher/bin/Release/net6.0/osx-x64/publish/* macos-dmg/dmg-root/QuestPatcher.app/Contents/MacOS/
     - name: Add LICENSE to app contents
       run: cp LICENSE macos-dmg/dmg-root/LICENSE.txt
+    - name: Add app to app contents
+      run: cp -r ./QuestPatcher/bin/Release/net6.0/osx-x64/publish/QuestPatcher.app ./macos-dmg/dmg-root/QuestPatcher.app
+    - name: Strip signature
+      run: codesign --remove-signature ./macos-dmg/dmg-root/QuestPatcher.app
     - name: Detach existing DMGs
       run: hdiutil info | grep /dev/disk | grep partition | cut -f 1 | xargs hdiutil detach
     - name: Create DMG
       run: hdiutil create -srcfolder macos-dmg/dmg-root /tmp/QuestPatcher.dmg -volname QuestPatcher
     - name: Compress DMG
       run: hdiutil convert /tmp/QuestPatcher.dmg -format UDZO -o macos-dmg/QuestPatcher.dmg
+    - name: Artifact Upload ${{ matrix.target.runtime }}
+      if: ${{ github.event_name != 'release' }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: QuestPatcher.dmg
+        path: ./macos-dmg/QuestPatcher.dmg
     - name: Upload Release Asset
       id: upload-release-asset 
+      if: ${{ github.event_name == 'release' }}
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -30,9 +30,24 @@
     <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CFBundleName>QuestPatcher</CFBundleName>
+    <CFBundleDisplayName>QuestPatcher</CFBundleDisplayName>
+    <CFBundleIdentifier>com.lauriethefish.QuestPatcher</CFBundleIdentifier>
+    <CFBundleVersion>1.0.0</CFBundleVersion>
+    <CFBundleShortVersionString>1.0.0</CFBundleShortVersionString>
+    <CFBundlePackageType>APPL</CFBundlePackageType>
+    <CFBundleSignature>????</CFBundleSignature>
+    <CFBundleExecutable>QuestPatcher</CFBundleExecutable>
+    <CFBundleIconFile>iconfile.icns</CFBundleIconFile> 
+    <NSPrincipalClass>NSApplication</NSPrincipalClass>
+    <NSHighResolutionCapable>true</NSHighResolutionCapable>
+</PropertyGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="Styles\**" />
+    <None Include="iconfile.icns" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +56,7 @@
     <PackageReference Include="Avalonia.Diagnostics" Version="0.10.7" />
     <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="0.10.7" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.7" />
+    <PackageReference Include="Dotnet.Bundle" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
