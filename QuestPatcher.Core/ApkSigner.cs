@@ -294,7 +294,6 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
         /// Using existing hashes reduces signing time, since only the files within the APK that have actually changed have to get signed.</param>
         public async Task SignApk(string path, string pemData, Dictionary<string, PrePatchHash>? knownHashes = null)
         {
-            ApkAligner.AlignApk(path);
             //await using Stream manifestFile = apkArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
             await using Stream manifestFile = new MemoryStream();
             //await using Stream signaturesFile = apkArchive.CreateAndOpenEntry("META-INF/BS.SF");
@@ -366,6 +365,7 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                 Log.Information("Disposing signed archive");
                 await Task.Run(() => writingArchive.Dispose());
             }
+            ApkAligner.AlignApk(path);
         }
 
         /// <summary>
