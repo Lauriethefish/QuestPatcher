@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace QuestPatcher.Core
@@ -78,7 +79,7 @@ namespace QuestPatcher.Core
 
         class DD
         {
-            public readonly int SIGNATURE = 0x08074b50;
+            public static readonly int SIGNATURE = 0x08074b50;
 
             public int CRC32 { get; set; }
             public int CompressedSize { get; set; }
@@ -106,7 +107,7 @@ namespace QuestPatcher.Core
 
         class LFH {
 
-            public readonly int SIGNATURE = 0x04034b50;
+            public static readonly int SIGNATURE = 0x04034b50;
 
             public short VersionNeeded { get; set; }
             public short GeneralPurposeFlag { get; set; }
@@ -160,7 +161,7 @@ namespace QuestPatcher.Core
         }
         class CD
         {
-            public readonly int SIGNATURE = 0x02014b50;
+            public static readonly int SIGNATURE = 0x02014b50;
             public short VersionMadeBy { get; set; }
             public short VersionNeeded { get; set; }
             public short GeneralPurposeFlag { get; set; }
@@ -235,7 +236,7 @@ namespace QuestPatcher.Core
         class EOCD
         {
 
-            public readonly int SIGNATURE = 0x06054b50;
+            public static readonly int SIGNATURE = 0x06054b50;
             public short NumberOfDisk { get; set; }
             public short CDStartDisk { get; set; }
             public short NumberOfCDsOnDisk { get; set; }
@@ -279,7 +280,7 @@ namespace QuestPatcher.Core
             using FileMemory memory = new FileMemory(fs);
             using FileMemory outMemory = new FileMemory(new MemoryStream());
             memory.Position = memory.Length() - 22;
-            while(memory.ReadInt() != 0x06054b50)
+            while(memory.ReadInt() != EOCD.SIGNATURE)
             {
                 memory.Position -= 4 + 1;
             }
@@ -300,12 +301,12 @@ namespace QuestPatcher.Core
                 if((lfh.GeneralPurposeFlag & 0x08) != 0) 
                     dd = new DD(memory);
                 if(lfh.CompressionMethod == 0) {
-                    short padding = (short) ((outMemory.Position + 30 + lfh.FileNameLength) % 4);
+                    short padding = (short) ((outMemory.Position + 30 + lfh.FileNameLength + lfh.ExtraFieldLength) % 4);
                     if(padding > 0)
                     {
                         padding = (short) (4 - padding);
-                        lfh.ExtraFieldLength = padding;
-                        lfh.ExtraField = new byte[padding];
+                        lfh.ExtraFieldLength += padding;
+                        lfh.ExtraField = lfh.ExtraField.Concat(new byte[padding]).ToArray();
                     }
                 }
                 cd.Offset = (int) outMemory.Position;
