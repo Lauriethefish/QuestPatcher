@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using QuestPatcher.Core.Zip;
+using QuestPatcher.Core.Apk;
 
 namespace QuestPatcher.Core
 {
@@ -38,11 +38,10 @@ namespace QuestPatcher.Core
                 if((lfh.GeneralPurposeFlag & 0x08) != 0) 
                     dd = new DataDescriptor(memory);
                 if(lfh.CompressionMethod == 0) {
-                    short padding = (short) ((outMemory.Position + 30 + lfh.FileNameLength + lfh.ExtraFieldLength) % 4);
+                    short padding = (short) ((outMemory.Position + 30 + FileMemory.StringLength(lfh.FileName) + lfh.ExtraField.Length) % 4);
                     if(padding > 0)
                     {
                         padding = (short) (4 - padding);
-                        lfh.ExtraFieldLength += padding;
                         lfh.ExtraField = lfh.ExtraField.Concat(new byte[padding]).ToArray();
                     }
                 }

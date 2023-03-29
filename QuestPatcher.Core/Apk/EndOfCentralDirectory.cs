@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QuestPatcher.Core.Zip
+namespace QuestPatcher.Core.Apk
 {
     public class EndOfCentralDirectory
     {
@@ -16,23 +16,23 @@ namespace QuestPatcher.Core.Zip
         public short NumberOfCDs { get; set; }
         public int SizeOfCD { get; set; }
         public int OffsetOfCD { get; set; }
-        public short CommentLength { get; set; }
         public string Comment { get; set; }
 
         public EndOfCentralDirectory(FileMemory memory)
         {
             int signature = memory.ReadInt();
             if(signature != SIGNATURE)
-                throw new Exception("Invalid EOCD signature " + signature.ToString("X4"));
+                throw new Exception("Invalid EndOfCentralDirectory signature " + signature.ToString("X4"));
             NumberOfDisk = memory.ReadShort();
             CDStartDisk = memory.ReadShort();
             NumberOfCDsOnDisk = memory.ReadShort();
             NumberOfCDs = memory.ReadShort();
             SizeOfCD = memory.ReadInt();
             OffsetOfCD = memory.ReadInt();
-            CommentLength = memory.ReadShort();
-            Comment = memory.ReadString(CommentLength);
+            var commentLength = memory.ReadShort();
+            Comment = memory.ReadString(commentLength);
         }
+
         public void Write(FileMemory memory)
         {
             memory.WriteInt(SIGNATURE);
@@ -42,8 +42,9 @@ namespace QuestPatcher.Core.Zip
             memory.WriteShort(NumberOfCDs);
             memory.WriteInt(SizeOfCD);
             memory.WriteInt(OffsetOfCD);
-            memory.WriteShort(CommentLength);
+            memory.WriteShort((short)FileMemory.StringLength(Comment));
             memory.WriteString(Comment);
         }
+
     }
 }

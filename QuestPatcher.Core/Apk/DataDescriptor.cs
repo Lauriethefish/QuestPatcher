@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QuestPatcher.Core.Zip
+namespace QuestPatcher.Core.Apk
 {
     public class DataDescriptor
     {
@@ -18,7 +18,7 @@ namespace QuestPatcher.Core.Zip
         {
             int signature = memory.ReadInt();
             if(signature != SIGNATURE)
-                throw new Exception("Invalid DD signature " + signature.ToString("X4"));
+                throw new Exception("Invalid DataDescriptor signature " + signature.ToString("X4"));
             CRC32 = memory.ReadInt();
             CompressedSize = memory.ReadInt();
             UncompressedSize = memory.ReadInt();
