@@ -1,4 +1,4 @@
-﻿/*
+/*
  * All-C# APK signing code was taken from emulamer's Apkifier library: https://github.com/emulamer/Apkifier/blob/master/Apkifier.cs
 MIT License
 
@@ -44,6 +44,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
+using QuestPatcher.Core.Apk;
 using QuestPatcher.Core.Patching;
 using Serilog;
 using PemReader = Org.BouncyCastle.OpenSsl.PemReader;
@@ -343,6 +344,7 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                     await signatureWriter.WriteLineAsync("Signature-Version: 1.0");
                     await signatureWriter.WriteLineAsync($"SHA-256-Digest-Manifest: {Convert.ToBase64String(manifestHash)}");
                     await signatureWriter.WriteLineAsync("Created-By: QuestPatcher");
+                    await signatureWriter.WriteLineAsync("X-Android-APK-Signed: 2");
                     await signatureWriter.WriteLineAsync();
                 }
                 
@@ -365,6 +367,101 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                 Log.Information("Disposing signed archive");
                 await Task.Run(() => writingArchive.Dispose());
             }
+            Log.Information("Aligning Apk");
+            ApkAligner.AlignApk(path);
+
+            Log.Information("Make APK Signature Scheme v2");
+            FileStream fs = new FileStream(path, FileMode.Open);
+            using FileMemory memory = new FileMemory(fs);
+            using MemoryStream ms = new MemoryStream();
+            using FileMemory outMemory = new FileMemory(ms);
+            memory.Position = memory.Length() - 22;
+            while(memory.ReadInt() != EndOfCentralDirectory.SIGNATURE)
+            {
+                memory.Position -= 4 + 1;
+            }
+            memory.Position -= 4;
+            var eocdPosition = memory.Position;
+            EndOfCentralDirectory eocd = new EndOfCentralDirectory(memory);
+            if(eocd == null)
+                return;
+            var cd = eocd.OffsetOfCD;
+            memory.Position = cd-16-8;
+            var d = memory.ReadULong();
+            var d2 = memory.ReadString(16);
+            var section1 = await GetSectionDigests(fs, 0, cd);
+            var section3 = await GetSectionDigests(fs, cd, eocdPosition);
+            var section4 = await GetSectionDigests(fs, eocdPosition, fs.Length);
+
+            var digestChunks = section1.Concat(section3).Concat(section4).ToList();
+
+            byte[] bytes = new byte[1 + 4];
+            bytes[0] = 0x5a;
+            byte[] sizeBytes = BitConverter.GetBytes((uint) digestChunks.Count);
+            bytes[1] = sizeBytes[0];
+            bytes[2] = sizeBytes[1];
+            bytes[3] = sizeBytes[2];
+            bytes[4] = sizeBytes[3];
+            var digest = Sha.ComputeHash(bytes.Concat(digestChunks.Aggregate((a, b) => a.Concat(b).ToArray())).ToArray());
+
+            uint algorithm = 0x0103;
+
+            APKSignatureSchemeV2 block = new APKSignatureSchemeV2();
+            var signer = new APKSignatureSchemeV2.Signer();
+
+            using MemoryStream signedDataMs = new MemoryStream();
+            using FileMemory memorySignedData = new FileMemory(signedDataMs);
+            var signedData = new APKSignatureSchemeV2.Signer.BlockSignedData();
+            signedData.Digests.Add(new APKSignatureSchemeV2.Signer.BlockSignedData.Digest(algorithm, digest));
+            var (cert, privateKey) = LoadCertificate(pemData);
+
+            signedData.Certificates.Add(cert.GetEncoded());
+
+            signedData.Write(memorySignedData);
+            signer.SignedData = signedDataMs.ToArray();
+            ISigner signerType = SignerUtilities.GetSigner("SHA256WithRSA");
+            signerType.Init(true, privateKey);
+            signerType.BlockUpdate(signer.SignedData, 0, signer.SignedData.Length);
+
+            signer.Signatures.Add(new APKSignatureSchemeV2.Signer.BlockSignature(algorithm, signerType.GenerateSignature()));
+            signer.PublicKey = cert.CertificateStructure.SubjectPublicKeyInfo.GetDerEncoded();
+            block.Signers.Add(signer);
+
+            APKSigningBlock signingBlock = new APKSigningBlock();
+            signingBlock.Values.Add(block.ToIDValuePair());
+
+            fs.Position = 0;
+            outMemory.WriteBytes(memory.ReadBytes(cd));
+            signingBlock.Write(outMemory);
+            eocd.OffsetOfCD = (int)ms.Position;
+            outMemory.WriteBytes(memory.ReadBytes((int) (eocdPosition - cd)));
+            eocd.Write(outMemory);
+
+            fs.SetLength(0);
+            ms.Position = 0;
+            ms.CopyTo(fs);
+            fs.Close();
+        }
+
+        private async Task<List<byte[]>> GetSectionDigests(FileStream fs, long startOffset, long endOffset)
+        {
+            var digests = new List<byte[]>();
+            int chunkSize = 1024 * 1024;
+            for(long i = startOffset; i < endOffset; i+= chunkSize)
+            {
+                fs.Position = i;
+                var size = Math.Min(endOffset - i, chunkSize);
+                byte[] bytes = new byte[1 + 4 + size];
+                bytes[0] = 0xa5;
+                byte[] sizeBytes = BitConverter.GetBytes((uint) size);
+                bytes[1] = sizeBytes[0];
+                bytes[2] = sizeBytes[1];
+                bytes[3] = sizeBytes[2];
+                bytes[4] = sizeBytes[3];
+                await fs.ReadAsync(bytes, 5, (int)size);
+                digests.Add(Sha.ComputeHash(bytes));
+            }
+            return digests;
         }
 
         /// <summary>
