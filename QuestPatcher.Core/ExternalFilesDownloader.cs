@@ -256,7 +256,7 @@ namespace QuestPatcher.Core
                 downloadSets = await LoadDownloadSetsFromWeb();
                 downloadSets = downloadSets.Concat(LoadDownloadSetsFromResources());
             }
-            catch(Exception ex) {
+            catch (Exception ex) {
                 Log.Debug(ex, "Failed to download download URLs, pulling from resources instead . . .");
                 downloadSets = LoadDownloadSetsFromResources();
             }
@@ -267,9 +267,9 @@ namespace QuestPatcher.Core
             // filter the compatible sets  
             downloadSets = downloadSets.Where(set => set.SupportedVersions.IsSatisfied(qpVersion));
             // Download sets are in order, highest priority comes first
-            foreach(DownloadSet downloadSet in downloadSets)
+            foreach (DownloadSet downloadSet in downloadSets)
             {
-                foreach(var (type, specificValue) in downloadSet.Downloads)
+                foreach (var (type, specificValue) in downloadSet.Downloads)
                 {
                     if(downloadUrls.ContainsKey(type))
                     {
@@ -282,7 +282,7 @@ namespace QuestPatcher.Core
                 }
             }
 
-            if(downloadUrls.Count == 0)
+            if (downloadUrls.Count == 0)
             {
                 throw new Exception($"Unable to find download URLs suitable for this QuestPatcher version ({qpVersion})");
             }
@@ -344,15 +344,15 @@ namespace QuestPatcher.Core
 
         private async Task DownloadFileWithMirrors(ExternalFileType fileType, FileInfo fileInfo, List<string> downloadUrls, string saveLocation)
         {
-            if(downloadUrls.Count == 0)
+            if (downloadUrls.Count == 0)
             {
                 throw new ArgumentException("Download Url is empty");
             }
             Log.Information("Downloading {Name}", fileInfo.Name);
             Log.Verbose("Urls: {Urls}", downloadUrls);
-            foreach(var url in downloadUrls)
+            foreach (var url in downloadUrls)
             {
-                if(await TryDownloadFile(fileType, fileInfo, url, saveLocation))
+                if (await TryDownloadFile(fileType, fileInfo, url, saveLocation))
                 {
                     return;
                 }
@@ -370,7 +370,7 @@ namespace QuestPatcher.Core
                 DownloadProgress = 0.0;
                 DownloadingFileName = fileInfo.Name;
 
-                if(fileInfo.ExtractionFolder != null)
+                if (fileInfo.ExtractionFolder != null)
                 {
                     Uri uri = new(downloadUrl);
                     byte[] archiveData = await _webClient.DownloadDataTaskAsync(uri);
@@ -383,7 +383,7 @@ namespace QuestPatcher.Core
                     {
                         string extractFolder = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder);
 
-                        if(downloadUrl.EndsWith(".tar.gz"))
+                        if (downloadUrl.EndsWith(".tar.gz"))
                         {
                             GZipStream zipStream = new(stream, CompressionMode.Decompress);
 
@@ -417,7 +417,7 @@ namespace QuestPatcher.Core
                 succeeded = true;
                 Log.Information("Downloaded {Name}", fileInfo.Name);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Log.Warning(e, "Failed to download {Name} from {Source}", fileInfo.Name, downloadUrl);
             }
@@ -469,7 +469,7 @@ namespace QuestPatcher.Core
                 saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder, fileInfo.SaveName.Value);
             }
 
-            if(!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation))
+            if (!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation))
             {
                 await DownloadFileWithMirrors(fileType, fileInfo, (await PrepareDownloadUrls())[fileType], saveLocation);
             }
