@@ -280,6 +280,12 @@ namespace QuestPatcher.Core.Patching
                 });
             }
 
+            if (permissions.Microphone)
+            {
+                Log.Information("Adding microphone permission request . . .");
+                addingPermissions.Add("android.permission.RECORD_AUDIO");
+            }
+
             if (permissions.HandTrackingType != HandTrackingVersion.None)
             {
                 // For some reason these are separate permissions, but we need both of them
