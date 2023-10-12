@@ -99,6 +99,7 @@ namespace QuestPatcher.Core.Modding
             // Copy files to actually install the mod
 
             List<KeyValuePair<string, string>> copyPaths = new();
+
             List<string> directoriesToCreate = new();
             foreach(string libraryPath in Manifest.LibraryFileNames)
             {
@@ -129,6 +130,10 @@ namespace QuestPatcher.Core.Modding
             }
 
             await _debugBridge.CopyFiles(copyPaths);
+
+            var chmodPaths = copyPaths.AsEnumerable().Select(path => path.Key).ToList();
+            await _debugBridge.Chmod(chmodPaths, "+r");
+
             IsInstalled = true;
             installedInBranch.Remove(Id);
         }

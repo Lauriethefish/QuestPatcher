@@ -297,6 +297,23 @@ namespace QuestPatcher.Core
         }
 
         /// <summary>
+        /// Runs chmod on the given paths.
+        /// </summary>
+        /// <param name="paths">Paths to chmod</param>
+        /// <param name="permissions">The permissions to assign to each file</param>
+        public async Task Chmod(List<string> paths, string permissions)
+        {
+            List<string> commands = new();
+            foreach (string path in paths)
+            {
+                Log.Verbose($"Ran Chmod on {path} with {permissions}");
+                commands.Add($"chmod {permissions} {path.WithForwardSlashes().EscapeBash()}");
+            }
+
+            await RunShellCommands(commands);
+        }
+
+        /// <summary>
         /// Deletes multiple files in one ADB command.
         /// Faster for quickly removing lots of files.
         /// </summary>

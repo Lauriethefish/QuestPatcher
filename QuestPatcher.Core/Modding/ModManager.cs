@@ -111,7 +111,10 @@ namespace QuestPatcher.Core.Modding
 
         public async Task CreateModDirectories()
         {
-            await _debugBridge.CreateDirectories(new List<string> {ModsPath, LibsPath, ModsExtractPath});
+            var modDirectories = new List<string> { ModsPath, LibsPath, ModsExtractPath };
+
+            await _debugBridge.CreateDirectories(modDirectories);
+            await _debugBridge.Chmod(modDirectories, "777");
         }
 
         public async Task LoadModsForCurrentApp()
