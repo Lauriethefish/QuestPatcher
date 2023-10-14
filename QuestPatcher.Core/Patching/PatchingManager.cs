@@ -584,8 +584,7 @@ namespace QuestPatcher.Core.Patching
             Log.Information("Signing APK (this might take a while) . . .");
             PatchingStage = PatchingStage.Signing;
 
-            await _apkSigner.SignApkWithPatchingCertificate(patchedApkPath, prePatchHashes);
-            
+            await Task.Run(() => _apkSigner.SignApkWithPatchingCertificate(patchedApkPath, prePatchHashes));
 
             Log.Information("Uninstalling the default APK . . .");
             Log.Information("Backing up data directory");

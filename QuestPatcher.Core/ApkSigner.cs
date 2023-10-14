@@ -281,9 +281,9 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
         /// <param name="path">Path to the APK to sign</param>
         /// <param name="knownHashes">Optionally, the hashes of the files within the APK at some earlier point.
         /// Using existing hashes reduces signing time, since only the files within the APK that have actually changed have to get signed.</param>
-        public async Task SignApkWithPatchingCertificate(string path, Dictionary<string, PrePatchHash>? knownHashes = null)
+        public void SignApkWithPatchingCertificate(string path, Dictionary<string, PrePatchHash>? knownHashes = null)
         {
-            await SignApk(path, PatchingCertificatePem, knownHashes);
+            SignApk(path, PatchingCertificatePem, knownHashes);
         }
 
         /// <summary>
@@ -293,27 +293,26 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
         /// <param name="pemData">PEM of the certificate and private key</param>
         /// <param name="knownHashes">Optionally, the hashes of the files within the APK at some earlier point.
         /// Using existing hashes reduces signing time, since only the files within the APK that have actually changed have to get signed.</param>
-        public async Task SignApk(string path, string pemData, Dictionary<string, PrePatchHash>? knownHashes = null)
+        public void SignApk(string path, string pemData, Dictionary<string, PrePatchHash>? knownHashes = null)
         {
-            //await using Stream manifestFile = apkArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
-            await using Stream manifestFile = new MemoryStream();
-            //await using Stream signaturesFile = apkArchive.CreateAndOpenEntry("META-INF/BS.SF");
-            await using Stream sigFileBody = new MemoryStream();
-            await using(StreamWriter manifestWriter = OpenStreamWriter(manifestFile))
+            Log.Information("Generating jar signature");
+            using Stream manifestFile = new MemoryStream();
+            using Stream sigFileBody = new MemoryStream();
+            using (StreamWriter manifestWriter = OpenStreamWriter(manifestFile))
             {
-                await manifestWriter.WriteLineAsync("Manifest-Version: 1.0");
-                await manifestWriter.WriteLineAsync("Created-By: QuestPatcher");
-                await manifestWriter.WriteLineAsync();
+                manifestWriter.WriteLine("Manifest-Version: 1.0");
+                manifestWriter.WriteLine("Created-By: QuestPatcher");
+                manifestWriter.WriteLine();
             }
 
             // Temporarily open the archive in order to calculate these hashes
             // This is done because opening all of the entries will cause them all to be recompressed if using ZipArchiveMode.Update, thus causing a long dispose time
-            using(ZipArchive apkArchive = ZipFile.OpenRead(path))
+            using (ZipArchive apkArchive = ZipFile.OpenRead(path))
             {
-                foreach(ZipArchiveEntry entry in apkArchive.Entries
+                foreach (ZipArchiveEntry entry in apkArchive.Entries
                             .Where(entry => !entry.FullName.StartsWith("META-INF"))) // Skip other signature related files
                 {
-                    await WriteEntryHash(entry, manifestFile, sigFileBody, knownHashes);
+                    WriteEntryHash(entry, manifestFile, sigFileBody, knownHashes);
                 }
             }
 
@@ -321,129 +320,131 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
             try
             {
                 // Delete existing signature related files
-                foreach(ZipArchiveEntry entry in writingArchive.Entries.Where(entry => entry.FullName.StartsWith("META-INF")).ToList())
+                foreach (ZipArchiveEntry entry in writingArchive.Entries.Where(entry => entry.FullName.StartsWith("META-INF")).ToList())
                 {
                     entry.Delete();
                 }
 
-                await using Stream signaturesFile = writingArchive.CreateAndOpenEntry("META-INF/BS.SF");
-                await using Stream rsaFile = writingArchive.CreateAndOpenEntry("META-INF/BS.RSA");
-                await using Stream manifestStream = writingArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
+                using Stream signaturesFile = writingArchive.CreateAndOpenEntry("META-INF/BS.SF");
+                using Stream rsaFile = writingArchive.CreateAndOpenEntry("META-INF/BS.RSA");
+                using Stream manifestStream = writingArchive.CreateAndOpenEntry("META-INF/MANIFEST.MF");
 
                 // Find the hash of the manifest
                 manifestFile.Position = 0;
-                byte[] manifestHash = await Sha.ComputeHashAsync(manifestFile);
-                
+                byte[] manifestHash = Sha.ComputeHash(manifestFile);
+
                 // Finally, copy it to the output file
                 manifestFile.Position = 0;
-                await manifestFile.CopyToAsync(manifestStream);
-                
+                manifestFile.CopyTo(manifestStream);
+
                 // Write the signature information
-                await using(StreamWriter signatureWriter = OpenStreamWriter(signaturesFile))
+                using (StreamWriter signatureWriter = OpenStreamWriter(signaturesFile))
                 {
-                    await signatureWriter.WriteLineAsync("Signature-Version: 1.0");
-                    await signatureWriter.WriteLineAsync($"SHA-256-Digest-Manifest: {Convert.ToBase64String(manifestHash)}");
-                    await signatureWriter.WriteLineAsync("Created-By: QuestPatcher");
-                    await signatureWriter.WriteLineAsync("X-Android-APK-Signed: 2");
-                    await signatureWriter.WriteLineAsync();
+                    signatureWriter.WriteLine("Signature-Version: 1.0");
+                    signatureWriter.WriteLine($"SHA-256-Digest-Manifest: {Convert.ToBase64String(manifestHash)}");
+                    signatureWriter.WriteLine("Created-By: QuestPatcher");
+                    signatureWriter.WriteLine("X-Android-APK-Signed: 2");
+                    signatureWriter.WriteLine();
                 }
-                
+
                 // Copy the body of signatures for each file into the signature file
                 sigFileBody.Position = 0;
-                await sigFileBody.CopyToAsync(signaturesFile);
+                sigFileBody.CopyTo(signaturesFile);
                 signaturesFile.Position = 0;
 
                 // Get the bytes in the signature file for signing
-                await using MemoryStream sigFileMs = new();
-                await signaturesFile.CopyToAsync(sigFileMs);
+                using MemoryStream sigFileMs = new();
+                signaturesFile.CopyTo(sigFileMs);
 
                 // Sign the signature file, and save the signature
                 byte[] keyFile = GetSignature(sigFileMs.ToArray(), pemData);
-                await rsaFile.WriteAsync(keyFile);
+                rsaFile.Write(keyFile);
             }
             finally
             {
                 // Dispose in Task.Run, to avoid UI freezes
                 Log.Information("Disposing signed archive");
-                await Task.Run(() => writingArchive.Dispose());
+                writingArchive.Dispose();
             }
-            Log.Information("Aligning Apk");
+            Log.Information("Aligning APK");
             ApkAligner.AlignApk(path);
 
-            Log.Information("Make APK Signature Scheme v2");
-            FileStream fs = new FileStream(path, FileMode.Open);
-            using FileMemory memory = new FileMemory(fs);
-            using MemoryStream ms = new MemoryStream();
-            using FileMemory outMemory = new FileMemory(ms);
-            memory.Position = memory.Length() - 22;
-            while(memory.ReadInt() != EndOfCentralDirectory.SIGNATURE)
+            Log.Information("Generating V2 signature");
+
+            using TempFile tempFile = new TempFile();
+            using (FileStream outFs = new FileStream(tempFile.Path, FileMode.Open))
             {
-                memory.Position -= 4 + 1;
+                using FileStream fs = new FileStream(path, FileMode.Open);
+                using FileMemory memory = new FileMemory(fs);
+                using FileMemory outMemory = new FileMemory(outFs);
+                memory.Position = memory.Length() - 22;
+                while (memory.ReadInt() != EndOfCentralDirectory.SIGNATURE)
+                {
+                    memory.Position -= 4 + 1;
+                }
+                memory.Position -= 4;
+                var eocdPosition = memory.Position;
+                EndOfCentralDirectory eocd = new EndOfCentralDirectory(memory);
+                if (eocd == null)
+                    return;
+                var cd = eocd.OffsetOfCD;
+                memory.Position = cd - 16 - 8;
+                var d = memory.ReadULong();
+                var d2 = memory.ReadString(16);
+                var section1 = GetSectionDigests(fs, 0, cd);
+                var section3 = GetSectionDigests(fs, cd, eocdPosition);
+                var section4 = GetSectionDigests(fs, eocdPosition, fs.Length);
+
+                var digestChunks = section1.Concat(section3).Concat(section4).ToList();
+
+                byte[] bytes = new byte[1 + 4];
+                bytes[0] = 0x5a;
+                byte[] sizeBytes = BitConverter.GetBytes((uint) digestChunks.Count);
+                bytes[1] = sizeBytes[0];
+                bytes[2] = sizeBytes[1];
+                bytes[3] = sizeBytes[2];
+                bytes[4] = sizeBytes[3];
+                var digest = Sha.ComputeHash(bytes.Concat(digestChunks.Aggregate((a, b) => a.Concat(b).ToArray())).ToArray());
+
+                uint algorithm = 0x0103;
+
+                APKSignatureSchemeV2 block = new APKSignatureSchemeV2();
+                var signer = new APKSignatureSchemeV2.Signer();
+
+                using MemoryStream signedDataMs = new MemoryStream();
+                using FileMemory memorySignedData = new FileMemory(signedDataMs);
+                var signedData = new APKSignatureSchemeV2.Signer.BlockSignedData();
+                signedData.Digests.Add(new APKSignatureSchemeV2.Signer.BlockSignedData.Digest(algorithm, digest));
+                var (cert, privateKey) = LoadCertificate(pemData);
+
+                signedData.Certificates.Add(cert.GetEncoded());
+
+                signedData.Write(memorySignedData);
+                signer.SignedData = signedDataMs.ToArray();
+                ISigner signerType = SignerUtilities.GetSigner("SHA256WithRSA");
+                signerType.Init(true, privateKey);
+                signerType.BlockUpdate(signer.SignedData, 0, signer.SignedData.Length);
+
+                signer.Signatures.Add(new APKSignatureSchemeV2.Signer.BlockSignature(algorithm, signerType.GenerateSignature()));
+                signer.PublicKey = cert.CertificateStructure.SubjectPublicKeyInfo.GetDerEncoded();
+                block.Signers.Add(signer);
+
+                APKSigningBlock signingBlock = new APKSigningBlock();
+                signingBlock.Values.Add(block.ToIDValuePair());
+
+                fs.Position = 0;
+                outMemory.WriteBytes(memory.ReadBytes(cd));
+                signingBlock.Write(outMemory);
+                eocd.OffsetOfCD = (int) outFs.Position;
+                outMemory.WriteBytes(memory.ReadBytes((int) (eocdPosition - cd)));
+                eocd.Write(outMemory);
             }
-            memory.Position -= 4;
-            var eocdPosition = memory.Position;
-            EndOfCentralDirectory eocd = new EndOfCentralDirectory(memory);
-            if(eocd == null)
-                return;
-            var cd = eocd.OffsetOfCD;
-            memory.Position = cd-16-8;
-            var d = memory.ReadULong();
-            var d2 = memory.ReadString(16);
-            var section1 = await GetSectionDigests(fs, 0, cd);
-            var section3 = await GetSectionDigests(fs, cd, eocdPosition);
-            var section4 = await GetSectionDigests(fs, eocdPosition, fs.Length);
 
-            var digestChunks = section1.Concat(section3).Concat(section4).ToList();
-
-            byte[] bytes = new byte[1 + 4];
-            bytes[0] = 0x5a;
-            byte[] sizeBytes = BitConverter.GetBytes((uint) digestChunks.Count);
-            bytes[1] = sizeBytes[0];
-            bytes[2] = sizeBytes[1];
-            bytes[3] = sizeBytes[2];
-            bytes[4] = sizeBytes[3];
-            var digest = Sha.ComputeHash(bytes.Concat(digestChunks.Aggregate((a, b) => a.Concat(b).ToArray())).ToArray());
-
-            uint algorithm = 0x0103;
-
-            APKSignatureSchemeV2 block = new APKSignatureSchemeV2();
-            var signer = new APKSignatureSchemeV2.Signer();
-
-            using MemoryStream signedDataMs = new MemoryStream();
-            using FileMemory memorySignedData = new FileMemory(signedDataMs);
-            var signedData = new APKSignatureSchemeV2.Signer.BlockSignedData();
-            signedData.Digests.Add(new APKSignatureSchemeV2.Signer.BlockSignedData.Digest(algorithm, digest));
-            var (cert, privateKey) = LoadCertificate(pemData);
-
-            signedData.Certificates.Add(cert.GetEncoded());
-
-            signedData.Write(memorySignedData);
-            signer.SignedData = signedDataMs.ToArray();
-            ISigner signerType = SignerUtilities.GetSigner("SHA256WithRSA");
-            signerType.Init(true, privateKey);
-            signerType.BlockUpdate(signer.SignedData, 0, signer.SignedData.Length);
-
-            signer.Signatures.Add(new APKSignatureSchemeV2.Signer.BlockSignature(algorithm, signerType.GenerateSignature()));
-            signer.PublicKey = cert.CertificateStructure.SubjectPublicKeyInfo.GetDerEncoded();
-            block.Signers.Add(signer);
-
-            APKSigningBlock signingBlock = new APKSigningBlock();
-            signingBlock.Values.Add(block.ToIDValuePair());
-
-            fs.Position = 0;
-            outMemory.WriteBytes(memory.ReadBytes(cd));
-            signingBlock.Write(outMemory);
-            eocd.OffsetOfCD = (int)ms.Position;
-            outMemory.WriteBytes(memory.ReadBytes((int) (eocdPosition - cd)));
-            eocd.Write(outMemory);
-
-            fs.SetLength(0);
-            ms.Position = 0;
-            ms.CopyTo(fs);
-            fs.Close();
+            File.Delete(path);
+            File.Move(tempFile.Path, path);
         }
 
-        private async Task<List<byte[]>> GetSectionDigests(FileStream fs, long startOffset, long endOffset)
+        private List<byte[]> GetSectionDigests(FileStream fs, long startOffset, long endOffset)
         {
             var digests = new List<byte[]>();
             int chunkSize = 1024 * 1024;
@@ -458,7 +459,7 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
                 bytes[2] = sizeBytes[1];
                 bytes[3] = sizeBytes[2];
                 bytes[4] = sizeBytes[3];
-                await fs.ReadAsync(bytes, 5, (int)size);
+                fs.Read(bytes, 5, (int)size);
                 digests.Add(Sha.ComputeHash(bytes));
             }
             return digests;
@@ -467,7 +468,7 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
         /// <summary>
         /// Writes the MANIFEST.MF and signature file hashes for the given entry
         /// </summary>
-        private async Task WriteEntryHash(ZipArchiveEntry entry, Stream manifestStream, Stream signatureStream, Dictionary<string, PrePatchHash>? prePatchHashes)
+        private void WriteEntryHash(ZipArchiveEntry entry, Stream manifestStream, Stream signatureStream, Dictionary<string, PrePatchHash>? prePatchHashes)
         {
             string hash;
             if(prePatchHashes != null && 
@@ -480,31 +481,31 @@ llAY8xXVMiYeyHboXxDPOCH8y1TgEW0Nc2cnnCKOuji2waIwrVwR
             else
             {
                 Log.Verbose("Hashing " + entry.FullName);
-                await using Stream sourceStream = entry.Open();
-                hash = Convert.ToBase64String(await Sha.ComputeHashAsync(sourceStream));
+                using Stream sourceStream = entry.Open();
+                hash = Convert.ToBase64String(Sha.ComputeHash(sourceStream));
             }
 
             // First write the digest of the file to a section of the manifest file
-            await using MemoryStream sectStream = new();
-            await using(StreamWriter sectWriter = OpenStreamWriter(sectStream))
+            using MemoryStream sectStream = new();
+            using(StreamWriter sectWriter = OpenStreamWriter(sectStream))
             {
-                await sectWriter.WriteLineAsync($"Name: {entry.FullName}");
-                await sectWriter.WriteLineAsync($"SHA-256-Digest: {hash}");
-                await sectWriter.WriteLineAsync();
+                sectWriter.WriteLine($"Name: {entry.FullName}");
+                sectWriter.WriteLine($"SHA-256-Digest: {hash}");
+                sectWriter.WriteLine();
             }
 
             // Then write the hash for the section of the manifest file to the signature file
             sectStream.Position = 0;
-            string sectHash = Convert.ToBase64String(await Sha.ComputeHashAsync(sectStream));
-            await using(StreamWriter signatureWriter = OpenStreamWriter(signatureStream))
+            string sectHash = Convert.ToBase64String(Sha.ComputeHash(sectStream));
+            using(StreamWriter signatureWriter = OpenStreamWriter(signatureStream))
             {
-                await signatureWriter.WriteLineAsync($"Name: {entry.FullName}");
-                await signatureWriter.WriteLineAsync($"SHA-256-Digest: {sectHash}");
-                await signatureWriter.WriteLineAsync(); 
+                signatureWriter.WriteLine($"Name: {entry.FullName}");
+                signatureWriter.WriteLine($"SHA-256-Digest: {sectHash}");
+                signatureWriter.WriteLine(); 
             }
 
             sectStream.Position = 0;
-            await sectStream.CopyToAsync(manifestStream);
+            sectStream.CopyTo(manifestStream);
         }
 
         private StreamWriter OpenStreamWriter(Stream stream)
