@@ -5,6 +5,9 @@ using QuestPatcher.Zip.Data;
 
 namespace QuestPatcher.Zip
 {
+    /// <summary>
+    /// ZIP implementation used for reading APK files.
+    /// </summary>
     public class ApkZip : IDisposable
     {
         internal static ZipVersion MaxSupportedVersion = new ZipVersion
@@ -160,7 +163,7 @@ namespace QuestPatcher.Zip
         /// <returns>True if the ZIP contains an entry with this name</returns>
         public bool ContainsFile(string fileName)
         {
-            return _centralDirectoryRecords.ContainsKey(fileName);
+            return _centralDirectoryRecords.ContainsKey(NormaliseFileName(fileName));
         }
 
         /// <summary>
@@ -171,6 +174,7 @@ namespace QuestPatcher.Zip
         /// <exception cref="InvalidOperationException">If this ZIP file is readonly</exception>
         public bool RemoveFile(string fileName)
         {
+            fileName = NormaliseFileName(fileName);
             if(!_stream.CanWrite)
             {
                 throw new InvalidOperationException("Attempted to delete a file in a readonly ZIP file");
@@ -193,7 +197,7 @@ namespace QuestPatcher.Zip
                 throw new InvalidOperationException("Attempted to open a file for reading when another file was already being read/written to");
             }
 
-            if(_centralDirectoryRecords.TryGetValue(fileName, out var centralDirectoryHeader))
+            if(_centralDirectoryRecords.TryGetValue(NormaliseFileName(fileName), out var centralDirectoryHeader))
             {
                 _stream.Position = centralDirectoryHeader.LocalHeaderOffset;
                 var _ = LocalFileHeader.Read(_reader); // LocalFileHeader currently doesn't contain any information we need
@@ -229,6 +233,9 @@ namespace QuestPatcher.Zip
             {
                 throw new InvalidOperationException("Attempted to open a file for writing when another file was already being read/written to");
             }
+
+            fileName = NormaliseFileName(fileName);
+
             _centralDirectoryRecords.Remove(fileName);
             _existingHashes?.Remove(fileName);
 
@@ -311,6 +318,18 @@ namespace QuestPatcher.Zip
 
             // Update the position where the next file will be stored.
             _postFilesOffset = postEntryDataOffset;
+        }
+
+        private string NormaliseFileName(string fileName)
+        {
+            // Remove leading slash and normalise slashes to forward slashes
+            fileName = fileName.Replace('\\', '/');
+            if (fileName.StartsWith('/'))
+            {
+                fileName = fileName.Substring(1);
+            }
+
+            return fileName;
         }
 
         internal void FinishReading()
