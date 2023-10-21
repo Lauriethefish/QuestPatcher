@@ -17,6 +17,8 @@ using AssetsTools.NET.Extra;
 using QuestPatcher.Axml;
 using QuestPatcher.Core.Modding;
 using Serilog;
+using QuestPatcher.Zip;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 
 namespace QuestPatcher.Core.Patching
 {
@@ -69,25 +71,23 @@ namespace QuestPatcher.Core.Patching
         private readonly SpecialFolders _specialFolders;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly IUserPrompter _prompter;
-        private readonly ApkSigner _apkSigner;
         private readonly Action _quit;
         private readonly ModManager _modManager;
 
-        private readonly string _storedApkPath;
+        private readonly string _apkPath;
         private Dictionary<string, Dictionary<string, string>>? _libUnityIndex;
 
-        public PatchingManager(Config config, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, ApkSigner apkSigner, Action quit, ModManager modManager)
+        public PatchingManager(Config config, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, Action quit, ModManager modManager)
         {
             _config = config;
             _debugBridge = debugBridge;
             _specialFolders = specialFolders;
             _filesDownloader = filesDownloader;
             _prompter = prompter;
-            _apkSigner = apkSigner;
             _quit = quit;
             _modManager = modManager;
 
-            _storedApkPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
+            _apkPath = Path.Combine(specialFolders.PatchingFolder, "app.apk");
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -160,18 +160,18 @@ namespace QuestPatcher.Core.Patching
                 // Older QuestPatcher versions did not use a modded permission, and instead used a "modded" file in APK root
                 // (which is still added during patching for backwards compatibility, and so that BMBF can see that the APK is patched)
                 Log.Information("Modded permission not found, downloading APK from the Quest instead . . .");
-                await _debugBridge.DownloadApk(_config.AppId, _storedApkPath);
+                await _debugBridge.DownloadApk(_config.AppId, _apkPath);
 
-                // Unfortunately, zip files do not support async, so we Task.Run this operation to avoid blocking
                 Log.Information("Checking APK modding status . . .");
                 await Task.Run(() =>
                 {
-                    using ZipArchive apkArchive = ZipFile.OpenRead(_storedApkPath);
+                    using var apkStream = File.OpenRead(_apkPath);
+                    using ApkZip apk = ApkZip.Open(apkStream);
 
                     // QuestPatcher adds a tag file to determine if the APK is modded later on
-                    isModded = apkArchive.GetEntry(QuestPatcherTagName) != null || OtherTagNames.Any(tagName => apkArchive.GetEntry(tagName) != null);
-                    is64Bit = apkArchive.GetEntry("lib/arm64-v8a/libil2cpp.so") != null;
-                    is32Bit = apkArchive.GetEntry("lib/armeabi-v7a/libil2cpp.so") != null;
+                    isModded = apk.ContainsFile(QuestPatcherTagName) || OtherTagNames.Any(tagName => apk.ContainsFile(tagName));
+                    is64Bit = apk.ContainsFile("lib/arm64-v8a/libil2cpp.so");
+                    is32Bit = apk.ContainsFile("lib/armeabi-v7a/libil2cpp.so");
                 });
             }
 
@@ -191,9 +191,9 @@ namespace QuestPatcher.Core.Patching
             InstalledApp = null;
         }
 
-        private async Task<bool> AttemptCopyUnstrippedUnity(string libsPath, ZipArchive apkArchive)
+        private async Task<TempFile?> GetUnstrippedUnityPath()
         {
-            WebClient client = new();
+            var client = new WebClient();
             // Only download the index once
             if (_libUnityIndex == null)
             {
@@ -217,7 +217,7 @@ namespace QuestPatcher.Core.Patching
             if (availableVersions == null)
             {
                 Log.Warning("Unstripped libunity not found for this app");
-                return false;
+                return null;
             }
 
             availableVersions.TryGetValue(InstalledApp.Version, out string? correctVersion);
@@ -225,41 +225,45 @@ namespace QuestPatcher.Core.Patching
             if (correctVersion == null)
             {
                 Log.Warning($"Unstripped libunity found for other versions of this app, but not {InstalledApp.Version}");
-                return false;
+                return null;
             }
 
             Log.Information("Unstripped libunity found. Downloading . . .");
-            using TempFile tempDownloadPath = _specialFolders.GetTempFile();
-            
-            await _filesDownloader.DownloadUrl(
+            TempFile tempDownloadPath = _specialFolders.GetTempFile();
+
+            try
+            {
+                await _filesDownloader.DownloadUrl(
                     $"https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/{correctVersion}.so",
                     tempDownloadPath.Path, "libunity.so");
 
-            await apkArchive.AddFileAsync(tempDownloadPath.Path, Path.Combine(libsPath, "libunity.so"), true);
-
-            return true;
+                return tempDownloadPath;
+            }
+            catch (Exception)
+            {
+                tempDownloadPath.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
         /// Patches the manifest of the APK to add the permissions/features specified in <see cref="PatchingPermissions"/> in the <see cref="Config"/>.
         /// </summary>
-        /// <param name="apkArchive">The archive of the APK to patch</param>
+        /// <param name="apk">The apk with the manifest to patch</param>
         /// <exception cref="PatchingException">If the given archive does not contain an <code>AndroidManifest.xml</code> file</exception>
-        private async Task PatchManifest(ZipArchive apkArchive)
+        private void PatchManifestSync(ApkZip apk)
         {
-            ZipArchiveEntry? manifestEntry = apkArchive.GetEntry(ManifestPath);
-            if (manifestEntry == null)
+            if (!apk.Entries.Contains(ManifestPath))
             {
                 throw new PatchingException($"APK missing {ManifestPath} to patch");
             }
 
             // The AMXL loader requires a seekable stream
-            MemoryStream ms = new();
-            await Task.Run(() =>
+            using var ms = new MemoryStream();
+            using (Stream stream = apk.OpenReader(ManifestPath))
             {
-                using Stream stream = manifestEntry.Open();
                 stream.CopyTo(ms);
-            });
+            }
 
             ms.Position = 0;
             Log.Information("Loading manifest as AXML . . .");
@@ -362,17 +366,15 @@ namespace QuestPatcher.Core.Patching
                     break;
             }
 
-            // Save the manifest using our AXML library
+            // Save the manifest using the AXML library
             Log.Information("Saving manifest as AXML . . .");
-            manifestEntry.Delete(); // Remove old manifest
-            
-            // No async ZipArchive implementation, so Task.Run is used
-            await Task.Run(() =>
-            {
-                manifestEntry = apkArchive.CreateEntry(ManifestPath);
-                using Stream saveStream = manifestEntry.Open();
-                AxmlSaver.SaveDocument(saveStream, manifest);
-            });
+
+            ms.SetLength(0);
+            ms.Position = 0;
+            AxmlSaver.SaveDocument(ms, manifest);
+            ms.Position = 0;
+
+            apk.AddFile(ManifestPath, ms, CompressionLevel.Optimal);
         }
 
         /// <summary>
@@ -492,7 +494,54 @@ namespace QuestPatcher.Core.Patching
         }
 
         /// <summary>
-        /// Begins patching the currently installed APK. (must be pulled before calling this)
+        /// Makes the modifications to the APK to support mods.
+        /// </summary>
+        /// <param name="mainPath">Path of the libmain file to replace</param>
+        /// <param name="modloaderPath">Path of the libmodloader to replace</param>
+        /// <param name="unityPath">Optionally, a path to a replacement libunity.so</param>
+        /// <param name="libsDirectory">The directory where the SO files are stored in the APK</param>
+        /// <param name="apk">The APK to patch</param>
+        private void ModifyApkSync(string mainPath, string modloaderPath, string? unityPath, string libsDirectory, ApkZip apk)
+        {
+            Log.Information("Copying libmain.so and libmodloader.so . . .");
+            AddFileToApkSync(mainPath, Path.Combine(libsDirectory, "libmain.so"), false, apk);
+            AddFileToApkSync(modloaderPath, Path.Combine(libsDirectory, "libmodloader.so"), true, apk);
+
+            if(unityPath != null)
+            {
+                Log.Information("Adding unstripped libunity.so . . .");
+                AddFileToApkSync(unityPath, Path.Combine(libsDirectory, "libunity.so"), false, apk);
+            }
+
+            Log.Information("Patching manifest . . .");
+            PatchManifestSync(apk);
+
+            Log.Information("Adding tag");
+            var emptyStream = new MemoryStream();
+            apk.AddFile(QuestPatcherTagName, emptyStream, null);
+        }
+
+        /// <summary>
+        /// Copies the file with the given path into the APK.
+        /// </summary>
+        /// <param name="filePath">The path to the file to copy into the APK</param>
+        /// <param name="apkFilePath">The name of the file in the APK to create</param>
+        /// <param name="failIfExists">Whether to throw an exception if the file already exists</param>
+        /// <param name="apk">The apk to copy the file into</param>
+        /// <exception cref="PatchingException">If the file already exists in the APK, if configured to throw.</exception>
+        private void AddFileToApkSync(string filePath, string apkFilePath, bool failIfExists, ApkZip apk)
+        {
+            if(failIfExists && apk.ContainsFile(apkFilePath))
+            {
+                throw new PatchingException($"File {apkFilePath} already existed in the APK. Is the app already patched?");
+            }
+
+            using var fileStream = File.OpenRead(filePath);
+            apk.AddFile(apkFilePath, fileStream, CompressionLevel.Optimal);
+        }
+
+        /// <summary>
+        /// Begins patching the currently installed APK, then uninstalls it and installs the modded copy. (must be pulled before calling this)
         /// </summary>
         public async Task PatchApp()
         {
@@ -500,92 +549,62 @@ namespace QuestPatcher.Core.Patching
             {
                 throw new NullReferenceException("Cannot patch before installed app has been checked");
             }
-
-            _patchingStage = PatchingStage.MovingToTemp;
-            Log.Information("Copying APK to patched location . . .");
-            string patchedApkPath = Path.Combine(_specialFolders.PatchingFolder, "patched.apk");
-
-            // There is no async file copy method, so we Task.Run it (we could make our own with streams, that's another option)
-            await Task.Run(() => { File.Copy(_storedApkPath, patchedApkPath, true); });
-            Dictionary<string, ApkSigner.PrePatchHash>? prePatchHashes;
             
             Log.Information("Copying files to patch APK . . .");
-
             PatchingStage = PatchingStage.Patching;
-            ZipArchive apkArchive = ZipFile.Open(patchedApkPath, ZipArchiveMode.Update);
+
+            // First make sure that we have all necessary files downloaded, including the libmain and libmodloader
+            string libsPath = InstalledApp.Is64Bit ? "lib/arm64-v8a" : "lib/armeabi-v7a";
+            string mainPath;
+            string modloaderPath;
+            if (InstalledApp.Is64Bit)
+            {
+                mainPath = await _filesDownloader.GetFileLocation(ExternalFileType.Main64);
+                modloaderPath = await _filesDownloader.GetFileLocation(ExternalFileType.Modloader64);
+            }
+            else
+            {
+                mainPath = await _filesDownloader.GetFileLocation(ExternalFileType.Main32);
+                modloaderPath = await _filesDownloader.GetFileLocation(ExternalFileType.Modloader32);
+
+                Log.Warning("App is 32 bit!");
+                if (!await _prompter.Prompt32Bit()) // Prompt the user to ask if they would like to continue, even though BS-hook doesn't work on 32 bit apps
+                {
+                    return;
+                }
+            }
+
+            using var libUnityFile = await GetUnstrippedUnityPath();
+
+            using var apkStream = File.Open(_apkPath, FileMode.Open);
+            ApkZip apk = await Task.Run(() => ApkZip.Open(apkStream));
             try
             {
-                Log.Information("Preparing hashes for after signing");
-                prePatchHashes = await _apkSigner.CollectPrePatchHashes(apkArchive);
-                
-                string libsPath = InstalledApp.Is64Bit ? "lib/arm64-v8a" : "lib/armeabi-v7a";
-
-                if (!InstalledApp.Is64Bit)
-                {
-                    Log.Warning("App is 32 bit!");
-                    if (
-                        !await _prompter
-                            .Prompt32Bit()) // Prompt the user to ask if they would like to continue, even though BS-hook doesn't work on 32 bit apps
-                    {
-                        return;
-                    }
-                }
-                
-                if (!await AttemptCopyUnstrippedUnity(libsPath, apkArchive))
-                {
-                    if (!await _prompter
-                        .PromptUnstrippedUnityUnavailable()) // Prompt the user to ask if they would like to continue, since missing libunity is likely to break some mods
-                    {
-                        return;
-                    }
-                }
-
-                // Replace libmain.so to load the modloader, then add libmodloader.so, which actually does the mod loading.
-                Log.Information("Copying libmain.so and libmodloader.so . . .");
-                if (InstalledApp.Is64Bit)
-                {
-                    await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Main64), Path.Combine(libsPath, "libmain.so"), true);
-                    await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Modloader64), Path.Combine(libsPath, "libmodloader.so"));
-                }
-                else
-                {
-                    Log.Warning("Using 32 bit versions!");
-                    await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Main32), Path.Combine(libsPath, "libmain.so"), true);
-                    await apkArchive.AddFileAsync(await _filesDownloader.GetFileLocation(ExternalFileType.Modloader32), Path.Combine(libsPath, "libmodloader.so"));
-                }
 
 
-                // Add permissions to the manifest
-                Log.Information("Patching manifest . . .");
-                await PatchManifest(apkArchive);
+                // TODO: Reimplement
+                //if(_config.PatchingPermissions.FlatScreenSupport)
+                //{
+                //    Log.Information("Adding flatscreen support . . .");
+                //    await AddFlatscreenSupport(apkArchive);
+                //}
+                await Task.Run(() => ModifyApkSync(mainPath, modloaderPath, libUnityFile?.Path, libsPath, apk));
 
-                if(_config.PatchingPermissions.FlatScreenSupport)
-                {
-                    Log.Information("Adding flatscreen support . . .");
-                    await AddFlatscreenSupport(apkArchive);
-                }
-
-                Log.Information("Adding tag . . .");
-                // The disk IO while opening the APK as a zip archive causes a UI freeze, so we run it on another thread
-                apkArchive.CreateEntry(QuestPatcherTagName);
+                Log.Information("Signing APK . . .");
+                PatchingStage = PatchingStage.Signing;
             }
             finally
             {
-                Log.Information("Closing APK archive . . .");
-                await Task.Run(() => { apkArchive.Dispose(); });
+                await Task.Run(() => { apk.Dispose(); });
             }
             
             // Pause patching before compiling the APK in order to give a developer the chance to modify it.
-            if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
-            {
-                return;
-            }
+            // TODO: Reimplement?
+            //if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
+            //{
+            //    return;
+            //}
             
-            Log.Information("Signing APK (this might take a while) . . .");
-            PatchingStage = PatchingStage.Signing;
-
-            await Task.Run(() => _apkSigner.SignApkWithPatchingCertificate(patchedApkPath, prePatchHashes));
-
             Log.Information("Uninstalling the default APK . . .");
             Log.Information("Backing up data directory");
             string dataPath = string.Format(DataDirectoryTemplate, _config.AppId);
@@ -614,7 +633,7 @@ namespace QuestPatcher.Core.Patching
             Log.Information("Installing the modded APK . . .");
             PatchingStage = PatchingStage.InstallingModded;
 
-            await _debugBridge.InstallApp(patchedApkPath);
+            await _debugBridge.InstallApp(_apkPath);
 
             if(backupPath != null)
             {
@@ -637,7 +656,7 @@ namespace QuestPatcher.Core.Patching
             
             try
             {
-                File.Delete(patchedApkPath); // The patched APK takes up space, and we don't need it now
+                File.Delete(_apkPath); // The downloaded APK, and we don't need it now
             }
             catch (IOException) // Sometimes a developer might be using the APK, so avoid failing the whole patching process
             {
@@ -656,9 +675,9 @@ namespace QuestPatcher.Core.Patching
                     await _debugBridge.RunShellCommand($"pm grant {_config.AppId} android.permission.WRITE_EXTERNAL_STORAGE");
                     await _debugBridge.RunShellCommand($"appops set --uid {_config.AppId} MANAGE_EXTERNAL_STORAGE allow");
                 }
-                catch (Exception e)
+                catch (AdbException ex)
                 {
-                    Log.Error(e, "Failed to grant external storage permission");
+                    Log.Error(ex, "Failed to grant external storage permissions");
                 }
             }
             
