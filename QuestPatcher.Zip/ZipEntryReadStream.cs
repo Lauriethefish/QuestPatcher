@@ -25,10 +25,13 @@
 
         public override long Length => _entryDataLength;
 
-        public override long Position {
+        public override long Position
+        {
             get => _stream.Position - _entryDataOffset;
-            set {
-                if(value < 0 || value >= _entryDataLength) {
+            set
+            {
+                if (value < 0 || value >= _entryDataLength)
+                {
                     throw new ArgumentException("Attempted to seek to position outside of ZIP entry");
                 }
 
@@ -43,19 +46,23 @@
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return _stream.Read(buffer, offset, count);
+            long bytesLeftInStream = _entryDataLength - Position;
+
+            // Do not permit reading beyond the end of the entry
+            return _stream.Read(buffer, offset, (int) Math.Min(bytesLeftInStream, count));
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            if(origin == SeekOrigin.Begin)
+            if (origin == SeekOrigin.Begin)
             {
                 Position = offset;
-            }   else if(origin == SeekOrigin.End)
+            }
+            else if (origin == SeekOrigin.End)
             {
                 Position = _entryDataLength - 1 - offset;
             }
-            else if(origin == SeekOrigin.Current)
+            else if (origin == SeekOrigin.Current)
             {
                 Position += offset;
             }
