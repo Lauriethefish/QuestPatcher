@@ -24,12 +24,12 @@ namespace QuestPatcher.Zip
             set
             {
                 var (cert, privateKey) = SigningUtility.LoadCertificate(value);
-                if(cert == null)
+                if (cert == null)
                 {
                     throw new ArgumentException("No certificate in given PEM data");
                 }
 
-                if(privateKey == null)
+                if (privateKey == null)
                 {
                     throw new ArgumentException("No private key in given PEM data");
                 }
@@ -126,7 +126,7 @@ namespace QuestPatcher.Zip
             }
 
             // Find the position of the first byte after the last local header
-            if(lastRecord == null)
+            if (lastRecord == null)
             {
                 stream.Position = 0;
             }
@@ -175,7 +175,7 @@ namespace QuestPatcher.Zip
         public bool RemoveFile(string fileName)
         {
             fileName = NormaliseFileName(fileName);
-            if(!_stream.CanWrite)
+            if (!_stream.CanWrite)
             {
                 throw new InvalidOperationException("Attempted to delete a file in a readonly ZIP file");
             }
@@ -192,12 +192,13 @@ namespace QuestPatcher.Zip
         /// <exception cref="ArgumentException">If no file with the given name exists within the APK</exception>
         public Stream OpenReader(string fileName)
         {
-            if(_isStreamInUse)
+            if (_isStreamInUse)
             {
                 throw new InvalidOperationException("Attempted to open a file for reading when another file was already being read/written to");
             }
+            _isStreamInUse = true;
 
-            if(_centralDirectoryRecords.TryGetValue(NormaliseFileName(fileName), out var centralDirectoryHeader))
+            if (_centralDirectoryRecords.TryGetValue(NormaliseFileName(fileName), out var centralDirectoryHeader))
             {
                 _stream.Position = centralDirectoryHeader.LocalHeaderOffset;
                 var _ = LocalFileHeader.Read(_reader); // LocalFileHeader currently doesn't contain any information we need
@@ -205,7 +206,7 @@ namespace QuestPatcher.Zip
                 var entryStream = new ZipEntryReadStream(_stream, this, _stream.Position, centralDirectoryHeader.CompressedSize);
 
                 // Currently only DEFLATE and STORE compression methods are supported
-                if(centralDirectoryHeader.CompressionMethod == CompressionMethod.Deflate)
+                if (centralDirectoryHeader.CompressionMethod == CompressionMethod.Deflate)
                 {
                     return new DeflateStream(entryStream, CompressionMode.Decompress);
                 }
@@ -229,7 +230,7 @@ namespace QuestPatcher.Zip
         /// <param name="compressionLevel">The (DEFLATE) compression level to use. If null, the STORE method will be used for the file.</param>
         public void AddFile(string fileName, Stream sourceData, CompressionLevel? compressionLevel)
         {
-            if(_isStreamInUse)
+            if (_isStreamInUse)
             {
                 throw new InvalidOperationException("Attempted to open a file for writing when another file was already being read/written to");
             }
@@ -250,13 +251,13 @@ namespace QuestPatcher.Zip
             _stream.Position += 30 + fileNameBytes.Length;
             var dataOffset = _stream.Position;
 
-          
+
             var uncompressedSize = sourceData.Length;
             var compressionMethod = compressionLevel == null ? CompressionMethod.Store : CompressionMethod.Deflate;
 
             // Copy the data into the entry, calculating the Crc32 at the same time.
             uint crc32;
-            if(compressionLevel != null)
+            if (compressionLevel != null)
             {
                 using var compressor = new DeflateStream(_stream, (CompressionLevel) compressionLevel, true);
                 crc32 = sourceData.CopyToCrc32(compressor);
@@ -339,9 +340,9 @@ namespace QuestPatcher.Zip
 
         internal static ZipVersion CheckVersionSupported(ZipVersion version)
         {
-            if(version.Major >= MaxSupportedVersion.Major)
+            if (version.Major >= MaxSupportedVersion.Major)
             {
-                if(version.Minor > MaxSupportedVersion.Minor)
+                if (version.Minor > MaxSupportedVersion.Minor)
                 {
                     throw new ZipFormatException($"ZIP file uses version: {version}, but the maximum supported version is {MaxSupportedVersion}");
                 }
@@ -363,11 +364,12 @@ namespace QuestPatcher.Zip
         {
             try
             {
-                if(_stream.CanWrite)
+                if (_stream.CanWrite)
                 {
                     Save();
                 }
-            }   finally
+            }
+            finally
             {
                 _stream.Dispose();
                 _reader.Dispose();
