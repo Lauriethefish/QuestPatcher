@@ -37,9 +37,9 @@ namespace QuestPatcher.Zip
             }
 
             // Write the digest for each APK entry
-            foreach(var fileName in apk.Entries)
+            foreach (var fileName in apk.Entries.ToList())
             {
-                if(fileName.StartsWith("META-INF"))
+                if (fileName.StartsWith("META-INF"))
                 {
                     apk.RemoveFile(fileName);
                 }
@@ -135,7 +135,7 @@ namespace QuestPatcher.Zip
         internal static Dictionary<string, string>? CollectExistingHashes(ApkZip apk)
         {
             // Fallback failure if the APK isn't signed
-            if(!apk.ContainsFile(ManifestPath))
+            if (!apk.ContainsFile(ManifestPath))
             {
                 return null;
             }
