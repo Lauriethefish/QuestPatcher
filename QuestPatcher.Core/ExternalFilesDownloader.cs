@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -14,6 +13,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Serilog;
+using System.Net.Http;
 
 namespace QuestPatcher.Core
 {
@@ -80,7 +80,7 @@ namespace QuestPatcher.Core
             /// </summary>
             [JsonIgnore]
             public SemanticVersioning.Range SupportedVersions { get; set; }
-            
+
             [JsonProperty(PropertyName = "supportedVersions")]
             public string SupportedVersion
             {
@@ -94,7 +94,7 @@ namespace QuestPatcher.Core
             public Dictionary<ExternalFileType, SystemSpecificValue<string>> Downloads { get; set; }
 #nullable enable
         }
-        
+
         private static readonly JsonSerializer Serializer = new()
         {
             Formatting = Formatting.Indented,
@@ -104,7 +104,7 @@ namespace QuestPatcher.Core
             },
             NullValueHandling = NullValueHandling.Ignore
         };
-        
+
         /// <summary>
         /// Index for file downloads. Used by default, but if it fails QP will fallback to resources
         /// </summary>
@@ -170,19 +170,30 @@ namespace QuestPatcher.Core
         public string? DownloadingFileName
         {
             get => _downloadingFileName;
-            private set { if(_downloadingFileName != value) { _downloadingFileName = value; NotifyPropertyChanged(); } }
+            private set { if (_downloadingFileName != value) { _downloadingFileName = value; NotifyPropertyChanged(); } }
         }
         private string? _downloadingFileName;
 
         /// <summary>
-        /// Current download progress as a percentage, or null if no file is downloading
+        /// Current download progress as a percentage. Value not guaranteed if HasDownloadProgress is false.
         /// </summary>
-        public double? DownloadProgress
+        public double DownloadProgress
         {
             get => _downloadProgress;
-            private set { if(_downloadProgress != value) { _downloadProgress = value; NotifyPropertyChanged(); } }
+            private set { if (_downloadProgress != value) { _downloadProgress = value; NotifyPropertyChanged(); } }
         }
-        private double? _downloadProgress = 0;
+        private double _downloadProgress;
+
+        /// <summary>
+        /// Whether or not the currently downloading file's download progress is known.
+        /// False if no file is being downloaded.
+        /// </summary>
+        public bool DownloadProgressKnown
+        {
+            get => _downloadProgressKnown;
+            private set { if (_downloadProgressKnown != value) { _downloadProgressKnown = value; NotifyPropertyChanged(); } }
+        }
+        private bool _downloadProgressKnown;
 
         /// <summary>
         /// Whether the currently downloading file is now being extracted
@@ -201,7 +212,7 @@ namespace QuestPatcher.Core
         private readonly List<ExternalFileType> _fullyDownloaded = new();
 
         private readonly SpecialFolders _specialFolders;
-        private readonly WebClient _webClient = new();
+        private readonly HttpClient _httpClient = new();
         private readonly bool _isUnix = OperatingSystem.IsMacOS() || OperatingSystem.IsLinux();
 
         public ExternalFilesDownloader(SpecialFolders specialFolders)
@@ -212,7 +223,7 @@ namespace QuestPatcher.Core
             // Load which dependencies have been fully downloaded from disk
             try
             {
-                foreach(string fileType in File.ReadAllLines(_fullyDownloadedPath))
+                foreach (string fileType in File.ReadAllLines(_fullyDownloadedPath))
                 {
                     _fullyDownloaded.Add(Enum.Parse<ExternalFileType>(fileType));
                 }
@@ -221,13 +232,8 @@ namespace QuestPatcher.Core
             {
                 _fullyDownloaded = new();
             }
-
-            _webClient.DownloadProgressChanged += (_, args) =>
-            {
-                // Manually calculate the progress for better precision than the provided integer percentage
-                DownloadProgress = (double) args.BytesReceived / args.TotalBytesToReceive * 100.0;
-            };
         }
+
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -248,7 +254,7 @@ namespace QuestPatcher.Core
         {
             // Only pull the download URLs if we haven't already
             if (_downloadUrls != null) { return _downloadUrls; }
-            
+
             Log.Debug("Preparing URLs to download files from . . .");
             IEnumerable<DownloadSet> downloadSets;
             try
@@ -256,13 +262,14 @@ namespace QuestPatcher.Core
                 downloadSets = await LoadDownloadSetsFromWeb();
                 downloadSets = downloadSets.Concat(LoadDownloadSetsFromResources());
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 Log.Debug(ex, "Failed to download download URLs, pulling from resources instead . . .");
                 downloadSets = LoadDownloadSetsFromResources();
             }
 
             var downloadUrls = new Dictionary<ExternalFileType, List<string>>();
-            
+
             SemanticVersioning.Version qpVersion = VersionUtil.QuestPatcherVersion;
             // filter the compatible sets  
             downloadSets = downloadSets.Where(set => set.SupportedVersions.IsSatisfied(qpVersion));
@@ -271,7 +278,7 @@ namespace QuestPatcher.Core
             {
                 foreach (var (type, specificValue) in downloadSet.Downloads)
                 {
-                    if(downloadUrls.ContainsKey(type))
+                    if (downloadUrls.ContainsKey(type))
                     {
                         downloadUrls[type].Add(specificValue.Value);
                     }
@@ -286,7 +293,7 @@ namespace QuestPatcher.Core
             {
                 throw new Exception($"Unable to find download URLs suitable for this QuestPatcher version ({qpVersion})");
             }
-            
+
             _downloadUrls = downloadUrls.Aggregate(new Dictionary<ExternalFileType, List<string>>(), (dictionary, pair) =>
             {
                 dictionary[pair.Key] = pair.Value.Distinct().ToList(); // dedupe the list 
@@ -295,7 +302,7 @@ namespace QuestPatcher.Core
 
             return _downloadUrls;
         }
-        
+
         /// <summary>
         /// Loads the available download sets from a DLL resource
         /// </summary>
@@ -329,7 +336,7 @@ namespace QuestPatcher.Core
         private async Task<List<DownloadSet>> LoadDownloadSetsFromWeb()
         {
             Log.Debug($"Getting download URLs from {DownloadsUrl} . . .");
-            string data = await _webClient.DownloadStringTaskAsync(DownloadsUrl);
+            string data = await _httpClient.GetStringAsync(DownloadsUrl);
             using StringReader stringReader = new(data);
             using JsonReader jsonReader = new JsonTextReader(stringReader);
 
@@ -357,7 +364,7 @@ namespace QuestPatcher.Core
                     return;
                 }
             }
-            Log.Fatal("Failed to download {Name} with all mirrors", fileInfo.Name);
+            Log.Error("Failed to download {Name} with all mirrors", fileInfo.Name);
             throw new ExternalFileDownloadFailedException("Download failed with all mirrors");
         }
 
@@ -367,14 +374,14 @@ namespace QuestPatcher.Core
             try
             {
                 Log.Debug($"Download URL: {downloadUrl}");
-                DownloadProgress = 0.0;
                 DownloadingFileName = fileInfo.Name;
 
                 if (fileInfo.ExtractionFolder != null)
                 {
-                    Uri uri = new(downloadUrl);
-                    byte[] archiveData = await _webClient.DownloadDataTaskAsync(uri);
-                    using MemoryStream stream = new(archiveData); // Temporarily download the archive in order to extract it
+                    // Download to a MemoryStream first, as we cannot seek on the stream from an HTTP request
+                    using var stream = new MemoryStream();
+                    await DownloadToStreamWithProgressAsync(downloadUrl, stream);
+                    stream.Position = 0;
 
                     // There is no way to asynchronously ExtractToDirectory (or ExtractContents with TAR archives), so we use Task.Run to avoid blocking
                     Log.Information("Extracting . . .");
@@ -401,11 +408,12 @@ namespace QuestPatcher.Core
                 else
                 {
                     // Directly download the file to the tools folder
-                    await _webClient.DownloadFileTaskAsync(downloadUrl, saveLocation);
+                    using var fileStream = File.Open(saveLocation, FileMode.Create);
+                    await DownloadToStreamWithProgressAsync(downloadUrl, fileStream);
                 }
 
                 // chmod to make the downloaded executable actually usable if on mac or linux
-                if(_isUnix && fileInfo.IsExecutable)
+                if (_isUnix && fileInfo.IsExecutable)
                 {
                     await MakeExecutable(saveLocation);
                 }
@@ -417,17 +425,59 @@ namespace QuestPatcher.Core
                 succeeded = true;
                 Log.Information("Downloaded {Name}", fileInfo.Name);
             }
-            catch (Exception e)
+            catch (HttpRequestException ex)
             {
-                Log.Warning(e, "Failed to download {Name} from {Source}", fileInfo.Name, downloadUrl);
+                Log.Warning(ex, "Failed to download {Name} from {Source}", fileInfo.Name, downloadUrl);
             }
             finally
             {
                 DownloadingFileName = null;
-                DownloadProgress = null;
                 IsExtracting = false;
             }
             return succeeded;
+        }
+
+        /// <summary>
+        /// Downloads the file from the given URL, and copies the data into the given stream, while updating the download progress.
+        /// </summary>
+        /// <param name="url">The url to download from</param>
+        /// <param name="copyTo">The stream to copy the data to</param>
+        private async Task DownloadToStreamWithProgressAsync(string url, Stream copyTo)
+        {
+            const int BufferSize = 4096;
+
+            using var resp = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            using var respStream = await resp.Content.ReadAsStreamAsync();
+
+            // Attempt to find the content length from the headers
+            var contentHeaders = resp.Content.Headers;
+            int contentLength = contentHeaders.Contains("Content-Length") ? int.Parse(contentHeaders.GetValues("Content-Length").First()) : -1;
+            DownloadProgress = 0.0;
+            DownloadProgressKnown = contentLength != -1;
+
+            // Copy the response to the given stream
+            try
+            {
+                byte[] buffer = new byte[BufferSize];
+                int bytesRead;
+                int totalBytesRead = 0;
+                while ((bytesRead = await respStream.ReadAsync(buffer)) != 0)
+                {
+                    await copyTo.WriteAsync(buffer, 0, bytesRead);
+
+                    // Update progress if we know the content length
+                    if (contentLength != -1)
+                    {
+                        totalBytesRead += bytesRead;
+                        DownloadProgress = totalBytesRead * 100.0 / contentLength;
+                    }
+                }
+            }
+            finally
+            {
+                DownloadProgressKnown = false;
+                DownloadProgress = 0.0;
+            }
         }
 
         /// <summary>
@@ -455,7 +505,7 @@ namespace QuestPatcher.Core
         /// <returns>The location of the file</returns>
         public async Task<string> GetFileLocation(ExternalFileType fileType)
         {
-            
+
             FileInfo fileInfo = _fileTypes[fileType];
 
             // The save location is relative to the extract folder if requires extraction, otherwise it's just relative to the tools folder
@@ -488,16 +538,14 @@ namespace QuestPatcher.Core
         {
             try
             {
-                DownloadProgress = 0.0;
                 DownloadingFileName = overrideFileName ?? Path.GetFileName(saveName);
 
-                Uri uri = new(url);
-                await _webClient.DownloadFileTaskAsync(uri, saveName);
+                using var fileStream = File.Open(saveName, FileMode.Create);
+                await DownloadToStreamWithProgressAsync(url, fileStream);
             }
             finally
             {
                 DownloadingFileName = null;
-                DownloadProgress = null;
             }
         }
 

@@ -14,7 +14,7 @@
     <!--If we're not extracting a file, we can display the progress bar, and have it show progress only if a file is downloading. Otherwise, we can't know how done the current process is, so we make it indeterminate-->
     <StackPanel VerticalAlignment="Center" Spacing="10" IsVisible="{Binding !FilesDownloader.IsExtracting}">
       <TextBlock HorizontalAlignment="Center" Text="{Binding FilesDownloader.DownloadingFileName, StringFormat=Downloading {0} . . .}" IsVisible="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
-      <ProgressBar MinWidth="300" Value="{Binding FilesDownloader.DownloadProgress}" IsIndeterminate="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNull}}"/>
+      <ProgressBar MinWidth="300" Value="{Binding FilesDownloader.DownloadProgress}" IsIndeterminate="{Binding !FilesDownloader.DownloadProgressKnown}"/>
     </StackPanel>
     <!--If extracting a file, we show different UI because A: We need to show "Extracting . . ." instead of "Downloading . . .", and B: The progress bar always must be indeterminate-->
     <StackPanel VerticalAlignment="Center" Spacing="10" IsVisible="{Binding FilesDownloader.IsExtracting}">
