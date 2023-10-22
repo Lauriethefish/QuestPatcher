@@ -635,13 +635,6 @@ namespace QuestPatcher.Core.Patching
                 await Task.Run(() => { apk.Dispose(); });
             }
 
-            // Pause patching before compiling the APK in order to give a developer the chance to modify it.
-            // TODO: Reimplement?
-            //if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
-            //{
-            //    return;
-            //}
-
             Log.Information("Uninstalling the default APK . . .");
             Log.Information("Backing up data directory");
             string dataPath = string.Format(DataDirectoryTemplate, _config.AppId);

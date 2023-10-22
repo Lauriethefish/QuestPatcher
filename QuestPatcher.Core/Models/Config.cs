@@ -42,7 +42,7 @@ namespace QuestPatcher.Core.Models
             set
             {
                 // Used to get round default JSON values not being able to be objects. We instead set it to null by default then have the default backing field set to the default value
-                if(value != _patchingPermissions && value != null)
+                if (value != _patchingPermissions && value != null)
                 {
                     _patchingPermissions = value;
                     NotifyPropertyChanged();
@@ -58,7 +58,7 @@ namespace QuestPatcher.Core.Models
             get => _showPatchingOptions;
             set
             {
-                if(value != _showPatchingOptions)
+                if (value != _showPatchingOptions)
                 {
                     _showPatchingOptions = value;
                     NotifyPropertyChanged();
@@ -67,21 +67,6 @@ namespace QuestPatcher.Core.Models
         }
         private bool _showPatchingOptions;
 
-        [DefaultValue(false)]
-        public bool PauseBeforeCompile
-        {
-            get => _pauseBeforeCompile;
-            set
-            {
-                if(value != _pauseBeforeCompile)
-                {
-                    _pauseBeforeCompile = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-        private bool _pauseBeforeCompile;
-        
         public string SelectedThemeName { get; set; } = "Dark";
 
         public event PropertyChangedEventHandler? PropertyChanged;

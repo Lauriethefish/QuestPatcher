@@ -45,12 +45,7 @@
         <StackPanel Orientation="Horizontal" Spacing="20">
           <TextBlock FontSize="20">Options</TextBlock>
           <TextBlock FontSize="10" VerticalAlignment="Bottom" FontWeight="Light">QuestPatcher Settings.</TextBlock>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="10">
-          <ToggleButton IsChecked="{Binding Config.PauseBeforeCompile}">Pause after Patching</ToggleButton>
-          <TextBlock VerticalAlignment="Center" FontSize="12">Shows a prompt after patching the APK, but before signing.
-  Useful to manually modify the APK during testing.</TextBlock>
-        </StackPanel>
+        </StackPanel> 
         <StackPanel Orientation="Horizontal" Spacing="10">
           <Button Command="{Binding ChangeApp}">Change App</Button>
           <TextBlock VerticalAlignment="Center" FontSize="12">
