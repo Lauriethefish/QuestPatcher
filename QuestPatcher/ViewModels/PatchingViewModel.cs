@@ -56,6 +56,19 @@ namespace QuestPatcher.ViewModels
             {
                 await _patchingManager.PatchApp();
             }
+            catch (FileDownloadFailedException ex)
+            {
+                Log.Error("Patching failed as essential files could not be downloaded: {Message}", ex.Message);
+
+                DialogBuilder builder = new()
+                {
+                    Title = "Could not download files",
+                    Text = "QuestPatcher could not download files that it needs to patch the APK. Please check your internet connection, then try again.",
+                    HideCancelButton = true
+                };
+
+                await builder.OpenDialogue(_mainWindow);
+            }
             catch (Exception ex)
             {
                 // Print troubleshooting information for debugging

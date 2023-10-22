@@ -30,13 +30,6 @@ namespace QuestPatcher.Core
         OvrPlatformSdk
     }
 
-    public class ExternalFileDownloadFailedException : Exception
-    {
-        public ExternalFileDownloadFailedException(string message) : base(message)
-        {
-        }
-    }
-
     /// <summary>
     /// Manages the downloading and verification of external files that QuestPatcher needs.
     /// For instance, the mod loader, libmain.so and platform-tools.
@@ -365,7 +358,7 @@ namespace QuestPatcher.Core
                 }
             }
             Log.Error("Failed to download {Name} with all mirrors", fileInfo.Name);
-            throw new ExternalFileDownloadFailedException("Download failed with all mirrors");
+            throw new FileDownloadFailedException($"Failed to download {fileInfo.Name} with all mirrors");
         }
 
         private async Task<bool> TryDownloadFile(ExternalFileType fileType, FileInfo fileInfo, string downloadUrl, string saveLocation)
@@ -503,9 +496,9 @@ namespace QuestPatcher.Core
         /// </summary>
         /// <param name="fileType">The type of file to download</param>
         /// <returns>The location of the file</returns>
+        /// <exception cref="FileDownloadFailedException">If downloading the file failed with every known URL</exception>
         public async Task<string> GetFileLocation(ExternalFileType fileType)
         {
-
             FileInfo fileInfo = _fileTypes[fileType];
 
             // The save location is relative to the extract folder if requires extraction, otherwise it's just relative to the tools folder
@@ -534,6 +527,7 @@ namespace QuestPatcher.Core
         /// <param name="url">The URL to download from</param>
         /// <param name="saveName">Where to save the resultant file</param>
         /// <param name="overrideFileName">Used instead of the file name of saveName as the DownloadingFileName</param>
+        /// <exception cref="FileDownloadFailedException">If downloading the file failed</exception>
         public async Task DownloadUrl(string url, string saveName, string? overrideFileName = null)
         {
             try
@@ -542,6 +536,10 @@ namespace QuestPatcher.Core
 
                 using var fileStream = File.Open(saveName, FileMode.Create);
                 await DownloadToStreamWithProgressAsync(url, fileStream);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new FileDownloadFailedException($"Failed to download {DownloadingFileName}", ex);
             }
             finally
             {

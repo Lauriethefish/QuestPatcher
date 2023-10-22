@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -18,6 +17,7 @@ using QuestPatcher.Axml;
 using QuestPatcher.Core.Modding;
 using Serilog;
 using QuestPatcher.Zip;
+using System.Net.Http;
 
 namespace QuestPatcher.Core.Patching
 {
@@ -194,18 +194,28 @@ namespace QuestPatcher.Core.Patching
 
         private async Task<TempFile?> GetUnstrippedUnityPath()
         {
-            var client = new WebClient();
+            var client = new HttpClient();
             // Only download the index once
             if (_libUnityIndex == null)
             {
                 Log.Debug("Downloading libunity index for the first time . . .");
                 JsonSerializer serializer = new();
 
-                string data = await client.DownloadStringTaskAsync("https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/index.json");
-                using StringReader stringReader = new(data);
-                using JsonReader reader = new JsonTextReader(stringReader);
+                try
+                {
+                    string data = await client.GetStringAsync("https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/index.json");
 
-                _libUnityIndex = serializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(reader);
+                    using StringReader stringReader = new(data);
+                    using JsonReader reader = new JsonTextReader(stringReader);
+
+                    _libUnityIndex = serializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(reader);
+                }
+                catch (HttpRequestException ex)
+                {
+                    Log.Warning(ex, "Failed to download libunity index");
+                    return null;
+                }
+
             }
 
             Log.Information("Checking index for unstripped libunity.so . . .");
@@ -230,8 +240,8 @@ namespace QuestPatcher.Core.Patching
             }
 
             Log.Information("Unstripped libunity found. Downloading . . .");
-            TempFile tempDownloadPath = _specialFolders.GetTempFile();
 
+            TempFile tempDownloadPath = _specialFolders.GetTempFile();
             try
             {
                 await _filesDownloader.DownloadUrl(
@@ -240,7 +250,7 @@ namespace QuestPatcher.Core.Patching
 
                 return tempDownloadPath;
             }
-            catch (Exception)
+            catch
             {
                 tempDownloadPath.Dispose();
                 throw;
@@ -551,6 +561,7 @@ namespace QuestPatcher.Core.Patching
 
         /// <summary>
         /// Begins patching the currently installed APK, then uninstalls it and installs the modded copy. (must be pulled before calling this)
+        /// <exception cref="FileDownloadFailedException">If downloading files necessary to mod the APK fails</exception>
         /// </summary>
         public async Task PatchApp()
         {
@@ -589,6 +600,13 @@ namespace QuestPatcher.Core.Patching
             }
 
             using var libUnityFile = await GetUnstrippedUnityPath();
+            if (libUnityFile == null)
+            {
+                if (!await _prompter.PromptUnstrippedUnityUnavailable())
+                {
+                    return;
+                }
+            }
 
             PatchingStage = PatchingStage.MovingToTemp;
             Log.Information("Copying APK to temporary location . . .");
