@@ -18,7 +18,6 @@ using QuestPatcher.Axml;
 using QuestPatcher.Core.Modding;
 using Serilog;
 using QuestPatcher.Zip;
-using Org.BouncyCastle.Bcpg.OpenPgp;
 
 namespace QuestPatcher.Core.Patching
 {
@@ -31,7 +30,7 @@ namespace QuestPatcher.Core.Patching
         private const string ManifestPath = "AndroidManifest.xml";
         private const string DataDirectoryTemplate = "/sdcard/Android/data/{0}/files";
         private const string DataBackupTemplate = "/sdcard/QuestPatcher/{0}/backup";
-        
+
         // Attribute resource IDs, used during manifest patching
         private const int NameAttributeResourceId = 16842755;
         private const int RequiredAttributeResourceId = 16843406;
@@ -43,12 +42,12 @@ namespace QuestPatcher.Core.Patching
         /// Tag added during patching.
         /// </summary>
         private const string QuestPatcherTagName = "modded";
-        
+
         /// <summary>
         /// Tags from other installers which use QuestLoader. QP detects these for cross-compatibility.
         /// </summary>
         private static readonly string[] OtherTagNames = { "BMBF.modded" };
-        
+
         /// <summary>
         /// Permission to tag the APK with.
         /// This permission is added to the manifest, and can be easily read from <code>adb shell dumpsys package [packageId]</code> without having to pull the entire APK.
@@ -59,9 +58,9 @@ namespace QuestPatcher.Core.Patching
         public ApkInfo? InstalledApp { get => _installedApp; private set { if (_installedApp != value) { _installedApp = value; NotifyPropertyChanged(); } } }
         private ApkInfo? _installedApp;
 
-        public PatchingStage PatchingStage { get => _patchingStage; private set { if(_patchingStage != value) { _patchingStage = value; NotifyPropertyChanged(); } } }
+        public PatchingStage PatchingStage { get => _patchingStage; private set { if (_patchingStage != value) { _patchingStage = value; NotifyPropertyChanged(); } } }
         private PatchingStage _patchingStage = PatchingStage.NotStarted;
-        
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public event EventHandler? PatchingCompleted;
@@ -75,6 +74,7 @@ namespace QuestPatcher.Core.Patching
         private readonly ModManager _modManager;
 
         private readonly string _apkPath;
+        private readonly string _patchedApkPath;
         private Dictionary<string, Dictionary<string, string>>? _libUnityIndex;
 
         public PatchingManager(Config config, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, Action quit, ModManager modManager)
@@ -87,7 +87,8 @@ namespace QuestPatcher.Core.Patching
             _quit = quit;
             _modManager = modManager;
 
-            _apkPath = Path.Combine(specialFolders.PatchingFolder, "app.apk");
+            _apkPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
+            _patchedApkPath = Path.Combine(specialFolders.PatchingFolder, "patched.apk");
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -105,7 +106,7 @@ namespace QuestPatcher.Core.Patching
         private string ContinueUntilNewline(string str, int idx)
         {
             StringBuilder result = new();
-            while(str[idx] != '\n')
+            while (str[idx] != '\n')
             {
                 result.Append(str[idx]);
                 idx++;
@@ -132,7 +133,7 @@ namespace QuestPatcher.Core.Patching
             bool is32Bit = false;
             bool is64Bit = false;
             bool isModded = false;
-            
+
             string packageDump = (await _debugBridge.RunShellCommand($"dumpsys package {_config.AppId}")).StandardOutput;
             string version = GetPackageDumpValue(packageDump, "versionName");
             Log.Information($"App Version: {version}");
@@ -145,7 +146,7 @@ namespace QuestPatcher.Core.Patching
             Log.Information("Attempting to check modding status from package dump");
             // If the APK's permissions include the modded tag permission, then we know the APK is modded
             // This avoids having to pull the APK from the quest to check it if it's modded
-            if(permissionsString?.Split("\n").Skip(1).Select(perm => perm.Trim()).Contains(TagPermission) ?? false)
+            if (permissionsString?.Split("\n").Skip(1).Select(perm => perm.Trim()).Contains(TagPermission) ?? false)
             {
                 Log.Information("Modded permission found in dumpsys output.");
                 string cpuAbi = GetPackageDumpValue(packageDump, "primaryCpuAbi");
@@ -277,7 +278,7 @@ namespace QuestPatcher.Core.Patching
             {
                 // Technically, we only need READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE, but we also add MANAGE_EXTERNAL_STORAGE as this is what Android 11 needs instead
                 addingPermissions.AddRange(new[] {
-                    "android.permission.READ_EXTERNAL_STORAGE", 
+                    "android.permission.READ_EXTERNAL_STORAGE",
                     "android.permission.WRITE_EXTERNAL_STORAGE",
                     "android.permission.MANAGE_EXTERNAL_STORAGE",
                     TagPermission
@@ -308,7 +309,7 @@ namespace QuestPatcher.Core.Patching
 
             foreach (string permission in addingPermissions)
             {
-                if(existingPermissions.Contains(permission)) { continue; } // Do not add existing permissions
+                if (existingPermissions.Contains(permission)) { continue; } // Do not add existing permissions
 
                 Log.Information($"Adding permission {permission}");
                 AxmlElement permElement = new("uses-permission");
@@ -318,12 +319,12 @@ namespace QuestPatcher.Core.Patching
 
             foreach (string feature in addingFeatures)
             {
-                if(existingFeatures.Contains(feature)) { continue; } // Do not add existing features
+                if (existingFeatures.Contains(feature)) { continue; } // Do not add existing features
 
                 Log.Information($"Adding feature {feature}");
                 AxmlElement featureElement = new("uses-feature");
                 AddNameAttribute(featureElement, feature);
-                
+
                 // TODO: User may want the feature to be required instead of suggested
                 featureElement.Attributes.Add(new AxmlAttribute("required", AndroidNamespaceUri, RequiredAttributeResourceId, false));
                 manifest.Children.Add(featureElement);
@@ -344,7 +345,7 @@ namespace QuestPatcher.Core.Patching
             }
 
 
-            switch(permissions.HandTrackingType)
+            switch (permissions.HandTrackingType)
             {
                 case HandTrackingVersion.None:
                 case HandTrackingVersion.V1:
@@ -386,10 +387,10 @@ namespace QuestPatcher.Core.Patching
         private ISet<string> GetExistingChildren(AxmlElement manifest, string childNames)
         {
             HashSet<string> result = new();
-            
+
             foreach (AxmlElement element in manifest.Children)
             {
-                if(element.Name != childNames) { continue; }
+                if (element.Name != childNames) { continue; }
 
                 List<AxmlAttribute> nameAttributes = element.Attributes.Where(attribute => attribute.Namespace == AndroidNamespaceUri && attribute.Name == "name").ToList();
                 // Only add children with the name attribute
@@ -409,88 +410,89 @@ namespace QuestPatcher.Core.Patching
             element.Attributes.Add(new AxmlAttribute("name", AndroidNamespaceUri, NameAttributeResourceId, name));
         }
 
-        private async Task AddFlatscreenSupport(ZipArchive apkArchive)
+        /// <summary>
+        /// Modifies the given APK to support normal android devices, not just VR headsets.
+        /// </summary>
+        /// <param name="apk">APK to modify</param>
+        /// <param name="ovrPlatformSdkPath">Path to the ovrPlatformSdk ZIP file to fetch a necessary library from</param>
+        /// <exception cref="PatchingException">If the APK file was missing essential files, or otherwise not a valid unity game for adding flatscreen support.</exception>
+        private void AddFlatscreenSupportSync(ApkZip apk, string ovrPlatformSdkPath)
         {
             const string bootCfgPath = "assets/bin/Data/boot.config";
             const string globalGameManagersPath = "assets/bin/Data/globalgamemanagers";
             const string ovrPlatformLoaderPath = "lib/arm64-v8a/libovrplatformloader.so";
-            
-            var bootCfgEntry = apkArchive.GetEntry(bootCfgPath)
-                               ?? throw new PatchingException(
-                                   "boot.config must exist on a Beat Saber installation");
+
+            if (!apk.ContainsFile(bootCfgPath))
+            {
+                throw new PatchingException("boot.config must exist on a Beat Saber installation");
+            }
 
 
             string bootCfgContents;
-            using(var reader = new StreamReader(bootCfgEntry.Open()))
+            using (var bootCfgStream = apk.OpenReader(bootCfgPath))
+            using (var reader = new StreamReader(bootCfgStream))
             {
-                bootCfgContents = (await reader.ReadToEndAsync())
+                bootCfgContents = (reader.ReadToEnd())
                     .Replace("vr-enabled=1", "vr-enabled=0")
                     .Replace("vr-device-list=Oculus", "vr-device-list=");
             }
 
-            bootCfgEntry.Delete();
-            bootCfgEntry = apkArchive.CreateEntry(bootCfgPath);
-            await using(var writer = new StreamWriter(bootCfgEntry.Open()))
+            using (var newBootCfg = new MemoryStream())
+            using (var newBootCfgWriter = new StreamWriter(newBootCfg))
             {
-                await writer.WriteAsync(bootCfgContents);
+                newBootCfgWriter.Write(bootCfgContents);
+                newBootCfgWriter.Flush();
+
+                newBootCfg.Position = 0;
+                apk.AddFile(bootCfgPath, newBootCfg, CompressionLevel.Optimal);
+
             }
 
-            var gameManagersEntry = apkArchive.GetEntry(globalGameManagersPath) ?? throw new PatchingException(
-                "globalgamemanagers must exist on a Beat Saber installation");
+            if (!apk.ContainsFile(globalGameManagersPath))
+            {
+                throw new PatchingException("globalgamemanagers must exist on a Beat Saber installation");
+            }
 
             var am = new AssetsManager();
-            
-            var replacementEntry = apkArchive.CreateEntry("_QP/replacementGameManagers");
 
-            using(var gameManagersStream = gameManagersEntry.Open())
+            using var replacementContents = new MemoryStream();
+            using (var gameManagersStream = apk.OpenReader(globalGameManagersPath))
             {
                 var inst = am.LoadAssetsFile(gameManagersStream, "globalgamemanagers", false);
 
                 var inf = inst.table.GetAssetsOfType((int) AssetClassID.BuildSettings).Single();
-                
+
                 Assembly assembly = Assembly.GetExecutingAssembly();
-                await using Stream? classPkgStream = assembly.GetManifestResourceStream("QuestPatcher.Core.Resources.classdata.tpk");
+                using Stream? classPkgStream = assembly.GetManifestResourceStream("QuestPatcher.Core.Resources.classdata.tpk");
                 if (classPkgStream == null)
                 {
-                    throw new NullReferenceException("Could not find classdata.tpk in resources");
+                    throw new PatchingException("Could not find classdata.tpk in resources");
                 }
                 am.LoadClassPackage(classPkgStream);
                 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
-                
+
                 var type = am.GetTypeInstance(inst, inf);
                 var baseField = type.GetBaseField();
 
                 baseField.Get("enabledVRDevices").GetChildrenList()[0].SetChildrenList(Array.Empty<AssetTypeValueField>());
                 var newBytes = baseField.WriteToByteArray();
-                
-                var replacer = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xffff, newBytes);
 
-                using var replacementStream = replacementEntry.Open();
-                using var writer = new AssetsFileWriter(replacementStream);
+                var replacer = new AssetsReplacerFromMemory(0, inf.index, (int) inf.curFileType, 0xffff, newBytes);
+
+                using var writer = new AssetsFileWriter(replacementContents);
                 inst.file.Write(writer, 0, new List<AssetsReplacer> { replacer });
                 am.UnloadAllAssetsFiles();
             }
-            
-            gameManagersEntry.Delete();
-            gameManagersEntry = apkArchive.CreateEntry(globalGameManagersPath);
-            using(var newGameManagers = gameManagersEntry.Open())
-            using(var replacement = replacementEntry.Open())
-            {
-                await replacement.CopyToAsync(newGameManagers);
-            }
 
-            replacementEntry.Delete();
+            replacementContents.Position = 0;
+            apk.AddFile(globalGameManagersPath, replacementContents, CompressionLevel.Optimal);
 
-            using var sdkArchive = ZipFile.OpenRead(await _filesDownloader.GetFileLocation(ExternalFileType.OvrPlatformSdk));
+            using var sdkArchive = ZipFile.OpenRead(ovrPlatformSdkPath);
             var downgradedLoaderEntry = sdkArchive.GetEntry("Android/libs/arm64-v8a/libovrplatformloader.so")
                                         ?? throw new PatchingException("No libovrplatformloader.so found in downloaded OvrPlatformSdk");
             using var downloadedLoaderStream = downgradedLoaderEntry.Open();
 
-            apkArchive.GetEntry(ovrPlatformLoaderPath)?.Delete();
-            var platformLoaderEntry = apkArchive.CreateEntry(ovrPlatformLoaderPath);
-            using var platformLoaderStream = platformLoaderEntry.Open();
-
-            await downloadedLoaderStream.CopyToAsync(platformLoaderStream);
+            apk.AddFile(ovrPlatformLoaderPath, downloadedLoaderStream, CompressionLevel.Optimal);
         }
 
         /// <summary>
@@ -500,17 +502,24 @@ namespace QuestPatcher.Core.Patching
         /// <param name="modloaderPath">Path of the libmodloader to replace</param>
         /// <param name="unityPath">Optionally, a path to a replacement libunity.so</param>
         /// <param name="libsDirectory">The directory where the SO files are stored in the APK</param>
+        /// <param name="ovrPlatformSdkPath">Path to the OVR platform SDK ZIP, used for patching with flatscreen support. Must be non-null if flatscreen support is enabled.</param>
         /// <param name="apk">The APK to patch</param>
-        private void ModifyApkSync(string mainPath, string modloaderPath, string? unityPath, string libsDirectory, ApkZip apk)
+        private void ModifyApkSync(string mainPath, string modloaderPath, string? unityPath, string? ovrPlatformSdkPath, string libsDirectory, ApkZip apk)
         {
             Log.Information("Copying libmain.so and libmodloader.so . . .");
             AddFileToApkSync(mainPath, Path.Combine(libsDirectory, "libmain.so"), false, apk);
             AddFileToApkSync(modloaderPath, Path.Combine(libsDirectory, "libmodloader.so"), true, apk);
 
-            if(unityPath != null)
+            if (unityPath != null)
             {
                 Log.Information("Adding unstripped libunity.so . . .");
                 AddFileToApkSync(unityPath, Path.Combine(libsDirectory, "libunity.so"), false, apk);
+            }
+
+            if (_config.PatchingPermissions.FlatScreenSupport)
+            {
+                Log.Information("Adding flatscreen support . . .");
+                AddFlatscreenSupportSync(apk, ovrPlatformSdkPath!);
             }
 
             Log.Information("Patching manifest . . .");
@@ -531,7 +540,7 @@ namespace QuestPatcher.Core.Patching
         /// <exception cref="PatchingException">If the file already exists in the APK, if configured to throw.</exception>
         private void AddFileToApkSync(string filePath, string apkFilePath, bool failIfExists, ApkZip apk)
         {
-            if(failIfExists && apk.ContainsFile(apkFilePath))
+            if (failIfExists && apk.ContainsFile(apkFilePath))
             {
                 throw new PatchingException($"File {apkFilePath} already existed in the APK. Is the app already patched?");
             }
@@ -549,14 +558,15 @@ namespace QuestPatcher.Core.Patching
             {
                 throw new NullReferenceException("Cannot patch before installed app has been checked");
             }
-            
-            Log.Information("Copying files to patch APK . . .");
-            PatchingStage = PatchingStage.Patching;
+
+            Log.Information("Downloading files . . .");
+            PatchingStage = PatchingStage.FetchingFiles;
 
             // First make sure that we have all necessary files downloaded, including the libmain and libmodloader
             string libsPath = InstalledApp.Is64Bit ? "lib/arm64-v8a" : "lib/armeabi-v7a";
             string mainPath;
             string modloaderPath;
+            string? ovrPlatformSdkPath = null;
             if (InstalledApp.Is64Bit)
             {
                 mainPath = await _filesDownloader.GetFileLocation(ExternalFileType.Main64);
@@ -573,22 +583,31 @@ namespace QuestPatcher.Core.Patching
                     return;
                 }
             }
+            if (_config.PatchingPermissions.FlatScreenSupport)
+            {
+                ovrPlatformSdkPath = await _filesDownloader.GetFileLocation(ExternalFileType.OvrPlatformSdk);
+            }
 
             using var libUnityFile = await GetUnstrippedUnityPath();
 
-            using var apkStream = File.Open(_apkPath, FileMode.Open);
+            PatchingStage = PatchingStage.MovingToTemp;
+            Log.Information("Copying APK to temporary location . . .");
+            if (File.Exists(_patchedApkPath))
+            {
+                File.Delete(_patchedApkPath);
+            }
+
+            // No asynchronous File.Copy unfortunately
+            await Task.Run(() => File.Copy(_apkPath, _patchedApkPath));
+
+            // Then actually do the patching, using the APK reader, which is synchronous
+            PatchingStage = PatchingStage.Patching;
+            Log.Information("Copying files to patch the apk . . .");
+            using var apkStream = File.Open(_patchedApkPath, FileMode.Open);
             ApkZip apk = await Task.Run(() => ApkZip.Open(apkStream));
             try
             {
-
-
-                // TODO: Reimplement
-                //if(_config.PatchingPermissions.FlatScreenSupport)
-                //{
-                //    Log.Information("Adding flatscreen support . . .");
-                //    await AddFlatscreenSupport(apkArchive);
-                //}
-                await Task.Run(() => ModifyApkSync(mainPath, modloaderPath, libUnityFile?.Path, libsPath, apk));
+                await Task.Run(() => ModifyApkSync(mainPath, modloaderPath, libUnityFile?.Path, ovrPlatformSdkPath, libsPath, apk));
 
                 Log.Information("Signing APK . . .");
                 PatchingStage = PatchingStage.Signing;
@@ -597,14 +616,14 @@ namespace QuestPatcher.Core.Patching
             {
                 await Task.Run(() => { apk.Dispose(); });
             }
-            
+
             // Pause patching before compiling the APK in order to give a developer the chance to modify it.
             // TODO: Reimplement?
             //if(_config.PauseBeforeCompile && !await _prompter.PromptPauseBeforeCompile())
             //{
             //    return;
             //}
-            
+
             Log.Information("Uninstalling the default APK . . .");
             Log.Information("Backing up data directory");
             string dataPath = string.Format(DataDirectoryTemplate, _config.AppId);
@@ -620,22 +639,20 @@ namespace QuestPatcher.Core.Patching
                 // Copy all the files to the data backup
                 await _debugBridge.Move(dataPath, backupPath);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Error($"Failed to create data backup: {ex}");
                 backupPath = null; // Indicate that the backup failed
             }
 
             PatchingStage = PatchingStage.UninstallingOriginal;
-
             await _debugBridge.UninstallApp(_config.AppId);
 
             Log.Information("Installing the modded APK . . .");
             PatchingStage = PatchingStage.InstallingModded;
+            await _debugBridge.InstallApp(_patchedApkPath);
 
-            await _debugBridge.InstallApp(_apkPath);
-
-            if(backupPath != null)
+            if (backupPath != null)
             {
                 Log.Information("Restoring data backup");
                 try
@@ -648,12 +665,12 @@ namespace QuestPatcher.Core.Patching
                     await _debugBridge.RemoveDirectory(Path.Combine(dataPath, "libs"));
                     await _debugBridge.RemoveDirectory(Path.Combine(dataPath, "mods"));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Log.Error($"Failed to restore data backup: {ex}");
                 }
             }
-            
+
             try
             {
                 File.Delete(_apkPath); // The downloaded APK, and we don't need it now
@@ -680,8 +697,8 @@ namespace QuestPatcher.Core.Patching
                     Log.Error(ex, "Failed to grant external storage permissions");
                 }
             }
-            
-            
+
+
             Log.Information("Patching complete!");
             InstalledApp.IsModded = true;
             PatchingCompleted?.Invoke(this, EventArgs.Empty);

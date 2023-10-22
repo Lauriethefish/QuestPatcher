@@ -13,7 +13,7 @@ namespace QuestPatcher.ViewModels
 {
     public class PatchingViewModel : ViewModelBase
     {
-        public bool IsPatchingInProgress { get => _isPatchingInProgress; set { if(_isPatchingInProgress != value) { this.RaiseAndSetIfChanged(ref _isPatchingInProgress, value); } } }
+        public bool IsPatchingInProgress { get => _isPatchingInProgress; set { if (_isPatchingInProgress != value) { this.RaiseAndSetIfChanged(ref _isPatchingInProgress, value); } } }
         private bool _isPatchingInProgress;
 
         public string PatchingStageText { get; private set; } = "";
@@ -41,7 +41,7 @@ namespace QuestPatcher.ViewModels
 
             _patchingManager.PropertyChanged += (_, args) =>
             {
-                if(args.PropertyName == nameof(_patchingManager.PatchingStage))
+                if (args.PropertyName == nameof(_patchingManager.PatchingStage))
                 {
                     OnPatchingStageChange(_patchingManager.PatchingStage);
                 }
@@ -69,7 +69,8 @@ namespace QuestPatcher.ViewModels
                 builder.WithException(ex);
 
                 await builder.OpenDialogue(_mainWindow);
-            }   finally
+            }
+            finally
             {
                 IsPatchingInProgress = false;
                 Locker.FinishOperation();
@@ -99,11 +100,12 @@ namespace QuestPatcher.ViewModels
             PatchingStageText = stage switch
             {
                 PatchingStage.NotStarted => "Not Started",
-                PatchingStage.MovingToTemp => "Moving APK to temporary location (patching stage 1/5)",
-                PatchingStage.Patching => "Modifying APK files to support mods (patching stage 2/5)",
-                PatchingStage.Signing => "Signing APK (patching stage 3/5)",
-                PatchingStage.UninstallingOriginal => "Uninstalling original APK to install modded APK (patching stage 4/5)",
-                PatchingStage.InstallingModded => "Installing modded APK (patching stage 5/5)",
+                PatchingStage.FetchingFiles => "Downloading files needed to mod the APK (patching stage 1/6)",
+                PatchingStage.MovingToTemp => "Moving APK to temporary location (patching stage 2/6)",
+                PatchingStage.Patching => "Modifying APK files to support mods (patching stage 3/6)",
+                PatchingStage.Signing => "Signing APK (patching stage 4/6)",
+                PatchingStage.UninstallingOriginal => "Uninstalling original APK to install modded APK (patching stage 5/6)",
+                PatchingStage.InstallingModded => "Installing modded APK (patching stage 6/6)",
                 _ => throw new NotImplementedException()
             };
             this.RaisePropertyChanged(nameof(PatchingStageText));

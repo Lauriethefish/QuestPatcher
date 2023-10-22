@@ -6,6 +6,7 @@
     public enum PatchingStage
     {
         NotStarted,
+        FetchingFiles,
         MovingToTemp,
         Patching,
         Signing,
