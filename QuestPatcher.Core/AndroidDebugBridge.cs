@@ -104,7 +104,7 @@ namespace QuestPatcher.Core
         /// <returns>The process output from executing the file</returns>
         public async Task<ProcessOutput> RunCommand(string command, params int[] allowedExitCodes)
         {
-            if(_adbPath == null)
+            if (_adbPath == null)
             {
                 await PrepareAdbPath();
             }
@@ -132,13 +132,15 @@ namespace QuestPatcher.Core
                 {
                     await _onDisconnect(DisconnectionType.NoDevice);
                 }
-                else if(allOutput.Contains("device offline"))
+                else if (allOutput.Contains("device offline"))
                 {
                     await _onDisconnect(DisconnectionType.DeviceOffline);
-                }   else if(allOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
+                }
+                else if (allOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
                 {
                     await _onDisconnect(DisconnectionType.MultipleDevices);
-                }   else if(allOutput.Contains("unauthorized"))
+                }
+                else if (allOutput.Contains("unauthorized"))
                 {
                     await _onDisconnect(DisconnectionType.Unauthorized);
                 }
@@ -156,10 +158,10 @@ namespace QuestPatcher.Core
         /// <param name="commands">The commands to execute</param>
         public async Task RunShellCommands(List<string> commands)
         {
-            if(commands.Count == 0) { return; } // Return blank output if no commands to avoid errors
+            if (commands.Count == 0) { return; } // Return blank output if no commands to avoid errors
 
             var currentCommand = new StringBuilder();
-            for(int i = 0; i < commands.Count; i++)
+            for (int i = 0; i < commands.Count; i++)
             {
                 currentCommand.Append(commands[i]); // Add the next command
                 // If the current batch command + the next command will be greater than our command length limit (or we're at the last command), we stop the current batch command and add the result to the list
@@ -180,7 +182,7 @@ namespace QuestPatcher.Core
         {
             return await RunCommand($"shell {command.EscapeProc()}", allowedExitCodes);
         }
-        
+
         public async Task DownloadFile(string name, string destination)
         {
             await RunCommand($"pull {name.WithForwardSlashes().EscapeProc()} {destination.EscapeProc()}");
@@ -215,10 +217,10 @@ namespace QuestPatcher.Core
         {
             string output = (await RunShellCommand("pm list packages")).StandardOutput;
             List<string> result = new();
-            foreach(string package in output.Split("\n"))
+            foreach (string package in output.Split("\n"))
             {
                 string trimmed = package.Trim();
-                if(trimmed.Length == 0) { continue; }
+                if (trimmed.Length == 0) { continue; }
                 result.Add(trimmed[8..]); // Remove the "package:" from the package ID
             }
 
@@ -232,7 +234,7 @@ namespace QuestPatcher.Core
 
         public async Task InstallApp(string apkPath)
         {
-            await RunCommand($"install {apkPath.EscapeProc()}");
+            await RunCommand($"install {apkPath.EscapeProc()} --no-streaming");
         }
 
         public async Task CreateDirectory(string path)
@@ -272,7 +274,7 @@ namespace QuestPatcher.Core
         {
             List<string> commands = new();
 
-            foreach(KeyValuePair<string, string> path in paths)
+            foreach (KeyValuePair<string, string> path in paths)
             {
                 commands.Add($"cp {path.Key.WithForwardSlashes().EscapeBash()} {path.Value.WithForwardSlashes().EscapeBash()}");
             }
@@ -288,7 +290,7 @@ namespace QuestPatcher.Core
         public async Task CreateDirectories(List<string> paths)
         {
             List<string> commands = new();
-            foreach(string path in paths)
+            foreach (string path in paths)
             {
                 commands.Add($"mkdir -p {path.WithForwardSlashes().EscapeBash()}");
             }
@@ -340,13 +342,13 @@ namespace QuestPatcher.Core
         {
             ProcessOutput output = await RunShellCommand($"ls -p {path.WithForwardSlashes().EscapeBash()}", 1);
             string filesNonSplit = output.StandardOutput;
-            
+
             // Exit code 1 is only allowed if it is returned with no files, as this is what the LS command returns
             if (filesNonSplit.Trim().Length != 0 && output.ExitCode != 0)
             {
                 throw new AdbException(output.AllOutput);
             }
-            
+
             return ParsePaths(filesNonSplit, path, onlyFileName, false);
         }
 
@@ -360,10 +362,10 @@ namespace QuestPatcher.Core
             {
                 throw new AdbException(output.AllOutput);
             }
-            
+
             return ParsePaths(foldersNonSplit, path, onlyFolderName, true);
         }
-        
+
         public async Task KillServer()
         {
             await RunCommand("kill-server");
@@ -384,10 +386,10 @@ namespace QuestPatcher.Core
 
                 // The directory listing passed to this method should be that from "ls -p"
                 // This means that directories will end with a / and files will never end with a /
-                if(currentPath.EndsWith("/"))
+                if (currentPath.EndsWith("/"))
                 {
                     // If only looking for files, and our path ends with a /, it must be a folder, so we skip it
-                    if(!directories)
+                    if (!directories)
                     {
                         continue;
                     }
@@ -395,7 +397,7 @@ namespace QuestPatcher.Core
                 else
                 {
                     // If only looking for directories, and our path doesn't end with a /, it must be a file, so we skip it
-                    if(directories)
+                    if (directories)
                     {
                         continue;
                     }
@@ -480,7 +482,7 @@ namespace QuestPatcher.Core
         public async Task<bool> FileExists(string path)
         {
             string? dirName = Path.GetDirectoryName(path);
-            if(dirName is null)
+            if (dirName is null)
             {
                 throw new InvalidOperationException("Attempted to find if a file without a directory name exists");
             }
