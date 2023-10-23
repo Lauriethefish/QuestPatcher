@@ -55,20 +55,20 @@ namespace QuestPatcher.Services
             window.Height = 550;
             _operationLocker = new();
             _operationLocker.StartOperation(); // Still loading
-            _browseManager = new(OtherFilesManager, ModManager, window, PatchingManager, _operationLocker);
+            _browseManager = new(OtherFilesManager, ModManager, window, InstallManager, _operationLocker);
             ProgressViewModel progressViewModel = new(_operationLocker, FilesDownloader);
             _otherItemsView = new OtherItemsViewModel(OtherFilesManager, window, _browseManager, _operationLocker, progressViewModel);
 
             MainWindowViewModel mainWindowViewModel = new(
                 new LoadedViewModel(
                     new PatchingViewModel(Config, _operationLocker, PatchingManager, window, progressViewModel, FilesDownloader),
-                    new ManageModsViewModel(ModManager, PatchingManager, window, _operationLocker, progressViewModel, _browseManager),
+                    new ManageModsViewModel(ModManager, InstallManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
-                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, PatchingManager, DebugBridge, this, InfoDumper,
+                    new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, InstallManager, DebugBridge, this, InfoDumper,
                         _themeManager),
                     _otherItemsView,
                     Config,
-                    PatchingManager,
+                    InstallManager,
                     _browseManager
                 ),
                 new LoadingViewModel(progressViewModel, _loggingViewModel, Config),
@@ -122,7 +122,8 @@ namespace QuestPatcher.Services
                     Log.Error($"Exiting QuestPatcher due to unhandled load error: {ex}");
                     ExitApplication();
                 }
-            }   finally
+            }
+            finally
             {
                 _operationLocker.FinishOperation();
             }
@@ -168,9 +169,9 @@ namespace QuestPatcher.Services
             viewModel.InstalledApps = await DebugBridge.ListNonDefaultPackages();
 
             await windowCloseTask;
-            if(viewModel.SelectedApp == Config.AppId || !viewModel.DidConfirm)
+            if (viewModel.SelectedApp == Config.AppId || !viewModel.DidConfirm)
             {
-                if(quitIfNotSelected)
+                if (quitIfNotSelected)
                 {
                     ExitApplication();
                 }
@@ -190,7 +191,7 @@ namespace QuestPatcher.Services
             }
 
             ModManager.Reset();
-            PatchingManager.ResetInstalledApp();
+            InstallManager.ResetInstalledApp();
             await LoadAndHandleErrors();
         }
 

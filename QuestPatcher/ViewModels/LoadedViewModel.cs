@@ -3,13 +3,12 @@ using System.Diagnostics;
 using ReactiveUI;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Core.Models;
-using QuestPatcher.Core.Patching;
 using Avalonia.Input;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Serilog.Core;
 using System.Linq;
 using Serilog;
+using QuestPatcher.Core;
 
 namespace QuestPatcher.ViewModels
 {
@@ -44,15 +43,15 @@ namespace QuestPatcher.ViewModels
         {
             get
             {
-                Debug.Assert(_patchingManager.InstalledApp != null);
-                return _patchingManager.InstalledApp;
+                Debug.Assert(_installManager.InstalledApp != null);
+                return _installManager.InstalledApp;
             }
         }
 
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallManager _installManager;
         private readonly BrowseImportManager _browseManager;
 
-        public LoadedViewModel(PatchingViewModel patchingView, ManageModsViewModel manageModsView, LoggingViewModel loggingView, ToolsViewModel toolsView, OtherItemsViewModel otherItemsView, Config config, PatchingManager patchingManager, BrowseImportManager browseManager)
+        public LoadedViewModel(PatchingViewModel patchingView, ManageModsViewModel manageModsView, LoggingViewModel loggingView, ToolsViewModel toolsView, OtherItemsViewModel otherItemsView, Config config, InstallManager installManager, BrowseImportManager browseManager)
         {
             PatchingView = patchingView;
             LoggingView = loggingView;
@@ -61,12 +60,12 @@ namespace QuestPatcher.ViewModels
             OtherItemsView = otherItemsView;
 
             Config = config;
-            _patchingManager = patchingManager;
+            _installManager = installManager;
             _browseManager = browseManager;
 
-            _patchingManager.PropertyChanged += (_, args) =>
+            _installManager.PropertyChanged += (_, args) =>
             {
-                if(args.PropertyName == nameof(_patchingManager.InstalledApp) && _patchingManager.InstalledApp != null)
+                if (args.PropertyName == nameof(_installManager.InstalledApp) && _installManager.InstalledApp != null)
                 {
                     this.RaisePropertyChanged(nameof(AppInfo));
                     this.RaisePropertyChanged(nameof(SelectedAppText));

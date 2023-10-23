@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using QuestPatcher.Views;
 using QuestPatcher.Models;
 using QuestPatcher.Core.Modding;
-using QuestPatcher.Core.Patching;
 using System.Diagnostics;
+using QuestPatcher.Core;
 
 namespace QuestPatcher.ViewModels.Modding
 {
@@ -42,17 +42,17 @@ namespace QuestPatcher.ViewModels.Modding
         public OperationLocker Locker { get; }
 
         private readonly ModManager _modManager;
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallManager _installManager;
         private readonly Window _mainWindow;
 
         private bool _isToggling; // Used to temporarily display the mod with the new toggle value until the toggle succeeds or fails
 
-        public ModViewModel(IMod mod, ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker)
+        public ModViewModel(IMod mod, ModManager modManager, InstallManager installManager, Window mainWindow, OperationLocker locker)
         {
             Mod = mod;
             Locker = locker;
             _modManager = modManager;
-            _patchingManager = patchingManager;
+            _installManager = installManager;
             _mainWindow = mainWindow;
 
             mod.PropertyChanged += (_, args) =>
@@ -76,7 +76,7 @@ namespace QuestPatcher.ViewModels.Modding
                 CoverImage = new Bitmap(await Mod.OpenCover());
                 this.RaisePropertyChanged(nameof(CoverImage));
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // ignored
             }
@@ -112,18 +112,18 @@ namespace QuestPatcher.ViewModels.Modding
         /// </summary>
         private async Task InstallSafely()
         {
-            Debug.Assert(_patchingManager.InstalledApp != null);
+            Debug.Assert(_installManager.InstalledApp != null);
             // Check game version, and prompt if it is incorrect to avoid users installing mods that may crash their game
-            if(Mod.PackageVersion != null && Mod.PackageVersion != _patchingManager.InstalledApp.Version)
+            if (Mod.PackageVersion != null && Mod.PackageVersion != _installManager.InstalledApp.Version)
             {
                 DialogBuilder builder = new()
                 {
                     Title = "Outdated Mod",
-                    Text = $"The mod you are trying to install is for game version {Mod.PackageVersion}, however you have {_patchingManager.InstalledApp.Version}. The mod may fail to load, it may crash the game, or it might even work just fine."
+                    Text = $"The mod you are trying to install is for game version {Mod.PackageVersion}, however you have {_installManager.InstalledApp.Version}. The mod may fail to load, it may crash the game, or it might even work just fine."
                 };
                 builder.OkButton.Text = "Continue Anyway";
 
-                if(!await builder.OpenDialogue(_mainWindow))
+                if (!await builder.OpenDialogue(_mainWindow))
                 {
                     return;
                 }

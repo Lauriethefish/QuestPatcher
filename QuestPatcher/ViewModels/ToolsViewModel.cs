@@ -8,7 +8,6 @@ using System.IO;
 using ReactiveUI;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
-using QuestPatcher.Core.Patching;
 using Serilog;
 
 namespace QuestPatcher.ViewModels
@@ -20,7 +19,7 @@ namespace QuestPatcher.ViewModels
         public ProgressViewModel ProgressView { get; }
 
         public OperationLocker Locker { get; }
-        
+
         public ThemeManager ThemeManager { get; }
 
         public string AdbButtonText => _isAdbLogging ? "Stop ADB Log" : "Start ADB Log";
@@ -29,12 +28,12 @@ namespace QuestPatcher.ViewModels
 
         private readonly Window _mainWindow;
         private readonly SpecialFolders _specialFolders;
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallManager _installManager;
         private readonly AndroidDebugBridge _debugBridge;
         private readonly QuestPatcherUiService _uiService;
         private readonly InfoDumper _dumper;
 
-        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, PatchingManager patchingManager, AndroidDebugBridge debugBridge, QuestPatcherUiService uiService, InfoDumper dumper, ThemeManager themeManager)
+        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, InstallManager installManager, AndroidDebugBridge debugBridge, QuestPatcherUiService uiService, InfoDumper dumper, ThemeManager themeManager)
         {
             Config = config;
             ProgressView = progressView;
@@ -43,7 +42,7 @@ namespace QuestPatcher.ViewModels
 
             _mainWindow = mainWindow;
             _specialFolders = specialFolders;
-            _patchingManager = patchingManager;
+            _installManager = installManager;
             _debugBridge = debugBridge;
             _uiService = uiService;
             _dumper = dumper;
@@ -72,7 +71,7 @@ namespace QuestPatcher.ViewModels
                     try
                     {
                         Log.Information("Uninstalling app . . .");
-                        await _patchingManager.UninstallCurrentApp();
+                        await _installManager.UninstallApp();
                     }
                     finally
                     {
@@ -116,7 +115,8 @@ namespace QuestPatcher.ViewModels
                 builder.WithException(ex);
 
                 await builder.OpenDialogue(_mainWindow);
-            }   finally
+            }
+            finally
             {
                 Locker.FinishOperation();
             }
@@ -124,7 +124,7 @@ namespace QuestPatcher.ViewModels
 
         public async void ToggleAdbLog()
         {
-            if(_isAdbLogging)
+            if (_isAdbLogging)
             {
                 _debugBridge.StopLogging();
             }

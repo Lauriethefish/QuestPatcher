@@ -8,8 +8,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using AssetsTools.NET;
 using AssetsTools.NET.Extra;
@@ -18,18 +16,16 @@ using QuestPatcher.Core.Modding;
 using Serilog;
 using QuestPatcher.Zip;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 
 namespace QuestPatcher.Core.Patching
 {
     /// <summary>
-    /// Handles checking if the selected app is modded, alongside patching it if not
+    /// Handles patching an app with the modloader.
     /// </summary>
     public class PatchingManager : INotifyPropertyChanged
     {
         private static readonly Uri AndroidNamespaceUri = new("http://schemas.android.com/apk/res/android");
-        private const string ManifestPath = "AndroidManifest.xml";
-        private const string DataDirectoryTemplate = "/sdcard/Android/data/{0}/files";
-        private const string DataBackupTemplate = "/sdcard/QuestPatcher/{0}/backup";
 
         // Attribute resource IDs, used during manifest patching
         private const int NameAttributeResourceId = 16842755;
@@ -38,158 +34,40 @@ namespace QuestPatcher.Core.Patching
         private const int LegacyStorageAttributeResourceId = 16844291;
         private const int ValueAttributeResourceId = 16842788;
 
-        /// <summary>
-        /// Tag added during patching.
-        /// </summary>
-        private const string QuestPatcherTagName = "modded";
-
-        /// <summary>
-        /// Tags from other installers which use QuestLoader. QP detects these for cross-compatibility.
-        /// </summary>
-        private static readonly string[] OtherTagNames = { "BMBF.modded" };
-
-        /// <summary>
-        /// Permission to tag the APK with.
-        /// This permission is added to the manifest, and can be easily read from <code>adb shell dumpsys package [packageId]</code> without having to pull the entire APK.
-        /// This makes loading much faster, especially on larger apps.
-        /// </summary>
-        private const string TagPermission = "questpatcher.modded";
-
-        public ApkInfo? InstalledApp { get => _installedApp; private set { if (_installedApp != value) { _installedApp = value; NotifyPropertyChanged(); } } }
-        private ApkInfo? _installedApp;
-
         public PatchingStage PatchingStage { get => _patchingStage; private set { if (_patchingStage != value) { _patchingStage = value; NotifyPropertyChanged(); } } }
         private PatchingStage _patchingStage = PatchingStage.NotStarted;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public event EventHandler? PatchingCompleted;
+        private ApkInfo? InstalledApp => _installManager.InstalledApp;
 
         private readonly Config _config;
         private readonly AndroidDebugBridge _debugBridge;
         private readonly SpecialFolders _specialFolders;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly IUserPrompter _prompter;
-        private readonly Action _quit;
         private readonly ModManager _modManager;
+        private readonly InstallManager _installManager;
 
-        private readonly string _apkPath;
         private readonly string _patchedApkPath;
         private Dictionary<string, Dictionary<string, string>>? _libUnityIndex;
 
-        public PatchingManager(Config config, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, Action quit, ModManager modManager)
+        public PatchingManager(Config config, AndroidDebugBridge debugBridge, SpecialFolders specialFolders, ExternalFilesDownloader filesDownloader, IUserPrompter prompter, ModManager modManager, InstallManager installManager)
         {
             _config = config;
             _debugBridge = debugBridge;
             _specialFolders = specialFolders;
             _filesDownloader = filesDownloader;
             _prompter = prompter;
-            _quit = quit;
             _modManager = modManager;
 
-            _apkPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
             _patchedApkPath = Path.Combine(specialFolders.PatchingFolder, "patched.apk");
+            _installManager = installManager;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        /// <summary>
-        /// Finds a string beginning at <paramref name="idx"/> and continuing until a new line character is found.
-        /// The resulting string is then trimmed.
-        /// </summary>
-        /// <param name="str">String to index in</param>
-        /// <param name="idx">Starting index</param>
-        /// <returns>Trimmed string beginning at <paramref name="idx"/> and continuing until a new line</returns>
-        private string ContinueUntilNewline(string str, int idx)
-        {
-            StringBuilder result = new();
-            while (str[idx] != '\n')
-            {
-                result.Append(str[idx]);
-                idx++;
-            }
-
-            return result.ToString().Trim();
-        }
-
-        /// <summary>
-        /// Gets the value in the package dump with the given name.
-        /// </summary>
-        /// <param name="packageDump">Dump of a package from adb shell dumpsys package</param>
-        /// <param name="name">Name of the value to get</param>
-        /// <returns>Value from the package dump, as a trimmed string</returns>
-        private string GetPackageDumpValue(string packageDump, string name)
-        {
-            string fullName = $"{name}=";
-            int idx = packageDump.IndexOf(fullName, StringComparison.Ordinal);
-            return ContinueUntilNewline(packageDump, idx + fullName.Length);
-        }
-
-        public async Task LoadInstalledApp()
-        {
-            bool is32Bit = false;
-            bool is64Bit = false;
-            bool isModded = false;
-
-            string packageDump = (await _debugBridge.RunShellCommand($"dumpsys package {_config.AppId}")).StandardOutput;
-            string version = GetPackageDumpValue(packageDump, "versionName");
-            Log.Information($"App Version: {version}");
-
-            int beginPermissionsIdx = packageDump.IndexOf("requested permissions:", StringComparison.Ordinal);
-            int endPermissionsIdx = packageDump.IndexOf("install permissions:", StringComparison.Ordinal);
-
-            string? permissionsString = beginPermissionsIdx == -1 || endPermissionsIdx == -1 ? null : packageDump.Substring(beginPermissionsIdx, endPermissionsIdx - beginPermissionsIdx);
-
-            Log.Information("Attempting to check modding status from package dump");
-            // If the APK's permissions include the modded tag permission, then we know the APK is modded
-            // This avoids having to pull the APK from the quest to check it if it's modded
-            if (permissionsString?.Split("\n").Skip(1).Select(perm => perm.Trim()).Contains(TagPermission) ?? false)
-            {
-                Log.Information("Modded permission found in dumpsys output.");
-                string cpuAbi = GetPackageDumpValue(packageDump, "primaryCpuAbi");
-                // Currently, these are the only CPU ABIs supported
-                is64Bit = cpuAbi == "arm64-v8a";
-                is32Bit = cpuAbi == "armeabi-v7a";
-                isModded = true;
-            }
-            else
-            {
-                // If the modded permission is not found, it is still possible that the APK is modded
-                // Older QuestPatcher versions did not use a modded permission, and instead used a "modded" file in APK root
-                // (which is still added during patching for backwards compatibility, and so that BMBF can see that the APK is patched)
-                Log.Information("Modded permission not found, downloading APK from the Quest instead . . .");
-                await _debugBridge.DownloadApk(_config.AppId, _apkPath);
-
-                Log.Information("Checking APK modding status . . .");
-                await Task.Run(() =>
-                {
-                    using var apkStream = File.OpenRead(_apkPath);
-                    using ApkZip apk = ApkZip.Open(apkStream);
-
-                    // QuestPatcher adds a tag file to determine if the APK is modded later on
-                    isModded = apk.ContainsFile(QuestPatcherTagName) || OtherTagNames.Any(tagName => apk.ContainsFile(tagName));
-                    is64Bit = apk.ContainsFile("lib/arm64-v8a/libil2cpp.so");
-                    is32Bit = apk.ContainsFile("lib/armeabi-v7a/libil2cpp.so");
-                });
-            }
-
-
-            if (!is64Bit && !is32Bit)
-            {
-                throw new PatchingException("The loaded APK did not contain a 32 or 64 bit libil2cpp for patching. This either means that it is of an unsupported architecture, or it is not an il2cpp unity app."
-                    + " Please complain to Laurie if you're annoyed that QuestPatcher doesn't support unreal.");
-            }
-            Log.Information((isModded ? "APK is modded" : "APK is not modded") + " and is " + (is64Bit ? "64" : "32") + " bit");
-
-            InstalledApp = new ApkInfo(version, isModded, is64Bit);
-        }
-
-        public void ResetInstalledApp()
-        {
-            InstalledApp = null;
         }
 
         private async Task<TempFile?> GetUnstrippedUnityPath()
@@ -264,14 +142,14 @@ namespace QuestPatcher.Core.Patching
         /// <exception cref="PatchingException">If the given archive does not contain an <code>AndroidManifest.xml</code> file</exception>
         private void PatchManifestSync(ApkZip apk)
         {
-            if (!apk.Entries.Contains(ManifestPath))
+            if (!apk.Entries.Contains(InstallManager.ManifestPath))
             {
-                throw new PatchingException($"APK missing {ManifestPath} to patch");
+                throw new PatchingException($"APK missing {InstallManager.ManifestPath} to patch");
             }
 
             // The AMXL loader requires a seekable stream
             using var ms = new MemoryStream();
-            using (Stream stream = apk.OpenReader(ManifestPath))
+            using (Stream stream = apk.OpenReader(InstallManager.ManifestPath))
             {
                 stream.CopyTo(ms);
             }
@@ -291,7 +169,6 @@ namespace QuestPatcher.Core.Patching
                     "android.permission.READ_EXTERNAL_STORAGE",
                     "android.permission.WRITE_EXTERNAL_STORAGE",
                     "android.permission.MANAGE_EXTERNAL_STORAGE",
-                    TagPermission
                 });
             }
 
@@ -385,7 +262,7 @@ namespace QuestPatcher.Core.Patching
             AxmlSaver.SaveDocument(ms, manifest);
             ms.Position = 0;
 
-            apk.AddFile(ManifestPath, ms, CompressionLevel.Optimal);
+            apk.AddFile(InstallManager.ManifestPath, ms, CompressionLevel.Optimal);
         }
 
         /// <summary>
@@ -537,7 +414,7 @@ namespace QuestPatcher.Core.Patching
 
             Log.Information("Adding tag");
             var emptyStream = new MemoryStream();
-            apk.AddFile(QuestPatcherTagName, emptyStream, null);
+            apk.AddFile("modded", emptyStream, null); // TODO: Use new tag
         }
 
         /// <summary>
@@ -616,7 +493,7 @@ namespace QuestPatcher.Core.Patching
             }
 
             // No asynchronous File.Copy unfortunately
-            await Task.Run(() => File.Copy(_apkPath, _patchedApkPath));
+            await Task.Run(() => File.Copy(InstalledApp.Path, _patchedApkPath));
 
             // Then actually do the patching, using the APK reader, which is synchronous
             PatchingStage = PatchingStage.Patching;
@@ -637,18 +514,10 @@ namespace QuestPatcher.Core.Patching
 
             Log.Information("Uninstalling the default APK . . .");
             Log.Information("Backing up data directory");
-            string dataPath = string.Format(DataDirectoryTemplate, _config.AppId);
-            string? backupPath = string.Format(DataBackupTemplate, _config.AppId);
+            string? backupPath;
             try
             {
-                // Avoid failing if no files are present in the data directory
-                // TODO: Perhaps check if it exists first and then skip backup if missing? This is more complex.
-                await _debugBridge.CreateDirectory(dataPath);
-                // Remove the backup path if it already exists and then recreate it
-                await _debugBridge.RemoveDirectory(backupPath);
-                await _debugBridge.CreateDirectory(backupPath);
-                // Copy all the files to the data backup
-                await _debugBridge.Move(dataPath, backupPath);
+                backupPath = await _installManager.CreateDataBackup();
             }
             catch (Exception ex)
             {
@@ -668,13 +537,7 @@ namespace QuestPatcher.Core.Patching
                 Log.Information("Restoring data backup");
                 try
                 {
-                    string dataParentPath = Path.GetDirectoryName(dataPath)!;
-                    await _debugBridge.CreateDirectory(dataParentPath); // This is deleted upon uninstall
-                    // Move the "files" folder within the backup to the "data" folder for the app.
-                    await _debugBridge.Move(Path.Combine(backupPath, "files"), dataParentPath);
-                    // Delete mod/library files to avoid old mods causing crashes
-                    await _debugBridge.RemoveDirectory(Path.Combine(dataPath, "libs"));
-                    await _debugBridge.RemoveDirectory(Path.Combine(dataPath, "mods"));
+                    await _installManager.RestoreDataBackup(backupPath);
                 }
                 catch (Exception ex)
                 {
@@ -682,17 +545,6 @@ namespace QuestPatcher.Core.Patching
                 }
             }
 
-            try
-            {
-                File.Delete(_apkPath); // The downloaded APK, and we don't need it now
-            }
-            catch (IOException) // Sometimes a developer might be using the APK, so avoid failing the whole patching process
-            {
-                Log.Warning("Failed to delete patched APK");
-            }
-
-            // Recreate the mod directories as they will not be present after the uninstall/backup restore
-            await _modManager.CreateModDirectories();
 
             if (_config.PatchingPermissions.ExternalFiles)
             {
@@ -709,20 +561,13 @@ namespace QuestPatcher.Core.Patching
                 }
             }
 
+            // Recreate the mod directories as they will not be present after the uninstall/backup restore
+            await _modManager.CreateModDirectories();
+
+            await _installManager.NewApkInstalled(_patchedApkPath);
 
             Log.Information("Patching complete!");
-            InstalledApp.IsModded = true;
-            PatchingCompleted?.Invoke(this, EventArgs.Empty);
-        }
 
-        /// <summary>
-        /// Uninstalls the installed app.
-        /// Quits QuestPatcher, since it relies on the app being installed
-        /// </summary>
-        public async Task UninstallCurrentApp()
-        {
-            await _debugBridge.UninstallApp(_config.AppId);
-            _quit();
         }
     }
 }

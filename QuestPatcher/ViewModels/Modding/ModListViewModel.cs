@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
+using QuestPatcher.Core;
 using QuestPatcher.Core.Modding;
-using QuestPatcher.Core.Patching;
 using QuestPatcher.Models;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -19,7 +19,7 @@ namespace QuestPatcher.ViewModels.Modding
 
         private readonly BrowseImportManager _browseManager;
 
-        public ModListViewModel(string title, bool showBrowse, ObservableCollection<IMod> mods, ModManager modManager, PatchingManager patchingManager, Window mainWindow, OperationLocker locker, BrowseImportManager browseManager)
+        public ModListViewModel(string title, bool showBrowse, ObservableCollection<IMod> mods, ModManager modManager, InstallManager installManager, Window mainWindow, OperationLocker locker, BrowseImportManager browseManager)
         {
             Title = title;
             ShowBrowse = showBrowse;
@@ -31,7 +31,7 @@ namespace QuestPatcher.ViewModels.Modding
             // I can't just use the mods directly because I want to add prompts for installing/uninstalling (e.g. incorrect game version)
             mods.CollectionChanged += (_, args) =>
             {
-                if(args.Action == NotifyCollectionChangedAction.Reset)
+                if (args.Action == NotifyCollectionChangedAction.Reset)
                 {
                     DisplayedMods.Clear();
                     return;
@@ -41,10 +41,10 @@ namespace QuestPatcher.ViewModels.Modding
                 {
                     foreach (IMod mod in args.NewItems)
                     {
-                        DisplayedMods.Add(new ModViewModel(mod, modManager, patchingManager, mainWindow, locker));
+                        DisplayedMods.Add(new ModViewModel(mod, modManager, installManager, mainWindow, locker));
                     }
                 }
-                if(args.OldItems != null)
+                if (args.OldItems != null)
                 {
                     foreach (IMod mod in args.OldItems)
                     {

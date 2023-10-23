@@ -8,7 +8,6 @@ using QuestPatcher.Core.Modding;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
 using Serilog;
-using Serilog.Core;
 
 namespace QuestPatcher.Core
 {
@@ -22,7 +21,7 @@ namespace QuestPatcher.Core
         private readonly ModManager _modManager;
         private readonly ConfigManager _configManager;
         private readonly Config _config;
-        private readonly PatchingManager _patchingManager;
+        private readonly InstallManager _installManager;
 
         private const string LogsDirectory = "logs";
         private string GameLogsDirectory => $"logs/{_config.AppId}";
@@ -30,16 +29,16 @@ namespace QuestPatcher.Core
         private string GameConfigsPath => $"/sdcard/ModData/{_config.AppId}/Configs/";
         private string GameConfigsDirectory => $"configs/{_config.AppId}";
 
-        public InfoDumper(SpecialFolders specialFolders, AndroidDebugBridge debugBridge, ModManager modManager, ConfigManager configManager, PatchingManager patchingManager)
+        public InfoDumper(SpecialFolders specialFolders, AndroidDebugBridge debugBridge, ModManager modManager, ConfigManager configManager, InstallManager installManager)
         {
             _specialFolders = specialFolders;
             _debugBridge = debugBridge;
             _modManager = modManager;
             _configManager = configManager;
             _config = configManager.GetOrLoadConfig();
-            _patchingManager = patchingManager;
+            _installManager = installManager;
         }
-        
+
         /// <summary>
         /// Creates a dump ZIP containing lots of information about the current state of QuestPatcher.
         /// e.g. installed mods, config file, logs, ADB logs
@@ -65,16 +64,16 @@ namespace QuestPatcher.Core
 
             try { await SaveModLogs(dumpArchive); }
             catch (Exception ex) { Log.Warning($"Failed to save mod logs to dump: {ex}"); }
-            
+
             try { await SaveConfig(dumpArchive); }
             catch (Exception ex) { Log.Warning($"Failed to save config to dump: {ex}"); }
-            
+
             try { await SaveModConfigs(dumpArchive); }
             catch (Exception ex) { Log.Warning($"Failed to save mod configs to dump: {ex}"); }
-            
+
             try { await SaveInfoFile(dumpArchive); }
             catch (Exception ex) { Log.Warning($"Failed to save information file to dump: {ex}"); }
-            
+
             Log.Information("Dump complete!");
 
             return location;
@@ -108,7 +107,7 @@ namespace QuestPatcher.Core
                     await _debugBridge.DownloadFile(logPath, tempPath.Path);
                     await CreateLogEntry(dump, tempPath.Path, GameLogsDirectory, Path.GetFileName(logPath));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Log.Warning($"Failed to download log {logPath}: {ex}");
                 }
@@ -126,12 +125,14 @@ namespace QuestPatcher.Core
                     Log.Information($"Downloading {configPath} to {tempPath} . . .");
                     await _debugBridge.DownloadFile(configPath, tempPath.Path);
                     await dump.AddFileAsync(tempPath.Path, Path.Combine(GameConfigsDirectory, Path.GetFileName(configPath)));
-                } catch (Exception ex) { 
+                }
+                catch (Exception ex)
+                {
                     Log.Warning($"Failed to download config {configPath}: {ex}");
                 }
             }
         }
-        
+
         /// <summary>
         /// Saves QuestPatcher (and ADB) logs to the given dump.
         /// </summary>
@@ -169,17 +170,17 @@ namespace QuestPatcher.Core
             await writer.WriteLineAsync("QuestPatcher Information dump");
             await writer.WriteLineAsync("=============================");
 
-            ApkInfo? app = _patchingManager.InstalledApp;
+            ApkInfo? app = _installManager.InstalledApp;
             if (app != null)
             {
                 await writer.WriteLineAsync(
-                    $"Application: {_config.AppId} v{app.Version}. Is Modded: {app.IsModded}. 64 bit: {app.Is64Bit}");
+                    $"Application: {_config.AppId} v{app.Version}. Modloader: {app.ModLoader}. 64 bit: {app.Is64Bit}");
             }
             else
             {
                 await writer.WriteLineAsync("Application not yet loaded");
             }
-            
+
             await writer.WriteLineAsync($"Total loaded mods: {_modManager.AllMods.Count}. {_modManager.AllMods.Count(mod => mod.IsInstalled)} Installed");
 
             foreach (IMod mod in _modManager.AllMods)
@@ -187,7 +188,7 @@ namespace QuestPatcher.Core
                 string authorText = mod.Porter == null ? $"by {mod.Author}" : $"by {mod.Author} ported by {mod.Porter}";
                 await writer.WriteLineAsync($"{mod.Id} v{mod.Version} {authorText}. Installed: {mod.IsInstalled}. Is Library: {mod.IsLibrary}. Package version: {mod.PackageVersion}");
             }
-            
+
             await writer.WriteLineAsync("=============================");
 
             try

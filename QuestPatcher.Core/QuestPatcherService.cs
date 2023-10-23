@@ -23,15 +23,17 @@ namespace QuestPatcher.Core
         protected AndroidDebugBridge DebugBridge { get; }
         protected ExternalFilesDownloader FilesDownloader { get; }
         protected OtherFilesManager OtherFilesManager { get; }
+
+        protected InstallManager InstallManager { get; }
         protected IUserPrompter Prompter { get; }
-        
+
         protected InfoDumper InfoDumper { get; }
 
         protected Config Config => _configManager.GetOrLoadConfig();
-        
+
         private readonly ConfigManager _configManager;
 
-        public bool HasLoaded { get => _hasLoaded; private set { if(_hasLoaded != value) { _hasLoaded = value; NotifyPropertyChanged(); } } }
+        public bool HasLoaded { get => _hasLoaded; private set { if (_hasLoaded != value) { _hasLoaded = value; NotifyPropertyChanged(); } } }
         private bool _hasLoaded;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -50,8 +52,9 @@ namespace QuestPatcher.Core
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
             ModManager = new ModManager(Config, DebugBridge, OtherFilesManager);
             ModManager.RegisterModProvider(new QModProvider(ModManager, Config, DebugBridge, FilesDownloader));
-            PatchingManager = new PatchingManager(Config, DebugBridge, SpecialFolders, FilesDownloader, Prompter, ExitApplication, ModManager);
-            InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, _configManager, PatchingManager);
+            InstallManager = new InstallManager(SpecialFolders, DebugBridge, Config);
+            PatchingManager = new PatchingManager(Config, DebugBridge, SpecialFolders, FilesDownloader, Prompter, ModManager, InstallManager);
+            InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, _configManager, InstallManager);
 
             Log.Debug($"QuestPatcherService constructed (QuestPatcher version {VersionUtil.QuestPatcherVersion})");
         }
@@ -72,7 +75,7 @@ namespace QuestPatcher.Core
             SetLoggingOptions(configuration);
             return configuration.CreateLogger();
         }
-        
+
         /// <summary>
         /// Adds extra logging options
         /// </summary>
@@ -110,7 +113,7 @@ namespace QuestPatcher.Core
             HasLoaded = false;
             Log.Information("Starting QuestPatcher . . .");
 
-            if(!await DebugBridge.IsPackageInstalled(Config.AppId))
+            if (!await DebugBridge.IsPackageInstalled(Config.AppId))
             {
                 if (await Prompter.PromptAppNotInstalled())
                 {
@@ -125,7 +128,7 @@ namespace QuestPatcher.Core
 
             MigrateOldFiles();
 
-            await PatchingManager.LoadInstalledApp();
+            await InstallManager.LoadInstalledApp();
             await ModManager.LoadModsForCurrentApp();
             HasLoaded = true;
         }
@@ -179,7 +182,7 @@ namespace QuestPatcher.Core
         /// <param name="type">What caused the disconnection</param>
         private async Task OnAdbDisconnect(DisconnectionType type)
         {
-            if(!await Prompter.PromptAdbDisconnect(type))
+            if (!await Prompter.PromptAdbDisconnect(type))
             {
                 ExitApplication();
             }
