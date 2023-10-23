@@ -168,12 +168,6 @@ namespace QuestPatcher.Core
             {
                 Log.Warning($"Failed to delete QP1 files: {ex}");
             }
-
-            // TODO: reimplement
-            //if(await ModManager.DetectAndRemoveOldMods())
-            //{
-            //    await Prompter.PromptUpgradeFromOld();
-            //}
         }
 
         /// <summary>
