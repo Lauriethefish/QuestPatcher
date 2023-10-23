@@ -447,6 +447,15 @@ namespace QuestPatcher.Core.Patching
                 throw new NullReferenceException("Cannot patch before installed app has been checked");
             }
 
+            if (!InstalledApp.Is64Bit)
+            {
+                Log.Warning("App is 32 bit!");
+                if (!await _prompter.Prompt32Bit()) // Prompt the user to ask if they would like to continue, even though BS-hook doesn't work on 32 bit apps
+                {
+                    return;
+                }
+            }
+
             Log.Information("Downloading files . . .");
             PatchingStage = PatchingStage.FetchingFiles;
 
@@ -464,12 +473,6 @@ namespace QuestPatcher.Core.Patching
             {
                 mainPath = await _filesDownloader.GetFileLocation(ExternalFileType.Main32);
                 modloaderPath = await _filesDownloader.GetFileLocation(ExternalFileType.Modloader32);
-
-                Log.Warning("App is 32 bit!");
-                if (!await _prompter.Prompt32Bit()) // Prompt the user to ask if they would like to continue, even though BS-hook doesn't work on 32 bit apps
-                {
-                    return;
-                }
             }
             if (_config.PatchingPermissions.FlatScreenSupport)
             {
