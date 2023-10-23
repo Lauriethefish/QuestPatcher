@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using QuestPatcher.Axml;
 using QuestPatcher.Core.Models;
@@ -27,6 +28,12 @@ namespace QuestPatcher.Core
             "modded", // Legacy QuestPatcher
         };
         public const string ManifestPath = "AndroidManifest.xml";
+
+        public static readonly JsonSerializerOptions TagSerializerOptions = new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         private const string DataDirectoryTemplate = "/sdcard/Android/data/{0}/files";
         private const string DataBackupTemplate = "/sdcard/QuestPatcher/{0}/backup";
@@ -75,7 +82,7 @@ namespace QuestPatcher.Core
             {
                 using var jsonStream = apk.OpenReader(JsonTagName);
 
-                var tag = JsonSerializer.Deserialize<ModdedTag>(jsonStream);
+                var tag = JsonSerializer.Deserialize<ModdedTag>(jsonStream, TagSerializerOptions);
                 if (tag != null)
                 {
                     if (tag.ModloaderName.Equals("QuestLoader", StringComparison.OrdinalIgnoreCase))

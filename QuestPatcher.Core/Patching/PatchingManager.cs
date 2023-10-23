@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using QuestPatcher.Core.Models;
+﻿using QuestPatcher.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,6 +16,8 @@ using Serilog;
 using QuestPatcher.Zip;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace QuestPatcher.Core.Patching
 {
@@ -77,16 +78,10 @@ namespace QuestPatcher.Core.Patching
             if (_libUnityIndex == null)
             {
                 Log.Debug("Downloading libunity index for the first time . . .");
-                JsonSerializer serializer = new();
 
                 try
                 {
-                    string data = await client.GetStringAsync("https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/index.json");
-
-                    using StringReader stringReader = new(data);
-                    using JsonReader reader = new JsonTextReader(stringReader);
-
-                    _libUnityIndex = serializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(reader);
+                    _libUnityIndex = await client.GetFromJsonAsync<Dictionary<string, Dictionary<string, string>>>("https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/index.json");
                 }
                 catch (HttpRequestException ex)
                 {
@@ -413,8 +408,13 @@ namespace QuestPatcher.Core.Patching
             PatchManifestSync(apk);
 
             Log.Information("Adding tag");
-            var emptyStream = new MemoryStream();
-            apk.AddFile("modded", emptyStream, null); // TODO: Use new tag
+            using var tagStream = new MemoryStream();
+
+            var tag = new ModdedTag("QuestPatcher", VersionUtil.QuestPatcherVersion.ToString(), "QuestLoader", null);
+            JsonSerializer.Serialize(tagStream, tag, InstallManager.TagSerializerOptions);
+            tagStream.Position = 0;
+
+            apk.AddFile(InstallManager.JsonTagName, tagStream, CompressionLevel.Optimal);
         }
 
         /// <summary>
