@@ -456,6 +456,15 @@ namespace QuestPatcher.Core.Patching
                 }
             }
 
+            if (InstalledApp.ModLoader == Modloader.Unknown)
+            {
+                Log.Warning("APK contains unknown modloader");
+                if (!await _prompter.PromptUnknownModLoader())
+                {
+                    return;
+                }
+            }
+
             Log.Information("Downloading files . . .");
             PatchingStage = PatchingStage.FetchingFiles;
 
