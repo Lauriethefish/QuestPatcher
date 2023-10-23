@@ -546,21 +546,6 @@ namespace QuestPatcher.Core.Patching
             }
 
 
-            if (_config.PatchingPermissions.ExternalFiles)
-            {
-                try
-                {
-                    Log.Information("Granting external storage permission");
-                    await _debugBridge.RunShellCommand($"pm grant {_config.AppId} android.permission.READ_EXTERNAL_STORAGE");
-                    await _debugBridge.RunShellCommand($"pm grant {_config.AppId} android.permission.WRITE_EXTERNAL_STORAGE");
-                    await _debugBridge.RunShellCommand($"appops set --uid {_config.AppId} MANAGE_EXTERNAL_STORAGE allow");
-                }
-                catch (AdbException ex)
-                {
-                    Log.Error(ex, "Failed to grant external storage permissions");
-                }
-            }
-
             // Recreate the mod directories as they will not be present after the uninstall/backup restore
             await _modManager.CreateModDirectories();
 
