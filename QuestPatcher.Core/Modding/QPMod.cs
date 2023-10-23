@@ -66,13 +66,12 @@ namespace QuestPatcher.Core.Modding
             _filesDownloader = filesDownloader;
             _modManager = modManager;
 
-            FileCopyTypes = manifest.CopyExtensions.Select(copyExt => new FileCopyType(debugBridge)
-            {
-                NameSingular = $"{manifest.Name} .{copyExt.Extension} file",
-                NamePlural = $"{manifest.Name} .{copyExt.Extension} files",
-                Path = copyExt.Destination,
-                SupportedExtensions = new List<string> { copyExt.Destination }
-            }).ToList();
+            FileCopyTypes = manifest.CopyExtensions.Select(copyExt => new FileCopyType(debugBridge, new FileCopyInfo(
+                $"{manifest.Name} .{copyExt.Extension} file",
+                $"{manifest.Name} .{copyExt.Extension} files",
+                copyExt.Destination,
+                new List<string> { copyExt.Destination }
+            ))).ToList();
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")

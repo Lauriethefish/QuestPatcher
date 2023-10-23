@@ -10,10 +10,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Serilog;
 using System.Net.Http;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace QuestPatcher.Core
 {
@@ -74,7 +74,7 @@ namespace QuestPatcher.Core
             [JsonIgnore]
             public SemanticVersioning.Range SupportedVersions { get; set; }
 
-            [JsonProperty(PropertyName = "supportedVersions")]
+            [JsonPropertyName("supportedVersions")]
             public string SupportedVersion
             {
                 get => SupportedVersions.ToString();
@@ -88,14 +88,12 @@ namespace QuestPatcher.Core
 #nullable enable
         }
 
-        private static readonly JsonSerializer Serializer = new()
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            Formatting = Formatting.Indented,
-            ContractResolver = new DefaultContractResolver()
-            {
-                NamingStrategy = new CamelCaseNamingStrategy()
-            },
-            NullValueHandling = NullValueHandling.Ignore
+
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         /// <summary>
@@ -310,9 +308,7 @@ namespace QuestPatcher.Core
                 throw new NullReferenceException("Could not find file-downloads.json in resources");
             }
 
-            using TextReader textReader = new StreamReader(stream);
-            using JsonReader jsonReader = new JsonTextReader(textReader);
-            List<DownloadSet>? result = Serializer.Deserialize<List<DownloadSet>>(jsonReader);
+            var result = JsonSerializer.Deserialize<List<DownloadSet>?>(stream, SerializerOptions);
             if (result == null)
             {
                 throw new NullReferenceException("No download sets found in resources file");
@@ -329,11 +325,9 @@ namespace QuestPatcher.Core
         private async Task<List<DownloadSet>> LoadDownloadSetsFromWeb()
         {
             Log.Debug($"Getting download URLs from {DownloadsUrl} . . .");
-            string data = await _httpClient.GetStringAsync(DownloadsUrl);
-            using StringReader stringReader = new(data);
-            using JsonReader jsonReader = new JsonTextReader(stringReader);
+            using var jsonStream = await _httpClient.GetStreamAsync(DownloadsUrl);
 
-            List<DownloadSet>? result = Serializer.Deserialize<List<DownloadSet>>(jsonReader);
+            var result = await JsonSerializer.DeserializeAsync<List<DownloadSet>>(jsonStream, SerializerOptions);
             if (result == null)
             {
                 throw new NullReferenceException("No download sets found in web pulled file");

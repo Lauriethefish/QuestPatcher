@@ -1,24 +1,20 @@
-﻿using Newtonsoft.Json;
-using QuestPatcher.Core.Models;
+﻿using QuestPatcher.Core.Models;
 using System;
 using System.IO;
 using System.Reflection;
-using Newtonsoft.Json.Serialization;
 using Serilog;
+using System.Text.Json;
 
 namespace QuestPatcher.Core
 {
     public class ConfigManager
     {
-        private static readonly JsonSerializer Serializer = new()
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            Formatting = Formatting.Indented,
-            ContractResolver = new DefaultContractResolver()
-            {
-                NamingStrategy = new CamelCaseNamingStrategy()
-            }
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        
+
         public string ConfigPath { get; }
 
         private Config? _loadedConfig;
@@ -74,10 +70,10 @@ namespace QuestPatcher.Core
         {
             // If not forcing an overwrite of the config, and the config exists, we don't need to save the default config.
             if (File.Exists(ConfigPath) && !overwrite) { return; }
-            
+
             Log.Debug("Saving default config file . . .");
             using Stream? resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.default-config.json");
-            if(resourceStream == null)
+            if (resourceStream == null)
             {
                 throw new NullReferenceException("Unable to find default-config.json in resources!");
             }
@@ -94,16 +90,15 @@ namespace QuestPatcher.Core
         private Config LoadConfig()
         {
             Log.Information("Loading config . . .");
-            
+
             // Load the config
-            using StreamReader streamReader = new(ConfigPath);
-            using JsonTextReader reader = new(streamReader);
-            Config? newConfig = Serializer.Deserialize<Config>(reader);
+            using var configStream = File.OpenRead(ConfigPath);
+            Config? newConfig = JsonSerializer.Deserialize<Config>(configStream, SerializerOptions);
             if (newConfig == null)
             {
                 throw new FormatException("Loaded config contained no config object");
             }
-            
+
             // In the past, an appId.txt file was used to store the app ID
             // Load this into the config, then delete the old file
             if (File.Exists(_legacyAppIdPath))
@@ -124,11 +119,10 @@ namespace QuestPatcher.Core
         public void SaveConfig()
         {
             if (_loadedConfig == null) { throw new InvalidOperationException("Cannot save the config as it has not been loaded yet"); }
-            
+
             Log.Information("Saving config file . . .");
-            using StreamWriter streamWriter = new(ConfigPath);
-            using JsonTextWriter writer = new(streamWriter);
-            Serializer.Serialize(writer, _loadedConfig);
+            using var stream = File.Open(ConfigPath, FileMode.Create);
+            JsonSerializer.Serialize(stream, _loadedConfig, SerializerOptions);
         }
     }
 }

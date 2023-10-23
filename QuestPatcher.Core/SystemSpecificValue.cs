@@ -1,5 +1,5 @@
 ﻿using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace QuestPatcher.Core
 {
@@ -10,7 +10,7 @@ namespace QuestPatcher.Core
     {
         public UnknownOperatingSystemException() : base($"No value is configured for the current operating system") { }
     }
-    
+
     /// <summary>
     /// Used to represent values which need to be changed depending on the operating system QuestPatcher is running on.
     /// </summary>
@@ -27,22 +27,23 @@ namespace QuestPatcher.Core
         /// Value to use on Microsoft Windows
         /// </summary>
         public T? Windows { get; init; }
-        
+
         /// <summary>
         /// Value to use on Mac OS
         /// </summary>
         public T? Mac { get; init; }
-        
+
         /// <summary>
         /// Value to use on Linux
         /// </summary>
         public T? Linux { get; init; }
-        
+
         /// <summary>
         /// Sets both the linux and mac value at the same time.
         /// </summary>
         [JsonIgnore]
-        public T? Unix {
+        public T? Unix
+        {
             init
             {
                 Mac = value;
@@ -62,7 +63,7 @@ namespace QuestPatcher.Core
             {
                 return Windows;
             }
-            
+
             if (Linux != null && OperatingSystem.IsLinux())
             {
                 return Linux;

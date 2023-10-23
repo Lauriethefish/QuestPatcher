@@ -9,7 +9,6 @@ namespace QuestPatcher.Core.Modding
 {
     public class FileCopyType : INotifyPropertyChanged
     {
-#nullable disable
         /// <summary>
         /// Name of the file copy, singular. E.g. "gorilla tag hat"
         /// </summary>
@@ -30,7 +29,6 @@ namespace QuestPatcher.Core.Modding
         /// List of support file extensions for this file copy destination
         /// </summary>
         public List<string> SupportedExtensions { get; set; }
-#nullable enable
 
         public ObservableCollection<string> ExistingFiles { get; } = new();
 
@@ -42,7 +40,7 @@ namespace QuestPatcher.Core.Modding
             get => _hasLoaded;
             private set
             {
-                if(_hasLoaded != value)
+                if (_hasLoaded != value)
                 {
                     _hasLoaded = value;
                     NotifyPropertyChanged();
@@ -59,7 +57,7 @@ namespace QuestPatcher.Core.Modding
             get => _loadingFailed;
             private set
             {
-                if(_loadingFailed != value)
+                if (_loadingFailed != value)
                 {
                     _loadingFailed = value;
                     NotifyPropertyChanged();
@@ -73,9 +71,13 @@ namespace QuestPatcher.Core.Modding
         private readonly AndroidDebugBridge _debugBridge;
 
 
-        public FileCopyType(AndroidDebugBridge debugBridge)
+        public FileCopyType(AndroidDebugBridge debugBridge, FileCopyInfo info)
         {
             _debugBridge = debugBridge;
+            NameSingular = info.NameSingular;
+            NamePlural = info.NamePlural;
+            Path = info.Path;
+            SupportedExtensions = info.SupportedExtensions;
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -101,7 +103,7 @@ namespace QuestPatcher.Core.Modding
                     ExistingFiles.Add(file);
                 }
             }
-            catch(Exception)
+            catch (Exception)
             {
                 LoadingFailed = true;
                 throw; // Rethrow for calling UI to handle if they want to

@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using QuestPatcher.Core.Models;
+﻿using QuestPatcher.Core.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,16 +7,18 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace QuestPatcher.Core.Modding
 {
     public class OtherFilesManager : INotifyPropertyChanged
     {
-        public ObservableCollection<FileCopyType> CurrentDestinations {
+        public ObservableCollection<FileCopyType> CurrentDestinations
+        {
             get
             {
                 // If file copy types for this app are available in the index, return those
-                if(_copyIndex.TryGetValue(_config.AppId, out var copyTypes))
+                if (_copyIndex.TryGetValue(_config.AppId, out var copyTypes))
                 {
                     return copyTypes;
                 }
@@ -52,20 +52,21 @@ namespace QuestPatcher.Core.Modding
             using Stream? pathsStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.file-copy-paths.json");
             Debug.Assert(pathsStream != null);
 
-            using TextReader textReader = new StreamReader(pathsStream);
-            using JsonReader jsonReader = new JsonTextReader(textReader);
-            JsonSerializer serializer = new()
+            var serializerOptions = new JsonSerializerOptions
             {
-                ContractResolver = new DefaultContractResolver()
-                {
-                    NamingStrategy = new CamelCaseNamingStrategy()
-                },
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
-            // File copies require a debug bridge reference, so we use a converter to pass this in
-            serializer.Converters.Add(new FileCopyConverter(debugBridge));
 
-            var copyIndex = serializer.Deserialize<Dictionary<string, ObservableCollection<FileCopyType>>>(jsonReader);
-            Debug.Assert(copyIndex != null);
+            // Deserialize the FileCopyInfo for each file copy
+            var copyInfoIndex = JsonSerializer.Deserialize<Dictionary<string, List<FileCopyInfo>>>(pathsStream, serializerOptions);
+            Debug.Assert(copyInfoIndex != null);
+
+            // Copy those into ObservableCollections of FileCopyType, passing in the debug bridge to allow fetching the files of each type
+            var copyIndex = new Dictionary<string, ObservableCollection<FileCopyType>>();
+            foreach ((string key, var list) in copyInfoIndex)
+            {
+                copyIndex[key] = new ObservableCollection<FileCopyType>(list.Select(info => new FileCopyType(debugBridge, info)));
+            }
             _copyIndex = copyIndex;
         }
 
@@ -94,12 +95,12 @@ namespace QuestPatcher.Core.Modding
         /// <param name="type">The <see cref="FileCopyType"/> to add</param>
         public void RegisterFileCopy(string packageId, FileCopyType type)
         {
-            if(!_copyIndex.TryGetValue(packageId, out var copyTypes))
+            if (!_copyIndex.TryGetValue(packageId, out var copyTypes))
             {
                 copyTypes = new();
                 _copyIndex[packageId] = copyTypes;
             }
-            
+
             copyTypes.Add(type);
         }
 
