@@ -26,9 +26,10 @@ namespace QuestPatcher.ViewModels
         public ExternalFilesDownloader FilesDownloader { get; }
 
         private readonly PatchingManager _patchingManager;
+        private readonly InstallManager _installManager;
         private readonly Window _mainWindow;
 
-        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, Window mainWindow, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
+        public PatchingViewModel(Config config, OperationLocker locker, PatchingManager patchingManager, InstallManager installManager, Window mainWindow, ProgressViewModel progressBarView, ExternalFilesDownloader filesDownloader)
         {
             Config = config;
             Locker = locker;
@@ -36,6 +37,7 @@ namespace QuestPatcher.ViewModels
             FilesDownloader = filesDownloader;
 
             _patchingManager = patchingManager;
+            _installManager = installManager;
             _mainWindow = mainWindow;
 
             _patchingManager.PropertyChanged += (_, args) =>
@@ -54,16 +56,6 @@ namespace QuestPatcher.ViewModels
             try
             {
                 await _patchingManager.PatchApp();
-
-                // Display a dialogue to give the user some info about what to expect next, and to avoid them pressing restore app by mistake
-                Log.Debug("Patching completed successfully, displaying info dialogue");
-                DialogBuilder builder = new()
-                {
-                    Title = "Patching Complete!",
-                    Text = "Your installation is now modded!\nYou can now access installed mods, cosmetics, etc.\n\nNOTE: If you see a restore app prompt inside your headset, just press close. The chance of getting banned for modding is virtually zero, so it's nothing to worry about.",
-                    HideCancelButton = true
-                };
-                await builder.OpenDialogue(_mainWindow);
             }
             catch (FileDownloadFailedException ex)
             {
@@ -96,6 +88,19 @@ namespace QuestPatcher.ViewModels
             {
                 IsPatchingInProgress = false;
                 Locker.FinishOperation();
+            }
+
+            if (_installManager.InstalledApp?.IsModded ?? false)
+            {
+                // Display a dialogue to give the user some info about what to expect next, and to avoid them pressing restore app by mistake
+                Log.Debug("Patching completed successfully, displaying info dialogue");
+                DialogBuilder builder = new()
+                {
+                    Title = "Patching Complete!",
+                    Text = "Your installation is now modded!\nYou can now access installed mods, cosmetics, etc.\n\nNOTE: If you see a restore app prompt inside your headset, just press close. The chance of getting banned for modding is virtually zero, so it's nothing to worry about.",
+                    HideCancelButton = true
+                };
+                await builder.OpenDialogue(_mainWindow);
             }
         }
 
