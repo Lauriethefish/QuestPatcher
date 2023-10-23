@@ -140,32 +140,6 @@ namespace QuestPatcher
             return builder.OpenDialogue(_mainWindow);
         }
 
-        public Task<bool> PromptPauseBeforeCompile()
-        {
-            DialogBuilder builder = new()
-            {
-                Title = "Patching Paused",
-                Text = "The APK has been patched and will recompile/reinstall when you continue. Pressing cancel will immediately stop patching."
-            };
-            builder.OkButton.Text = "Continue";
-            builder.WithButtons(new ButtonInfo
-            {
-                Text = "Show patched APK",
-                OnClick = () =>
-                {
-                    Debug.Assert(_specialFolders != null);
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = _specialFolders.PatchingFolder,
-                        UseShellExecute = true,
-                        Verb = "open"
-                    });
-                }
-            });
-
-            return builder.OpenDialogue(_mainWindow);
-        }
-
         public Task PromptUpgradeFromOld()
         {
             DialogBuilder builder = new()

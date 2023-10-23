@@ -14,8 +14,6 @@ namespace QuestPatcher.Core
 
         Task<bool> PromptUnknownModLoader();
 
-        Task<bool> PromptPauseBeforeCompile();
-
         Task PromptUpgradeFromOld();
     }
 }
