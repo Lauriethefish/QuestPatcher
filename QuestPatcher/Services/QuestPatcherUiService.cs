@@ -61,7 +61,7 @@ namespace QuestPatcher.Services
 
             MainWindowViewModel mainWindowViewModel = new(
                 new LoadedViewModel(
-                    new PatchingViewModel(Config, _operationLocker, PatchingManager, window, progressViewModel, FilesDownloader),
+                    new PatchingViewModel(Config, _operationLocker, PatchingManager, InstallManager, window, progressViewModel, FilesDownloader),
                     new ManageModsViewModel(ModManager, InstallManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
                     new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, InstallManager, DebugBridge, this, InfoDumper,
