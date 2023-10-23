@@ -212,7 +212,7 @@ namespace QuestPatcher.Core.Patching
                 AxmlElement featureElement = new("uses-feature");
                 AddNameAttribute(featureElement, feature);
 
-                // TODO: User may want the feature to be required instead of suggested
+                // TODO: User may want the feature to be suggested instead of required
                 featureElement.Attributes.Add(new AxmlAttribute("required", AndroidNamespaceUri, RequiredAttributeResourceId, false));
                 manifest.Children.Add(featureElement);
             }
