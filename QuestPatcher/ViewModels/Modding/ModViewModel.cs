@@ -129,6 +129,18 @@ namespace QuestPatcher.ViewModels.Modding
                 }
             }
 
+            if (Mod.ModLoader != _installManager.InstalledApp.ModLoader)
+            {
+                DialogBuilder builder = new()
+                {
+                    Title = "Wrong Mod Loader",
+                    Text = $"The mod you are trying to install needs the modloader {Mod.ModLoader}, however your app has the modloader {_installManager.InstalledApp.ModLoader} installed."
+                };
+
+                await builder.OpenDialogue(_mainWindow);
+                return;
+            }
+
             try
             {
                 await Mod.Install();

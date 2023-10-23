@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using QuestPatcher.Core.Models;
 using QuestPatcher.QMod;
 using Serilog;
 
@@ -26,6 +27,13 @@ namespace QuestPatcher.Core.Modding
         public string? Porter => Manifest.Porter;
         public bool IsLibrary => Manifest.IsLibrary;
 
+        public Modloader ModLoader => Manifest.ModLoader switch
+        {
+            QMod.ModLoader.QuestLoader => Modloader.QuestLoader,
+            QMod.ModLoader.Scotland2 => Modloader.Scotland2,
+            _ => Modloader.Unknown
+        };
+
         public IEnumerable<FileCopyType> FileCopyTypes { get; }
 
         public bool IsInstalled
@@ -33,7 +41,7 @@ namespace QuestPatcher.Core.Modding
             get => _isInstalled;
             set
             {
-                if(_isInstalled != value)
+                if (_isInstalled != value)
                 {
                     _isInstalled = value;
                     NotifyPropertyChanged();
@@ -42,7 +50,7 @@ namespace QuestPatcher.Core.Modding
         }
 
         private bool _isInstalled;
-        
+
         internal QModManifest Manifest { get; }
         private readonly AndroidDebugBridge _debugBridge;
         private readonly ExternalFilesDownloader _filesDownloader;
@@ -84,12 +92,12 @@ namespace QuestPatcher.Core.Modding
                 Log.Debug($"Mod {Id} is already installed. Not installing");
                 return;
             }
-            
+
             Log.Information($"Installing mod {Id}");
-            
+
             installedInBranch.Add(Id); // Add to the installed tree so that dependencies further down on us will trigger a recursive install error
 
-            foreach(Dependency dependency in Manifest.Dependencies)
+            foreach (Dependency dependency in Manifest.Dependencies)
             {
                 await PrepareDependency(dependency, installedInBranch);
             }
@@ -101,13 +109,13 @@ namespace QuestPatcher.Core.Modding
             List<KeyValuePair<string, string>> copyPaths = new();
 
             List<string> directoriesToCreate = new();
-            foreach(string libraryPath in Manifest.LibraryFileNames)
+            foreach (string libraryPath in Manifest.LibraryFileNames)
             {
                 Log.Information($"Starting library file copy {libraryPath} . . .");
                 copyPaths.Add(new(Path.Combine(extractPath, libraryPath), Path.Combine(_modManager.LibsPath, Path.GetFileName(libraryPath))));
             }
 
-            foreach(string modPath in Manifest.ModFileNames)
+            foreach (string modPath in Manifest.ModFileNames)
             {
                 Log.Information($"Starting mod file copy {modPath} . . .");
                 copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(_modManager.ModsPath, Path.GetFileName(modPath))));
@@ -117,14 +125,14 @@ namespace QuestPatcher.Core.Modding
             {
                 Log.Information($"Starting file copy {fileCopy.Name} to {fileCopy.Destination}");
                 string? directoryName = Path.GetDirectoryName(fileCopy.Destination);
-                if(directoryName != null)
+                if (directoryName != null)
                 {
                     directoriesToCreate.Add(directoryName);
                 }
                 copyPaths.Add(new(Path.Combine(extractPath, fileCopy.Name), fileCopy.Destination));
             }
 
-            if(directoriesToCreate.Count > 0)
+            if (directoriesToCreate.Count > 0)
             {
                 await _debugBridge.CreateDirectories(directoriesToCreate);
             }
@@ -145,7 +153,7 @@ namespace QuestPatcher.Core.Modding
                 Log.Debug($"Mod {Id} is already uninstalled. Not uninstalling");
                 return;
             }
-            
+
             Log.Information($"Uninstalling mod {Id} . . .");
 
             List<string> filesToRemove = new();
@@ -204,11 +212,11 @@ namespace QuestPatcher.Core.Modding
 
         public async Task<Stream?> OpenCover()
         {
-            if(Manifest.CoverImagePath == null)
+            if (Manifest.CoverImagePath == null)
             {
                 return null;
             }
-            
+
             string coverPath = Path.Combine(_provider.GetExtractDirectory(Id), Manifest.CoverImagePath);
             using TempFile tempFile = new();
             await _debugBridge.DownloadFile(coverPath, tempFile.Path);
@@ -245,14 +253,14 @@ namespace QuestPatcher.Core.Modding
                 if (dependency.VersionRange.IsSatisfied(existing.Version))
                 {
                     Log.Debug($"Dependency {dependency.VersionRange} is already loaded and within the version range");
-                    if(!existing.IsInstalled)
+                    if (!existing.IsInstalled)
                     {
                         Log.Information($"Installing dependency {dependency.Id} . . .");
                         await existing.Install(installedInBranch);
                     }
                     return;
                 }
-                
+
                 if (dependency.DownloadUrlString != null)
                 {
                     Log.Warning($"Dependency with ID {dependency.Id} is already installed but with an incorrect version ({existing.Version} does not intersect {dependency.VersionRange}). QuestPatcher will attempt to upgrade the dependency");

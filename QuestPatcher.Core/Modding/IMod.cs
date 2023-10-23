@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
+using QuestPatcher.Core.Models;
 
 namespace QuestPatcher.Core.Modding
 {
@@ -11,17 +12,17 @@ namespace QuestPatcher.Core.Modding
         /// Provider that loaded this mod
         /// </summary>
         IModProvider Provider { get; }
-        
+
         /// <summary>
         /// Unique ID of the mod, must not contain spaces
         /// </summary>
         string Id { get; }
-        
+
         /// <summary>
         /// Human readable name of the mod
         /// </summary>
         string Name { get; }
-        
+
         /// <summary>
         /// Description of the mod
         /// </summary>
@@ -31,17 +32,17 @@ namespace QuestPatcher.Core.Modding
         /// Version of the mod
         /// </summary>
         SemanticVersioning.Version Version { get; }
-        
+
         /// <summary>
         /// Version of the package that the mod is intended for
         /// </summary>
         string? PackageVersion { get; }
-        
+
         /// <summary>
         /// Author of the mod
         /// </summary>
         string Author { get; }
-        
+
         /// <summary>
         /// Individual who ported this mod from another platform
         /// </summary>
@@ -51,21 +52,26 @@ namespace QuestPatcher.Core.Modding
         /// Keep going, keep going, keep going, keep going
         /// </summary>
         string Robinson => "It will all be OK in the end";
-        
+
         /// <summary>
         /// Whether or not the mod is currently installed
         /// </summary>
         bool IsInstalled { get; }
-        
+
         /// <summary>
         /// Whether or not the mod is a library
         /// </summary>
         bool IsLibrary { get; }
-        
+
         /// <summary>
         /// The file types that this mod supports.
         /// </summary>
         IEnumerable<FileCopyType> FileCopyTypes { get; }
+
+        /// <summary>
+        /// The modloader that this mod must be loaded with.
+        /// </summary>
+        Modloader ModLoader { get; }
 
         /// <summary>
         /// Installs the mod
