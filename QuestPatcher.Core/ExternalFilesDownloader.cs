@@ -23,6 +23,8 @@ namespace QuestPatcher.Core
         Modloader64,
         Main32,
         Main64,
+        Scotland2,
+        LibMainLoader,
         ApkTool,
         UberApkSigner,
         PlatformTools,
@@ -129,6 +131,20 @@ namespace QuestPatcher.Core
                 new FileInfo
                 {
                     SaveName = "libmain32.so".ForAllSystems(),
+                }
+            },
+            {
+                ExternalFileType.LibMainLoader,
+                new FileInfo
+                {
+                    SaveName = "libmainloader.so".ForAllSystems()
+                }
+            },
+            {
+                ExternalFileType.Scotland2,
+                new FileInfo
+                {
+                    SaveName = "libsl2.so".ForAllSystems()
                 }
             },
             {

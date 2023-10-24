@@ -129,6 +129,10 @@ namespace QuestPatcher.Core
             MigrateOldFiles();
 
             await InstallManager.LoadInstalledApp();
+            if (InstallManager.InstalledApp!.ModLoader == Modloader.Scotland2)
+            {
+                await PatchingManager.SaveScotland2(false); // Make sure that Scotland2 is saved to the right location
+            }
             await ModManager.LoadModsForCurrentApp();
             HasLoaded = true;
         }
@@ -194,6 +198,12 @@ namespace QuestPatcher.Core
             // Sometimes files fail to download so we clear them. This shouldn't happen anymore but I may as well add it to be on the safe side
             await FilesDownloader.ClearCache();
             await DebugBridge.PrepareAdbPath(); // Re-download ADB if necessary
+
+            if (InstallManager.InstalledApp?.ModLoader == Modloader.Scotland2)
+            {
+                // Force a reupload of sl2
+                await PatchingManager.SaveScotland2(true);
+            }
         }
     }
 }

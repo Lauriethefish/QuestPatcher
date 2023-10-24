@@ -17,6 +17,12 @@
       "Main32": {
         "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmain32.so"
       },
+      "LibMainLoader": {
+        "any": "https://github.com/sc2ad/LibMainLoader/releases/download/v0.1.0-alpha/libmain.so"
+      },
+      "Scotland2": {
+        "any": "https://github.com/sc2ad/scotland2/releases/download/v0.1.2/libsl2.so"
+      },
       "PlatformTools": {
         "windows": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
         "mac": "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
