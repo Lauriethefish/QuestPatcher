@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using Serilog;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace QuestPatcher.Core
 {
@@ -12,8 +13,13 @@ namespace QuestPatcher.Core
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
             WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
+
+        static ConfigManager()
+        {
+            SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        }
 
         public string ConfigPath { get; }
 

@@ -156,7 +156,7 @@ namespace QuestPatcher.Core.Patching
             // First we add permissions and features to the APK for modding
             List<string> addingPermissions = new();
             List<string> addingFeatures = new();
-            PatchingOptions permissions = _config.PatchingPermissions;
+            PatchingOptions permissions = _config.PatchingOptions;
             if (permissions.ExternalFiles)
             {
                 // Technically, we only need READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE, but we also add MANAGE_EXTERNAL_STORAGE as this is what Android 11 needs instead
@@ -398,7 +398,7 @@ namespace QuestPatcher.Core.Patching
                 AddFileToApkSync(unityPath, Path.Combine(libsDirectory, "libunity.so"), false, apk);
             }
 
-            if (_config.PatchingPermissions.FlatScreenSupport)
+            if (_config.PatchingOptions.FlatScreenSupport)
             {
                 Log.Information("Adding flatscreen support . . .");
                 AddFlatscreenSupportSync(apk, ovrPlatformSdkPath!);
@@ -483,7 +483,7 @@ namespace QuestPatcher.Core.Patching
                 mainPath = await _filesDownloader.GetFileLocation(ExternalFileType.Main32);
                 modloaderPath = await _filesDownloader.GetFileLocation(ExternalFileType.Modloader32);
             }
-            if (_config.PatchingPermissions.FlatScreenSupport)
+            if (_config.PatchingOptions.FlatScreenSupport)
             {
                 ovrPlatformSdkPath = await _filesDownloader.GetFileLocation(ExternalFileType.OvrPlatformSdk);
             }

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace QuestPatcher.Core.Models
 {
@@ -36,7 +37,8 @@ namespace QuestPatcher.Core.Models
         }
 
         [DefaultValue(null)]
-        public PatchingOptions PatchingPermissions
+        [JsonPropertyName("patchingPermissions")]
+        public PatchingOptions PatchingOptions
         {
             get => _patchingPermissions;
             set

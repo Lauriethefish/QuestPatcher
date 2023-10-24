@@ -11,36 +11,40 @@
   
   <Panel>
     <DockPanel IsVisible="{Binding !IsPatchingInProgress}">
-        <Panel Margin="20" DockPanel.Dock="Top">
-            <StackPanel Margin="0 15 0 0" IsVisible="{Binding Config.ShowPatchingOptions}" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="25">
-                <StackPanel Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="25">
-                        <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.ExternalFiles}" IsEnabled="False">Allow External Files</ToggleSwitch>
-                        <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.Debuggable}">Allow Debugging</ToggleSwitch>
-                        <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.FlatScreenSupport}">Disable VR Requirement</ToggleSwitch>
-                        <StackPanel Orientation="Vertical">
-                            <TextBlock Margin="0 25 0 0">Hand Tracking Type</TextBlock>
-                            <ComboBox Margin="20 10 20 20" SelectedIndex="{Binding Config.PatchingPermissions.HandTrackingType}">
-                                <ComboBoxItem>None</ComboBoxItem>
-                                <ComboBoxItem>V1</ComboBoxItem>
-                                <ComboBoxItem>V1 High Frequency</ComboBoxItem>
-                                <ComboBoxItem>V2</ComboBoxItem>
-                            </ComboBox>
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="25">
-                        <ToggleSwitch IsChecked="{Binding Config.PatchingPermissions.Microphone}">Enable Microphone</ToggleSwitch>
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
-            <ToggleButton IsChecked="{Binding Config.ShowPatchingOptions}" VerticalAlignment="Top" HorizontalAlignment="Right">Customise Permissions</ToggleButton>
-        </Panel>
+        <StackPanel Margin="20" Orientation="Vertical" DockPanel.Dock="Top">
+          <ToggleButton IsChecked="{Binding Config.ShowPatchingOptions}" VerticalAlignment="Top" HorizontalAlignment="Right">Customise Permissions</ToggleButton>
+          <ScrollViewer Margin="0 15 0 0" IsVisible="{Binding Config.ShowPatchingOptions}" HorizontalScrollBarVisibility="Auto" VerticalAlignment="Top" Background="{DynamicResource ModListBackground}">
+              <StackPanel Orientation="Horizontal" Spacing="25" Margin="10">
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.ExternalFiles}" IsEnabled="False">Allow External Files</ToggleSwitch>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Debuggable}">Allow Debugging</ToggleSwitch>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.FlatScreenSupport}">Disable VR Requirement</ToggleSwitch>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Microphone}">Enable Microphone</ToggleSwitch>
+
+                  <StackPanel Orientation="Vertical" Spacing="10">
+                      <TextBlock>Hand Tracking Type</TextBlock>
+                      <ComboBox SelectedIndex="{Binding Config.PatchingOptions.HandTrackingType}">
+                          <ComboBoxItem>None</ComboBoxItem>
+                          <ComboBoxItem>V1</ComboBoxItem>
+                          <ComboBoxItem>V1 High Frequency</ComboBoxItem>
+                          <ComboBoxItem>V2</ComboBoxItem>
+                      </ComboBox>
+                  </StackPanel>
+              </StackPanel>
+          </ScrollViewer>
+        </StackPanel>
         
         <StackPanel HorizontalAlignment="Center" Orientation="Vertical" VerticalAlignment="Center" Spacing="20">
         <StackPanel Orientation="Vertical" Spacing="5">
           <TextBlock TextAlignment="Center">Before you install mods, QuestPatcher must patch your app.</TextBlock>
           <TextBlock TextAlignment="Center">This may take several minutes depending on your internet connection.</TextBlock>
           <TextBlock TextAlignment="Center">Make sure that your internet does not go offline during patching.</TextBlock>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+          <TextBlock Margin="0 7 0 0">Choose the modloader to patch with: </TextBlock>
+          <ComboBox SelectedIndex="{Binding Config.PatchingOptions.ModLoader}">
+            <ComboBoxItem>QuestLoader</ComboBoxItem>
+            <ComboBoxItem>Scotland2</ComboBoxItem>
+          </ComboBox>
         </StackPanel>
         <Button Command="{Binding StartPatching}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" FontSize="15" Padding="12">Patch my App!</Button>
       </StackPanel>
