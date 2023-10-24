@@ -2,12 +2,4 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StyleInclude Source="avares://QuestPatcher/Styles/Themes/Accents/Dark.axaml"/>
     <FluentTheme Mode="Dark" />
-    <!--
-        This is necessary in order to force Avalonia to change TextBlock colours to white when switching from light mode to dark mode.
-        However, this overrides any more specific colours applied from Avalonia controls, e.g. TabControl 
-        TODO: Figure out why Avalonia isn't updating text block colours automatically when changing themes (i.e. why this is necessary) 
-    -->
-    <Style Selector="TextBlock">
-        <Setter Property="Foreground" Value="White" />
-    </Style>
 </Styles>
