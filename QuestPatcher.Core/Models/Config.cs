@@ -36,7 +36,7 @@ namespace QuestPatcher.Core.Models
         }
 
         [DefaultValue(null)]
-        public PatchingPermissions PatchingPermissions
+        public PatchingOptions PatchingPermissions
         {
             get => _patchingPermissions;
             set
@@ -50,7 +50,7 @@ namespace QuestPatcher.Core.Models
 
             }
         }
-        private PatchingPermissions _patchingPermissions = new();
+        private PatchingOptions _patchingPermissions = new();
 
         [DefaultValue(false)]
         public bool ShowPatchingOptions

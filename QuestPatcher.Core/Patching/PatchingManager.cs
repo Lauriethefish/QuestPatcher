@@ -131,7 +131,7 @@ namespace QuestPatcher.Core.Patching
         }
 
         /// <summary>
-        /// Patches the manifest of the APK to add the permissions/features specified in <see cref="PatchingPermissions"/> in the <see cref="Config"/>.
+        /// Patches the manifest of the APK to add the permissions/features specified in <see cref="PatchingOptions"/> in the <see cref="Config"/>.
         /// </summary>
         /// <param name="apk">The apk with the manifest to patch</param>
         /// <exception cref="PatchingException">If the given archive does not contain an <code>AndroidManifest.xml</code> file</exception>
@@ -156,7 +156,7 @@ namespace QuestPatcher.Core.Patching
             // First we add permissions and features to the APK for modding
             List<string> addingPermissions = new();
             List<string> addingFeatures = new();
-            PatchingPermissions permissions = _config.PatchingPermissions;
+            PatchingOptions permissions = _config.PatchingPermissions;
             if (permissions.ExternalFiles)
             {
                 // Technically, we only need READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE, but we also add MANAGE_EXTERNAL_STORAGE as this is what Android 11 needs instead
