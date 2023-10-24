@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace QuestPatcher.Views
 {
-    public class SelectAppWindow : Window
+    public class RepatchWindow : Window
     {
-        public SelectAppWindow()
+        public RepatchWindow()
         {
             InitializeComponent();
 #if DEBUG

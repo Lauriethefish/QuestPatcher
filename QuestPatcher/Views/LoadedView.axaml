@@ -25,7 +25,7 @@
     </DockPanel>
     
     <TabControl Classes="sidebar">
-      <TabItem Header="Patching" IsVisible="{Binding !AppInfo.IsModded}" IsSelected="{Binding !AppInfo.IsModded}">
+      <TabItem Header="Patching" IsVisible="{Binding NeedsPatchingView}" IsSelected="{Binding !AppInfo.IsModded}">
         <UserControl Content="{Binding PatchingView}" />
       </TabItem>
       <TabItem Header="Mod Management" IsVisible="{Binding AppInfo.IsModded}" IsSelected="{Binding AppInfo.IsModded}" ScrollViewer.VerticalScrollBarVisibility="Disabled">

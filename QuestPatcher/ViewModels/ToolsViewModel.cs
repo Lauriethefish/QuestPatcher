@@ -178,6 +178,11 @@ namespace QuestPatcher.ViewModels
             }
         }
 
+        public void RepatchApp()
+        {
+            _uiService.OpenRepatchMenu();
+        }
+
         public async void ChangeApp()
         {
             await _uiService.OpenChangeAppMenu(false);

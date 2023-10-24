@@ -40,6 +40,10 @@
           <Button Command="{Binding QuickFix}" IsEnabled="{Binding Locker.IsFree}">Quick Fix</Button>
           <TextBlock VerticalAlignment="Center" FontSize="12">Clears cached QuestPatcher data - try this if something isn't working.</TextBlock>
         </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button Command="{Binding RepatchApp}" IsEnabled="{Binding Locker.IsFree}">Repatch App</Button>
+          <TextBlock VerticalAlignment="Center" FontSize="12">Allows you to change the modloader you have installed by re-patching your app.</TextBlock>
+        </StackPanel>
       </StackPanel>
       <StackPanel  Margin="0 20 0 0" Spacing="10">
         <StackPanel Orientation="Horizontal" Spacing="20">
@@ -47,7 +51,7 @@
           <TextBlock FontSize="10" VerticalAlignment="Bottom" FontWeight="Light">QuestPatcher Settings.</TextBlock>
         </StackPanel> 
         <StackPanel Orientation="Horizontal" Spacing="10">
-          <Button Command="{Binding ChangeApp}">Change App</Button>
+          <Button Command="{Binding ChangeApp}" IsEnabled="{Binding Locker.IsFree}">Change App</Button>
           <TextBlock VerticalAlignment="Center" FontSize="12">
             Allows you to select a different application to mod
           </TextBlock>

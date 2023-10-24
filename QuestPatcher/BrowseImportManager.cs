@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Serilog;
 using QuestPatcher.Core;
+using QuestPatcher.Services;
 
 namespace QuestPatcher
 {
@@ -30,18 +31,20 @@ namespace QuestPatcher
         private readonly Window _mainWindow;
         private readonly InstallManager _installManager;
         private readonly OperationLocker _locker;
+        private readonly QuestPatcherUiService _uiService;
 
         private readonly FileDialogFilter _modsFilter = new();
 
         private Queue<FileImportInfo>? _currentImportQueue;
 
-        public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, InstallManager installManager, OperationLocker locker)
+        public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, InstallManager installManager, OperationLocker locker, QuestPatcherUiService uiService)
         {
             _otherFilesManager = otherFilesManager;
             _modManager = modManager;
             _mainWindow = mainWindow;
             _installManager = installManager;
             _locker = locker;
+            _uiService = uiService;
 
             _modsFilter.Name = "Quest Mods";
             _modsFilter.Extensions.Add("qmod");
@@ -391,7 +394,7 @@ namespace QuestPatcher
                 builder.CancelButton.Text = "Not now";
                 if (await builder.OpenDialogue(_mainWindow))
                 {
-                    // TODO: Add prompt
+                    _uiService.OpenRepatchMenu(mod.ModLoader);
                 }
 
                 return true;

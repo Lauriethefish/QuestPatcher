@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220" SizeToContent="Height" MinWidth="300" Width="350"
+        x:Class="QuestPatcher.Views.RepatchWindow"
+        Icon="/Assets/questpatcher-logo.ico"
+        Title="Repatch App"
+        Background="{x:Null}"
+        ExtendClientAreaToDecorationsHint="true"
+        ExtendClientAreaTitleBarHeightHint="-1">
+  <Design.DataContext>
+    <viewModels:RepatchWindowViewModel />
+  </Design.DataContext>
+
+  <DockPanel HorizontalAlignment="Stretch">
+    <ExperimentalAcrylicBorder DockPanel.Dock="Bottom" Material="{DynamicResource MainBackgroundMaterial}">
+      <DockPanel Margin="0 20 0 0">
+        <TextBlock DockPanel.Dock="Top" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline">Repatch App</TextBlock>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Spacing="15" Margin="10 0 10 10">
+          <TextBlock TextAlignment="Center" FontSize="14" TextWrapping="Wrap">Please choose the modloader to patch with:</TextBlock>
+          <ComboBox SelectedIndex="{Binding Config.PatchingOptions.ModLoader}" HorizontalAlignment="Center">
+            <ComboBoxItem>QuestLoader</ComboBoxItem>
+            <ComboBoxItem>Scotland2</ComboBoxItem>
+          </ComboBox>
+          <Button Content="(Re-)Patch my app!" Command="{Binding RepatchApp}" HorizontalAlignment="Center"/>
+        </StackPanel>
+      </DockPanel>
+    </ExperimentalAcrylicBorder>
+  </DockPanel>
+</Window>

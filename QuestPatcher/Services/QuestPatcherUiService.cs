@@ -12,6 +12,7 @@ using System.IO;
 using System.Threading.Tasks;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Core;
+using QuestPatcher.Core.Models;
 
 namespace QuestPatcher.Services
 {
@@ -28,8 +29,9 @@ namespace QuestPatcher.Services
         private OperationLocker? _operationLocker;
         private BrowseImportManager? _browseManager;
         private OtherItemsViewModel? _otherItemsView;
-        private readonly ThemeManager _themeManager;
+        private PatchingViewModel? _patchingView;
 
+        private readonly ThemeManager _themeManager;
         private bool _isShuttingDown;
 
         public QuestPatcherUiService(IClassicDesktopStyleApplicationLifetime appLifetime) : base(new UIPrompter())
@@ -55,13 +57,14 @@ namespace QuestPatcher.Services
             window.Height = 550;
             _operationLocker = new();
             _operationLocker.StartOperation(); // Still loading
-            _browseManager = new(OtherFilesManager, ModManager, window, InstallManager, _operationLocker);
+            _browseManager = new(OtherFilesManager, ModManager, window, InstallManager, _operationLocker, this);
             ProgressViewModel progressViewModel = new(_operationLocker, FilesDownloader);
             _otherItemsView = new OtherItemsViewModel(OtherFilesManager, window, _browseManager, _operationLocker, progressViewModel);
+            _patchingView = new PatchingViewModel(Config, _operationLocker, PatchingManager, InstallManager, window, progressViewModel, FilesDownloader);
 
             MainWindowViewModel mainWindowViewModel = new(
                 new LoadedViewModel(
-                    new PatchingViewModel(Config, _operationLocker, PatchingManager, InstallManager, window, progressViewModel, FilesDownloader),
+                    _patchingView,
                     new ManageModsViewModel(ModManager, InstallManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
                     new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, InstallManager, DebugBridge, this, InfoDumper,
@@ -181,6 +184,23 @@ namespace QuestPatcher.Services
                 Config.AppId = viewModel.SelectedApp;
                 await Reload();
             }
+        }
+
+        /// <summary>
+        /// Opens a window that allows the user to change the modloader they have installed by re-patching their app.
+        /// </summary>
+        /// <param name="preferredModloader">The modloader that will be selected for patching by default. The user can change this.</param>
+        public async void OpenRepatchMenu(Modloader? preferredModloader = null)
+        {
+            if (preferredModloader != null)
+            {
+                Config.PatchingOptions.ModLoader = (Modloader) preferredModloader;
+            }
+
+            Window menuWindow = new RepatchWindow();
+            menuWindow.DataContext = new RepatchWindowViewModel(_patchingView!, Config, menuWindow);
+            menuWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            await menuWindow.ShowDialog(_mainWindow);
         }
 
         private async Task Reload()

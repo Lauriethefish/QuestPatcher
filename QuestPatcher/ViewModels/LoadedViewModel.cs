@@ -48,6 +48,8 @@ namespace QuestPatcher.ViewModels
             }
         }
 
+        public bool NeedsPatchingView => PatchingView.IsPatchingInProgress || !AppInfo.IsModded;
+
         private readonly InstallManager _installManager;
         private readonly BrowseImportManager _browseManager;
 
@@ -68,7 +70,16 @@ namespace QuestPatcher.ViewModels
                 if (args.PropertyName == nameof(_installManager.InstalledApp) && _installManager.InstalledApp != null)
                 {
                     this.RaisePropertyChanged(nameof(AppInfo));
+                    this.RaisePropertyChanged(nameof(NeedsPatchingView));
                     this.RaisePropertyChanged(nameof(SelectedAppText));
+                }
+            };
+
+            patchingView.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(PatchingView.IsPatchingInProgress))
+                {
+                    this.RaisePropertyChanged(nameof(NeedsPatchingView));
                 }
             };
         }
