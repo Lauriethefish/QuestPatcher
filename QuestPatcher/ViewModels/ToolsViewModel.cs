@@ -9,6 +9,7 @@ using ReactiveUI;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using Serilog;
+using System.Threading.Tasks;
 
 namespace QuestPatcher.ViewModels
 {
@@ -186,6 +187,39 @@ namespace QuestPatcher.ViewModels
         public async void ChangeApp()
         {
             await _uiService.OpenChangeAppMenu(false);
+        }
+
+        public async void RestartApp()
+        {
+            try
+            {
+                Log.Information("Restarting app");
+                Locker.StartOperation();
+                await _debugBridge.ForceStop(Config.AppId);
+
+                // Run the app once, wait, and run again.
+                // This bypasses the restore app prompt
+                await _debugBridge.RunUnityPlayerActivity(Config.AppId);
+                await Task.Delay(1000);
+                await _debugBridge.RunUnityPlayerActivity(Config.AppId);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to restart app");
+                DialogBuilder builder = new()
+                {
+                    Title = "Failed to restart app",
+                    Text = "Restarting the app failed due to an unhandled error",
+                    HideCancelButton = true
+                };
+                builder.WithException(ex);
+
+                await builder.OpenDialogue(_mainWindow);
+            }
+            finally
+            {
+                Locker.FinishOperation();
+            }
         }
 
         public void OpenThemesFolder()

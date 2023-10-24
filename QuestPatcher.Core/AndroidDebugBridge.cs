@@ -232,6 +232,24 @@ namespace QuestPatcher.Core
             return (await ListPackages()).Where(packageId => !DefaultPackagePrefixes.Any(packageId.StartsWith)).ToList();
         }
 
+        /// <summary>
+        /// Kills all activities relating to an app.
+        /// </summary>
+        /// <param name="appId">The app to force-stop</param>
+        public async Task ForceStop(string appId)
+        {
+            await RunShellCommand($"am force-stop {appId}");
+        }
+
+        /// <summary>
+        /// Starts the given app by running the unity player activity.
+        /// </summary>
+        /// <param name="appId">The app to start</param>
+        public async Task RunUnityPlayerActivity(string appId)
+        {
+            await RunShellCommand($"am start {appId}/com.unity3d.player.UnityPlayerActivity");
+        }
+
         public async Task InstallApp(string apkPath)
         {
             await RunCommand($"install {apkPath.EscapeProc()} --no-streaming");

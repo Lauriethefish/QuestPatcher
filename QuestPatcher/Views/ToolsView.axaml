@@ -20,6 +20,10 @@
           <TextBlock VerticalAlignment="Center" FontSize="12">Uninstalls your selected app.</TextBlock>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10">
+          <Button Command="{Binding RestartApp}" IsEnabled="{Binding Locker.IsFree}">Restart App</Button>
+          <TextBlock VerticalAlignment="Center" FontSize="12">Closes then reopens the selected app.</TextBlock>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
           <Button Command="{Binding OpenLogsFolder}">Open Logs Folder</Button>
           <TextBlock VerticalAlignment="Center" FontSize="12">Opens the folder where QP stores logs.</TextBlock>
         </StackPanel>
