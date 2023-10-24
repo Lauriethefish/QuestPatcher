@@ -113,6 +113,21 @@ namespace QuestPatcher.ViewModels.Modding
         private async Task InstallSafely()
         {
             Debug.Assert(_installManager.InstalledApp != null);
+
+            // Check that the modloader matches what we have installed
+            if (Mod.ModLoader != _installManager.InstalledApp.ModLoader)
+            {
+                DialogBuilder builder = new()
+                {
+                    Title = "Wrong Mod Loader",
+                    Text = $"The mod you are trying to install needs the modloader {Mod.ModLoader}, however your app has the modloader {_installManager.InstalledApp.ModLoader} installed.",
+                    HideCancelButton = true
+                };
+
+                await builder.OpenDialogue(_mainWindow);
+                return;
+            }
+
             // Check game version, and prompt if it is incorrect to avoid users installing mods that may crash their game
             if (Mod.PackageVersion != null && Mod.PackageVersion != _installManager.InstalledApp.Version)
             {
@@ -127,18 +142,6 @@ namespace QuestPatcher.ViewModels.Modding
                 {
                     return;
                 }
-            }
-
-            if (Mod.ModLoader != _installManager.InstalledApp.ModLoader)
-            {
-                DialogBuilder builder = new()
-                {
-                    Title = "Wrong Mod Loader",
-                    Text = $"The mod you are trying to install needs the modloader {Mod.ModLoader}, however your app has the modloader {_installManager.InstalledApp.ModLoader} installed."
-                };
-
-                await builder.OpenDialogue(_mainWindow);
-                return;
             }
 
             try

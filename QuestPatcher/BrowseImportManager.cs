@@ -379,6 +379,24 @@ namespace QuestPatcher
                 return false;
             }
 
+            if (mod.ModLoader != _installManager.InstalledApp?.ModLoader)
+            {
+                DialogBuilder builder = new()
+                {
+                    Title = "Wrong Mod Loader",
+                    Text = $"The mod you are trying to install needs the modloader {mod.ModLoader}, however your app has the modloader {_installManager.InstalledApp?.ModLoader} installed."
+                    + "\nWould you like to repatch your app with the required modloader?"
+                };
+                builder.OkButton.Text = "Repatch";
+                builder.CancelButton.Text = "Not now";
+                if (await builder.OpenDialogue(_mainWindow))
+                {
+                    // TODO: Add prompt
+                }
+
+                return true;
+            }
+
             Debug.Assert(_installManager.InstalledApp != null);
 
             // Prompt the user for outdated mods instead of enabling them automatically
