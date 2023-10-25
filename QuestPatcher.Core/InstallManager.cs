@@ -55,12 +55,14 @@ namespace QuestPatcher.Core
         private readonly string _currentlyInstalledPath;
         private readonly AndroidDebugBridge _debugBridge;
         private readonly Config _config;
+        private readonly Action _quit;
 
-        public InstallManager(SpecialFolders specialFolders, AndroidDebugBridge debugBridge, Config config)
+        public InstallManager(SpecialFolders specialFolders, AndroidDebugBridge debugBridge, Config config, Action quit)
         {
             _currentlyInstalledPath = Path.Combine(specialFolders.PatchingFolder, "currentlyInstalled.apk");
             _debugBridge = debugBridge;
             _config = config;
+            _quit = quit;
         }
 
         /// <summary>
@@ -243,6 +245,7 @@ namespace QuestPatcher.Core
         {
             await _debugBridge.UninstallApp(_config.AppId);
             InstalledApp = null;
+            _quit();
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")

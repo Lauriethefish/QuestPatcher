@@ -51,8 +51,8 @@ namespace QuestPatcher.Core
             DebugBridge = new AndroidDebugBridge(FilesDownloader, OnAdbDisconnect);
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
             ModManager = new ModManager(Config, DebugBridge, OtherFilesManager);
+            InstallManager = new InstallManager(SpecialFolders, DebugBridge, Config, ExitApplication);
             ModManager.RegisterModProvider(new QModProvider(ModManager, Config, DebugBridge, FilesDownloader));
-            InstallManager = new InstallManager(SpecialFolders, DebugBridge, Config);
             PatchingManager = new PatchingManager(Config, DebugBridge, SpecialFolders, FilesDownloader, Prompter, ModManager, InstallManager);
             InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, _configManager, InstallManager);
 
