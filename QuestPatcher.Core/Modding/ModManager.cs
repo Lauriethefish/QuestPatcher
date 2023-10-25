@@ -180,9 +180,15 @@ namespace QuestPatcher.Core.Modding
                 await SaveMods();
             }
 
+            await UpdateModsStatus();
+        }
+
+        public async Task UpdateModsStatus()
+        {
+            Log.Information("Checking if mods are installed");
             foreach (IModProvider provider in _modProviders.Values)
             {
-                await provider.LoadMods();
+                await provider.LoadModsStatus();
             }
         }
 

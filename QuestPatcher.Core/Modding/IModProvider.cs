@@ -29,7 +29,7 @@ namespace QuestPatcher.Core.Modding
         /// Loads the mods from the quest.
         /// </summary>
         /// <returns>Task completing when all mods are loaded</returns>
-        Task LoadMods();
+        Task LoadModsStatus();
 
         /// <summary>
         /// Clears currently loaded mods

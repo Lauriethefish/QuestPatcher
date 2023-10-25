@@ -13,7 +13,7 @@ namespace QuestPatcher.Core.Modding
         public abstract string FileExtension { get; }
         public abstract Task<IMod> LoadFromFile(string modPath);
         public abstract Task DeleteMod(IMod mod);
-        public abstract Task LoadMods();
+        public abstract Task LoadModsStatus();
         public abstract void ClearMods();
         public abstract Task LoadLegacyMods();
     }

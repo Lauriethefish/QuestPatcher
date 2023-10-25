@@ -649,6 +649,8 @@ namespace QuestPatcher.Core.Patching
 
             // Recreate the mod directories as they will not be present after the uninstall/backup restore
             await _modManager.CreateModDirectories();
+            // When repatching, certain mods may have been deleted when the app was uninstalled, so we will check for this
+            await _modManager.UpdateModsStatus();
 
             await _installManager.NewApkInstalled(_patchedApkPath);
 

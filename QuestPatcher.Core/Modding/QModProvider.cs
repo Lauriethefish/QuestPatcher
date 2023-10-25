@@ -243,7 +243,7 @@ namespace QuestPatcher.Core.Modding
             JsonSerializer.Serialize(writer, AssertQMod(value).Manifest, options);
         }
 
-        public override async Task LoadMods()
+        public override async Task LoadModsStatus()
         {
             List<string> modFiles = await _debugBridge.ListDirectoryFiles(_modManager.ModsPath, true);
             List<string> libFiles = await _debugBridge.ListDirectoryFiles(_modManager.LibsPath, true);
