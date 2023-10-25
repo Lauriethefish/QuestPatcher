@@ -489,6 +489,7 @@ namespace QuestPatcher.Core.Patching
                 Log.Debug("Saving to {Scotland2Path}", sl2SavePath);
 
                 await _debugBridge.UploadFile(sl2Path, sl2SavePath);
+                await _debugBridge.Chmod(new List<string> { sl2SavePath }, "+r"); // Sometimes necessary for the file to be accessed on Quest 3
             }
         }
 
