@@ -1,6 +1,6 @@
 ﻿namespace QuestPatcher.Zip
 {
-    internal static class StreamExtensions
+    public static class StreamExtensions
     {
         /// <summary>
         /// Copies one stream to another, while calculating the Crc32 value of the source stream.

@@ -153,6 +153,7 @@ namespace QuestPatcher.Core.Patching
             ms.Position = 0;
             Log.Information("Loading manifest as AXML . . .");
             AxmlElement manifest = AxmlLoader.LoadDocument(ms);
+            bool manifestModified = false;
 
             // First we add permissions and features to the APK for modding
             List<string> addingPermissions = new();
@@ -195,6 +196,7 @@ namespace QuestPatcher.Core.Patching
                 if (existingPermissions.Contains(permission)) { continue; } // Do not add existing permissions
 
                 Log.Information($"Adding permission {permission}");
+                manifestModified = true;
                 AxmlElement permElement = new("uses-permission");
                 AddNameAttribute(permElement, permission);
                 manifest.Children.Add(permElement);
@@ -205,6 +207,7 @@ namespace QuestPatcher.Core.Patching
                 if (existingFeatures.Contains(feature)) { continue; } // Do not add existing features
 
                 Log.Information($"Adding feature {feature}");
+                manifestModified = true;
                 AxmlElement featureElement = new("uses-feature");
                 AddNameAttribute(featureElement, feature);
 
@@ -218,16 +221,18 @@ namespace QuestPatcher.Core.Patching
             if (permissions.Debuggable && !appElement.Attributes.Any(attribute => attribute.Name == "debuggable"))
             {
                 Log.Information("Adding debuggable flag . . .");
+                manifestModified = true;
                 appElement.Attributes.Add(new AxmlAttribute("debuggable", AndroidNamespaceUri, DebuggableAttributeResourceId, true));
             }
 
             if (permissions.ExternalFiles && !appElement.Attributes.Any(attribute => attribute.Name == "requestLegacyExternalStorage"))
             {
                 Log.Information("Adding legacy external storage flag . . .");
+                manifestModified = true;
                 appElement.Attributes.Add(new AxmlAttribute("requestLegacyExternalStorage", AndroidNamespaceUri, LegacyStorageAttributeResourceId, true));
             }
 
-
+            // TODO: Modify an existing hand tracking element if one exists
             switch (permissions.HandTrackingType)
             {
                 case HandTrackingVersion.None:
@@ -240,6 +245,7 @@ namespace QuestPatcher.Core.Patching
                     AddNameAttribute(frequencyElement, "com.oculus.handtracking.frequency");
                     frequencyElement.Attributes.Add(new AxmlAttribute("value", AndroidNamespaceUri, ValueAttributeResourceId, "HIGH"));
                     appElement.Children.Add(frequencyElement);
+                    manifestModified = true;
                     break;
                 case HandTrackingVersion.V2:
                     Log.Information("Adding V2 hand-tracking. . .");
@@ -247,18 +253,28 @@ namespace QuestPatcher.Core.Patching
                     AddNameAttribute(frequencyElement, "com.oculus.handtracking.version");
                     frequencyElement.Attributes.Add(new AxmlAttribute("value", AndroidNamespaceUri, ValueAttributeResourceId, "V2.0"));
                     appElement.Children.Add(frequencyElement);
+                    manifestModified = true;
                     break;
             }
 
             // Save the manifest using the AXML library
-            Log.Information("Saving manifest as AXML . . .");
+            if(manifestModified)
+            {
+                Log.Information("Saving manifest as AXML . . .");
 
-            ms.SetLength(0);
-            ms.Position = 0;
-            AxmlSaver.SaveDocument(ms, manifest);
-            ms.Position = 0;
+                ms.SetLength(0);
+                ms.Position = 0;
+                AxmlSaver.SaveDocument(ms, manifest);
+                ms.Position = 0;
 
-            apk.AddFile(InstallManager.ManifestPath, ms, CompressionLevel.Optimal);
+                apk.AddFile(InstallManager.ManifestPath, ms, CompressionLevel.Optimal);
+            }
+            else
+            {
+                // Yes, we could just overwrite the existing manifest
+                // BUT doing this with QuestPatcher.Zip will not remove the existing manifest's contents from the actual file.
+                Log.Information("Not saving manifest - no changes made");
+            }
         }
 
         /// <summary>
@@ -390,16 +406,23 @@ namespace QuestPatcher.Core.Patching
         private void ModifyApkSync(string mainPath, string? modloaderPath, string? unityPath, string? ovrPlatformSdkPath, string libsDirectory, ApkZip apk)
         {
             Log.Information("Copying libmain.so and libmodloader.so . . .");
-            AddFileToApkSync(mainPath, Path.Combine(libsDirectory, "libmain.so"), false, apk);
-            if (modloaderPath != null)
+            AddFileToApkSync(mainPath, Path.Combine(libsDirectory, "libmain.so"), apk);
+            if (modloaderPath == null)
             {
-                AddFileToApkSync(modloaderPath, Path.Combine(libsDirectory, "libmodloader.so"), true, apk);
+                if(apk.RemoveFile(Path.Combine(libsDirectory, "libmodloader.so")))
+                {
+                    Log.Information("Removed QuestLoader from the APK");
+                }
+            }
+            else
+            {
+                AddFileToApkSync(modloaderPath, Path.Combine(libsDirectory, "libmodloader.so"), apk);
             }
 
             if (unityPath != null)
             {
                 Log.Information("Adding unstripped libunity.so . . .");
-                AddFileToApkSync(unityPath, Path.Combine(libsDirectory, "libunity.so"), false, apk);
+                AddFileToApkSync(unityPath, Path.Combine(libsDirectory, "libunity.so"), apk);
             }
 
             if (_config.PatchingOptions.FlatScreenSupport)
@@ -427,17 +450,23 @@ namespace QuestPatcher.Core.Patching
         /// </summary>
         /// <param name="filePath">The path to the file to copy into the APK</param>
         /// <param name="apkFilePath">The name of the file in the APK to create</param>
-        /// <param name="failIfExists">Whether to throw an exception if the file already exists</param>
         /// <param name="apk">The apk to copy the file into</param>
         /// <exception cref="PatchingException">If the file already exists in the APK, if configured to throw.</exception>
-        private void AddFileToApkSync(string filePath, string apkFilePath, bool failIfExists, ApkZip apk)
+        private void AddFileToApkSync(string filePath, string apkFilePath, ApkZip apk)
         {
-            if (failIfExists && apk.ContainsFile(apkFilePath))
+            using var fileStream = File.OpenRead(filePath);
+            if(apk.ContainsFile(apkFilePath))
             {
-                throw new PatchingException($"File {apkFilePath} already existed in the APK. Is the app already patched?");
+                uint existingCrc = apk.GetCrc32(apkFilePath);
+                uint newCrc = fileStream.CopyToCrc32(null);
+                if(existingCrc == newCrc)
+                {
+                    Log.Debug($"Skipping adding file {apkFilePath} as the CRC-32 was identical");
+                    return;
+                }
+                fileStream.Position = 0;
             }
 
-            using var fileStream = File.OpenRead(filePath);
             apk.AddFile(apkFilePath, fileStream, CompressionLevel.Optimal);
         }
 

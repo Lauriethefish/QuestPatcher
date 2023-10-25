@@ -167,6 +167,23 @@ namespace QuestPatcher.Zip
         }
 
         /// <summary>
+        /// Gets the CRC-32 digest of the file with the given name within the APK.
+        /// </summary>
+        /// <param name="fileName">The full path to the file</param>
+        /// <exception cref="ArgumentException">If no file with the given name exists within the APK</exception>
+        /// <returns>The CRC-32 of the file</returns>
+        public uint GetCrc32(string fileName)
+        {
+            fileName = NormaliseFileName(fileName);
+            if(!ContainsFile(fileName))
+            {
+                throw new ArgumentException($"No file with name {fileName} exists within the ZIP");
+            }
+
+            return _centralDirectoryRecords[fileName].Crc32;
+        }
+
+        /// <summary>
         /// Removes a file from the ZIP.
         /// </summary>
         /// <param name="fileName">The file name to remove</param>
