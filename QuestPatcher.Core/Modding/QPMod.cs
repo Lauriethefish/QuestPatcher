@@ -114,10 +114,24 @@ namespace QuestPatcher.Core.Modding
                 copyPaths.Add(new(Path.Combine(extractPath, libraryPath), Path.Combine(_modManager.LibsPath, Path.GetFileName(libraryPath))));
             }
 
+            bool sl2 = ModLoader == Modloader.Scotland2;
+
+            // When using sl2, (early) mod files are copied to early_mods
+            // To support legacy mods, when QuestLoader is present in the APK, early mods will be written to the directory that now contains late mods.
+            string earlyModsPath = sl2 ? _modManager.EarlyModsPath : _modManager.LateModsPath;
             foreach (string modPath in Manifest.ModFileNames)
             {
-                Log.Information($"Starting mod file copy {modPath} . . .");
-                copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(_modManager.ModsPath, Path.GetFileName(modPath))));
+                Log.Information($"Starting (early) mod file copy {modPath} . . .");
+                copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(earlyModsPath, Path.GetFileName(modPath))));
+            }
+
+            if (sl2)
+            {
+                foreach (string lateModPath in Manifest.LateModFileNames)
+                {
+                    Log.Information($"Starting late mod file copy {lateModPath} . . .");
+                    copyPaths.Add(new(Path.Combine(extractPath, lateModPath), Path.Combine(_modManager.LateModsPath, Path.GetFileName(lateModPath))));
+                }
             }
 
             foreach (FileCopy fileCopy in Manifest.FileCopies)
@@ -157,10 +171,24 @@ namespace QuestPatcher.Core.Modding
 
             List<string> filesToRemove = new();
             // Remove mod SOs so that the mod will not load
+            bool sl2 = ModLoader == Modloader.Scotland2;
+
+            // When using questloader, early mods get put in the late mods directory (legacy)
+            string earlyModsPath = sl2 ? _modManager.EarlyModsPath : _modManager.LateModsPath;
             foreach (string modFilePath in Manifest.ModFileNames)
             {
-                Log.Information($"Removing mod file {modFilePath}");
-                filesToRemove.Add(Path.Combine(_modManager.ModsPath, Path.GetFileName(modFilePath)));
+                Log.Information($"Removing (early) mod file {modFilePath}");
+                filesToRemove.Add(Path.Combine(earlyModsPath, Path.GetFileName(modFilePath)));
+            }
+
+            /// Remove late mods - SL2 only
+            if (sl2)
+            {
+                foreach (string lateModFilePath in Manifest.LateModFileNames)
+                {
+                    Log.Information($"Removing late mod file {lateModFilePath}");
+                    filesToRemove.Add(Path.Combine(_modManager.LateModsPath, Path.GetFileName(lateModFilePath)));
+                }
             }
 
             foreach (string libraryPath in Manifest.LibraryFileNames)

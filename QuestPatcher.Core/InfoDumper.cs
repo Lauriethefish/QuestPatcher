@@ -193,11 +193,18 @@ namespace QuestPatcher.Core
 
             try
             {
-                List<string> modFiles = await _debugBridge.ListDirectoryFiles(_modManager.ModsPath);
+                List<string> earlyModFiles = await _debugBridge.ListDirectoryFiles(_modManager.EarlyModsPath);
+                List<string> lateModFiles = await _debugBridge.ListDirectoryFiles(_modManager.LateModsPath);
                 List<string> libFiles = await _debugBridge.ListDirectoryFiles(_modManager.LibsPath);
 
-                await writer.WriteLineAsync($"Mod files (contents of {_modManager.ModsPath}):");
-                foreach (string str in modFiles)
+                await writer.WriteLineAsync($"Early mod files (contents of {_modManager.EarlyModsPath}):");
+                foreach (string str in earlyModFiles)
+                {
+                    await writer.WriteLineAsync(Path.GetFileName(str));
+                }
+
+                await writer.WriteLineAsync($"Late mod files (contents of {_modManager.LateModsPath}):");
+                foreach (string str in lateModFiles)
                 {
                     await writer.WriteLineAsync(Path.GetFileName(str));
                 }
