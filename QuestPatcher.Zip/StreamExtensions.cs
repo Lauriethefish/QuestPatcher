@@ -9,7 +9,7 @@
         /// <param name="destination">The stream to copy to. If null, the Crc32 will still be calculated, but no data will be written.</param>
         /// <param name="bufferSize">The size of the copying buffer</param>
         /// <returns>The Crc32 of source, as found in a ZIP file</returns>
-        internal static uint CopyToCrc32(this Stream source, Stream? destination, int bufferSize = 8192)
+        public static uint CopyToCrc32(this Stream source, Stream? destination, int bufferSize = 8192)
         {
             var buffer = new byte[bufferSize];
             var crc = new Crc32();
