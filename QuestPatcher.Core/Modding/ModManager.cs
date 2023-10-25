@@ -18,11 +18,30 @@ namespace QuestPatcher.Core.Modding
         public List<IMod> AllMods => _modConfig?.Mods ?? EmptyModList;
         private static readonly List<IMod> EmptyModList = new();
 
-        public string LateModsPath => $"/sdcard/Android/data/{_config.AppId}/files/mods/";
+        /// <summary>
+        /// Path where QuestLoader mod files reside
+        /// </summary>
+        public string ModsPath => $"/sdcard/Android/data/{_config.AppId}/files/mods/";
 
-        public string EarlyModsPath => $"/sdcard/Android/data/{_config.AppId}/files/early_mods/";
-
+        /// <summary>
+        /// Path where QuestLoader library files reside
+        /// </summary>
         public string LibsPath => $"/sdcard/Android/data/{_config.AppId}/files/libs/";
+
+        /// <summary>
+        /// Path where Scotland2 late mods reside
+        /// </summary>
+        public string Sl2LateModsPath => $"/sdcard/ModData/{_config.AppId}/Modloader/mods/";
+
+        /// <summary>
+        /// Path where Scotland2 early mods reside.
+        /// </summary>
+        public string Sl2EarlyModsPath => $"/sdcard/ModData/{_config.AppId}/Modloader/early_mods/";
+
+        /// <summary>
+        /// Path where Scotland2 library files reside.
+        /// </summary>
+        public string Sl2LibsPath => $"/sdcard/ModData/{_config.AppId}/Modloader/libs/";
 
         private string ConfigPath => $"/sdcard/QuestPatcher/{_config.AppId}/modsStatus.json";
         public string ModsExtractPath => $"/sdcard/QuestPatcher/{_config.AppId}/installedMods/";
@@ -114,7 +133,7 @@ namespace QuestPatcher.Core.Modding
 
         public async Task CreateModDirectories()
         {
-            var modDirectories = new List<string> { LateModsPath, LibsPath, EarlyModsPath, ModsExtractPath };
+            var modDirectories = new List<string> { ModsPath, LibsPath, Sl2LibsPath, Sl2EarlyModsPath, Sl2LateModsPath, ModsExtractPath };
 
             await _debugBridge.CreateDirectories(modDirectories);
             await _debugBridge.Chmod(modDirectories, "777");

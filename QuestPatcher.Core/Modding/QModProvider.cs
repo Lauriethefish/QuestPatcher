@@ -245,29 +245,36 @@ namespace QuestPatcher.Core.Modding
 
         public override async Task LoadMods()
         {
-            List<string> earlyModFiles = await _debugBridge.ListDirectoryFiles(_modManager.EarlyModsPath, true);
-            List<string> lateModFiles = await _debugBridge.ListDirectoryFiles(_modManager.LateModsPath, true);
+            List<string> modFiles = await _debugBridge.ListDirectoryFiles(_modManager.ModsPath, true);
             List<string> libFiles = await _debugBridge.ListDirectoryFiles(_modManager.LibsPath, true);
+            List<string> sl2EarlyModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2EarlyModsPath, true);
+            List<string> sl2LateModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LateModsPath, true);
+            List<string> sl2LibFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LibsPath, true);
 
             foreach (QPMod mod in ModsById.Values)
             {
-                SetModStatus(mod, earlyModFiles, lateModFiles, libFiles);
+                SetModStatus(mod, modFiles, libFiles, sl2EarlyModFiles, sl2LateModFiles, sl2LibFiles);
             }
         }
 
-        private void SetModStatus(QPMod mod, List<string> earlyModFiles, List<string> lateModFiles, List<string> libFiles)
+        private void SetModStatus(QPMod mod, List<string> modFiles, List<string> libFiles, List<string> sl2EarlyModFiles, List<string> sl2LateModFiles, List<string> sl2LibFiles)
         {
             bool hasAllMods;
+            bool hasAllLibs;
             if (mod.ModLoader == Modloader.Scotland2)
             {
                 // Check for both early and late mods if using SL2
-                hasAllMods = mod.Manifest.ModFileNames.TrueForAll(earlyModFiles.Contains) && mod.Manifest.LateModFileNames.TrueForAll(lateModFiles.Contains);
+                hasAllMods = mod.Manifest.ModFileNames.TrueForAll(sl2EarlyModFiles.Contains) 
+                    && mod.Manifest.LateModFileNames.TrueForAll(sl2LateModFiles.Contains);
+
+                // Use the SL2 libs folder
+                hasAllLibs = mod.Manifest.LibraryFileNames.TrueForAll(sl2LibFiles.Contains);
             }
             else
             {
-                hasAllMods = mod.Manifest.ModFileNames.TrueForAll(lateModFiles.Contains);
+                hasAllMods = mod.Manifest.ModFileNames.TrueForAll(modFiles.Contains);
+                hasAllLibs = mod.Manifest.LibraryFileNames.TrueForAll(libFiles.Contains);
             }
-            bool hasAllLibs = mod.Manifest.LibraryFileNames.TrueForAll(libFiles.Contains);
 
             // TODO: Should we also check that file copies are present?
             // TODO: This would be more expensive as we would have to check the files in more directories

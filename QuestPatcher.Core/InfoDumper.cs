@@ -193,32 +193,26 @@ namespace QuestPatcher.Core
 
             try
             {
-                List<string> earlyModFiles = await _debugBridge.ListDirectoryFiles(_modManager.EarlyModsPath);
-                List<string> lateModFiles = await _debugBridge.ListDirectoryFiles(_modManager.LateModsPath);
-                List<string> libFiles = await _debugBridge.ListDirectoryFiles(_modManager.LibsPath);
-
-                await writer.WriteLineAsync($"Early mod files (contents of {_modManager.EarlyModsPath}):");
-                foreach (string str in earlyModFiles)
-                {
-                    await writer.WriteLineAsync(Path.GetFileName(str));
-                }
-
-                await writer.WriteLineAsync($"Late mod files (contents of {_modManager.LateModsPath}):");
-                foreach (string str in lateModFiles)
-                {
-                    await writer.WriteLineAsync(Path.GetFileName(str));
-                }
-
-                await writer.WriteLineAsync($"Library files (contents of {_modManager.LibsPath}):");
-                foreach (string str in libFiles)
-                {
-                    await writer.WriteLineAsync(Path.GetFileName(str));
-                }
+                await WriteDirectoryDump(_modManager.ModsPath, "QuestLoader mod files", writer);
+                await WriteDirectoryDump(_modManager.LibsPath, "QuestLoader library files", writer);
+                await WriteDirectoryDump(_modManager.Sl2EarlyModsPath, "Scotland2 early mod files", writer);
+                await WriteDirectoryDump(_modManager.Sl2LateModsPath, "Scotland2 late mod files", writer);
+                await WriteDirectoryDump(_modManager.Sl2LibsPath, "Scotland2 library files", writer);
             }
             catch (Exception ex)
             {
                 await writer.WriteLineAsync($"Failed to load mods/libs from quest");
                 Log.Warning($"Failed to load mods/libs from quest: {ex}");
+            }
+        }
+
+        private async Task WriteDirectoryDump(string path, string name, StreamWriter writer)
+        {
+            await writer.WriteLineAsync($"{name} (contents of {path}):");
+            var files = await _debugBridge.ListDirectoryFiles(path, true);
+            foreach(string fileName in files)
+            {
+                await writer.WriteLineAsync(fileName);
             }
         }
     }
