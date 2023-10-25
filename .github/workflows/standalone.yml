@@ -3,7 +3,7 @@ name: Standalone
 on:
   release:
     types:
-    - created
+    - published
   push:
   pull_request:
 

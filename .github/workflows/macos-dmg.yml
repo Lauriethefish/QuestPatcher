@@ -3,7 +3,7 @@ name: MacOS DMG
 on:
   release:
     types:
-      - created
+      - published
   push:
 
 jobs:
