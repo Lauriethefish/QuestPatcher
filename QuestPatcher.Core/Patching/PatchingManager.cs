@@ -355,9 +355,14 @@ namespace QuestPatcher.Core.Patching
             var am = new AssetsManager();
 
             using var replacementContents = new MemoryStream();
+            using var writer = new AssetsFileWriter(replacementContents);
             using (var gameManagersStream = apk.OpenReader(globalGameManagersPath))
             {
-                var inst = am.LoadAssetsFile(gameManagersStream, "globalgamemanagers", false);
+                using var gameManagersMs = new MemoryStream();
+                gameManagersStream.CopyTo(gameManagersMs);
+                gameManagersMs.Position = 0;
+
+                var inst = am.LoadAssetsFile(gameManagersMs, "globalgamemanagers", false);
 
                 var inf = inst.table.GetAssetsOfType((int) AssetClassID.BuildSettings).Single();
 
@@ -378,15 +383,14 @@ namespace QuestPatcher.Core.Patching
 
                 var replacer = new AssetsReplacerFromMemory(0, inf.index, (int) inf.curFileType, 0xffff, newBytes);
 
-                using var writer = new AssetsFileWriter(replacementContents);
                 inst.file.Write(writer, 0, new List<AssetsReplacer> { replacer });
                 am.UnloadAllAssetsFiles();
             }
-
+            writer.Flush();
             replacementContents.Position = 0;
             apk.AddFile(globalGameManagersPath, replacementContents, CompressionLevel.Optimal);
 
-            using var sdkArchive = ZipFile.OpenRead(ovrPlatformSdkPath);
+            using var sdkArchive = ZipFile.Open(ovrPlatformSdkPath, ZipArchiveMode.Update);
             var downgradedLoaderEntry = sdkArchive.GetEntry("Android/libs/arm64-v8a/libovrplatformloader.so")
                                         ?? throw new PatchingException("No libovrplatformloader.so found in downloaded OvrPlatformSdk");
             using var downloadedLoaderStream = downgradedLoaderEntry.Open();
@@ -614,7 +618,15 @@ namespace QuestPatcher.Core.Patching
             }
 
             PatchingStage = PatchingStage.UninstallingOriginal;
-            await _debugBridge.UninstallApp(_config.AppId);
+            try
+            {
+                await _debugBridge.UninstallApp(_config.AppId);
+            }
+            catch(AdbException)
+            {
+                Log.Warning("Failed to remove the original APK, likely because it was already removed in a previous patching attempt");
+                Log.Warning("Will continue with modding anyway");
+            }
 
             Log.Information("Installing the modded APK . . .");
             PatchingStage = PatchingStage.InstallingModded;
