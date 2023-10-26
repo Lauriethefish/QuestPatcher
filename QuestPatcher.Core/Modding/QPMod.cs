@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using QuestPatcher.Core.Models;
 using QuestPatcher.QMod;
 using Serilog;
 
@@ -329,7 +327,7 @@ namespace QuestPatcher.Core.Modding
                 {
                     await _filesDownloader.DownloadUrl(dependency.DownloadUrlString, downloadFile.Path, dependency.Id);
                 }
-                catch (WebException ex)
+                catch (FileDownloadFailedException ex)
                 {
                     // Print a nicer error message
                     throw new InstallationException($"Failed to download dependency from URL {dependency.DownloadIfMissing}: {ex.Message}", ex);
