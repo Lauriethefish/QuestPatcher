@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
 {
+    /// <summary>
+    /// A mod provider that loads and saves information about the mod to a config file.
+    /// </summary>
     public abstract class ConfigModProvider : JsonConverter<IMod>, IModProvider
     {
-        /// <summary>
-        /// ID of this provider, used for distinguishing which mods are from which provider in the config.
-        /// </summary>
         public abstract string ConfigSaveId { get; }
-        
+       
         public abstract string FileExtension { get; }
         public abstract Task<IMod> LoadFromFile(string modPath);
         public abstract Task DeleteMod(IMod mod);

@@ -6,60 +6,64 @@ using QuestPatcher.Core.Models;
 
 namespace QuestPatcher.Core.Modding
 {
+    /// <summary>
+    /// A mod that has been loaded by QuestPatcher.
+    /// This may be a QMOD, or another format.
+    /// </summary>
     public interface IMod : INotifyPropertyChanged
     {
         /// <summary>
-        /// Provider that loaded this mod
+        /// Provider that loaded this mod.
         /// </summary>
         IModProvider Provider { get; }
 
         /// <summary>
-        /// Unique ID of the mod, must not contain spaces
+        /// Unique ID of the mod, must not contain spaces.
         /// </summary>
         string Id { get; }
 
         /// <summary>
-        /// Human readable name of the mod
+        /// Human readable name of the mod.
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// Description of the mod
+        /// Description of the mod.
         /// </summary>
         string? Description { get; }
 
         /// <summary>
-        /// Version of the mod
+        /// Version of the mod.
         /// </summary>
         SemanticVersioning.Version Version { get; }
 
         /// <summary>
-        /// Version of the package that the mod is intended for
+        /// Version of the package that the mod is intended for.
         /// </summary>
         string? PackageVersion { get; }
 
         /// <summary>
-        /// Author of the mod
+        /// Author of the mod.
         /// </summary>
         string Author { get; }
 
         /// <summary>
-        /// Individual who ported this mod from another platform
+        /// Individual who ported this mod from another platform.
         /// </summary>
         string? Porter { get; }
 
         /// <summary>
-        /// Keep going, keep going, keep going, keep going
+        /// Keep going, keep going, keep going, keep going...
         /// </summary>
         string Robinson => "It will all be OK in the end";
 
         /// <summary>
-        /// Whether or not the mod is currently installed
+        /// Whether or not the mod is currently installed.
         /// </summary>
         bool IsInstalled { get; }
 
         /// <summary>
-        /// Whether or not the mod is a library
+        /// Whether or not the mod is a library.
         /// </summary>
         bool IsLibrary { get; }
 
@@ -74,21 +78,21 @@ namespace QuestPatcher.Core.Modding
         Modloader ModLoader { get; }
 
         /// <summary>
-        /// Installs the mod
+        /// Installs the mod.
+        /// <exception cref="InstallationException">If installing the mod fails</exception>
         /// </summary>
-        /// <returns>Task that will complete once the mod is installed</returns>
         Task Install();
 
         /// <summary>
-        /// Uninstalls the mod
+        /// Uninstalls the mod.
+        /// <exception cref="InstallationException">If uninstalling the mod fails</exception>
         /// </summary>
-        /// <returns>Task that will complete once the mod is uninstalled</returns>
         Task Uninstall();
 
         /// <summary>
         /// Opens the cover image for loading.
         /// </summary>
-        /// <returns>A stream which can be used to load the cover image, or null if there is no cover image</returns>
+        /// <returns>A stream which can be used to load the cover image, or null if there is no cover image.</returns>
         Task<Stream?> OpenCover();
     }
 }

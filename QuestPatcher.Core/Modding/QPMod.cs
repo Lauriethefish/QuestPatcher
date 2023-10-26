@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,9 @@ using Serilog;
 
 namespace QuestPatcher.Core.Modding
 {
-    // ReSharper disable once InconsistentNaming
+    /// <summary>
+    /// A mod loaded from QMOD format.
+    /// </summary>
     public class QPMod : IMod
     {
         public IModProvider Provider => _provider;
@@ -27,6 +30,7 @@ namespace QuestPatcher.Core.Modding
         public string? Porter => Manifest.Porter;
         public bool IsLibrary => Manifest.IsLibrary;
 
+        // Convert the QuestPatcher.QMod modloader to our own format, which supports an "Unknown" modloader in the case of an unrecognised modding tag.
         public Modloader ModLoader => Manifest.ModLoader switch
         {
             QMod.ModLoader.QuestLoader => Modloader.QuestLoader,
@@ -49,14 +53,16 @@ namespace QuestPatcher.Core.Modding
             }
         }
 
-        private bool _isInstalled;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         internal QModManifest Manifest { get; }
+
+
+        private bool _isInstalled;
+
         private readonly AndroidDebugBridge _debugBridge;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly ModManager _modManager;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         public QPMod(QModProvider provider, QModManifest manifest, AndroidDebugBridge debugBridge, ExternalFilesDownloader filesDownloader, ModManager modManager)
         {
@@ -74,90 +80,9 @@ namespace QuestPatcher.Core.Modding
             ))).ToList();
         }
 
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         public Task Install()
         {
-            return Install(new List<string>());
-        }
-
-        private async Task Install(List<string> installedInBranch)
-        {
-            if (IsInstalled)
-            {
-                Log.Debug($"Mod {Id} is already installed. Not installing");
-                return;
-            }
-
-            Log.Information($"Installing mod {Id}");
-
-            installedInBranch.Add(Id); // Add to the installed tree so that dependencies further down on us will trigger a recursive install error
-
-            foreach (Dependency dependency in Manifest.Dependencies)
-            {
-                await PrepareDependency(dependency, installedInBranch);
-            }
-
-            string extractPath = _provider.GetExtractDirectory(Id);
-
-            // Copy files to actually install the mod
-
-            List<KeyValuePair<string, string>> copyPaths = new();
-
-            bool sl2 = ModLoader == Modloader.Scotland2;
-
-            string libsPath = sl2 ? _modManager.Sl2LibsPath : _modManager.LibsPath;
-            List<string> directoriesToCreate = new();
-            foreach (string libraryPath in Manifest.LibraryFileNames)
-            {
-                Log.Information($"Starting library file copy {libraryPath} . . .");
-                copyPaths.Add(new(Path.Combine(extractPath, libraryPath), Path.Combine(libsPath, Path.GetFileName(libraryPath))));
-            }
-
-            // When using sl2, (early) mod files are copied to early_mods
-            // To support legacy mods, when QuestLoader is present in the APK, early mods will be written to the directory that now contains late mods.
-            string modFilesPath = sl2 ? _modManager.Sl2EarlyModsPath : _modManager.ModsPath;
-            foreach (string modPath in Manifest.ModFileNames)
-            {
-                Log.Information($"Starting (early) mod file copy {modPath} . . .");
-                copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(modFilesPath, Path.GetFileName(modPath))));
-            }
-
-            if (sl2)
-            {
-                foreach (string lateModPath in Manifest.LateModFileNames)
-                {
-                    Log.Information($"Starting late mod file copy {lateModPath} . . .");
-                    copyPaths.Add(new(Path.Combine(extractPath, lateModPath), Path.Combine(_modManager.Sl2LateModsPath, Path.GetFileName(lateModPath))));
-                }
-            }
-
-            foreach (FileCopy fileCopy in Manifest.FileCopies)
-            {
-                Log.Information($"Starting file copy {fileCopy.Name} to {fileCopy.Destination}");
-                string? directoryName = Path.GetDirectoryName(fileCopy.Destination);
-                if (directoryName != null)
-                {
-                    directoriesToCreate.Add(directoryName);
-                }
-                copyPaths.Add(new(Path.Combine(extractPath, fileCopy.Name), fileCopy.Destination));
-            }
-
-            if (directoriesToCreate.Count > 0)
-            {
-                await _debugBridge.CreateDirectories(directoriesToCreate);
-            }
-
-            await _debugBridge.CopyFiles(copyPaths);
-
-            var chmodPaths = copyPaths.AsEnumerable().Select(path => path.Value).ToList();
-            await _debugBridge.Chmod(chmodPaths, "+r");
-
-            IsInstalled = true;
-            installedInBranch.Remove(Id);
+            return InstallInternal(new List<string>());
         }
 
         public async Task Uninstall()
@@ -246,10 +171,101 @@ namespace QuestPatcher.Core.Modding
                 return null;
             }
 
-            string coverPath = Path.Combine(_provider.GetExtractDirectory(Id), Manifest.CoverImagePath);
-            using TempFile tempFile = new();
-            await _debugBridge.DownloadFile(coverPath, tempFile.Path);
-            return new MemoryStream(await File.ReadAllBytesAsync(tempFile.Path));
+            try
+            {
+                string coverPath = Path.Combine(_provider.GetExtractDirectory(Id), Manifest.CoverImagePath);
+                using TempFile tempFile = new();
+
+                // TODO: Is loading into memory necessary here?
+                await _debugBridge.DownloadFile(coverPath, tempFile.Path);
+                return new MemoryStream(await File.ReadAllBytesAsync(tempFile.Path));
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to load cover image for {ModId}", Id);
+                return null;
+            }
+            
+        }
+
+        /// <summary>
+        /// Installs this mod, and any dependencies.
+        /// </summary>
+        /// <param name="installedInBranch">The mods that have been installed in the current operation. Used to detect and thwart cyclical dependencies</param>
+        private async Task InstallInternal(List<string> installedInBranch)
+        {
+            if (IsInstalled)
+            {
+                Log.Debug($"Mod {Id} is already installed. Not installing");
+                return;
+            }
+
+            Log.Information($"Installing mod {Id}");
+
+            installedInBranch.Add(Id); // Add to the installed tree so that dependencies further down on us will trigger a recursive install error
+
+            foreach (Dependency dependency in Manifest.Dependencies)
+            {
+                await PrepareDependency(dependency, installedInBranch);
+            }
+
+            string extractPath = _provider.GetExtractDirectory(Id);
+
+            // Copy files to actually install the mod
+
+            List<KeyValuePair<string, string>> copyPaths = new();
+
+            bool sl2 = ModLoader == Modloader.Scotland2;
+
+            string libsPath = sl2 ? _modManager.Sl2LibsPath : _modManager.LibsPath;
+            List<string> directoriesToCreate = new();
+            foreach (string libraryPath in Manifest.LibraryFileNames)
+            {
+                Log.Information($"Starting library file copy {libraryPath} . . .");
+                copyPaths.Add(new(Path.Combine(extractPath, libraryPath), Path.Combine(libsPath, Path.GetFileName(libraryPath))));
+            }
+
+            // When using sl2, (early) mod files are copied to early_mods
+            // To support legacy mods, when QuestLoader is present in the APK, early mods will be written to the directory that now contains late mods.
+            string modFilesPath = sl2 ? _modManager.Sl2EarlyModsPath : _modManager.ModsPath;
+            foreach (string modPath in Manifest.ModFileNames)
+            {
+                Log.Information($"Starting (early) mod file copy {modPath} . . .");
+                copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(modFilesPath, Path.GetFileName(modPath))));
+            }
+
+            if (sl2)
+            {
+                foreach (string lateModPath in Manifest.LateModFileNames)
+                {
+                    Log.Information($"Starting late mod file copy {lateModPath} . . .");
+                    copyPaths.Add(new(Path.Combine(extractPath, lateModPath), Path.Combine(_modManager.Sl2LateModsPath, Path.GetFileName(lateModPath))));
+                }
+            }
+
+            foreach (FileCopy fileCopy in Manifest.FileCopies)
+            {
+                Log.Information($"Starting file copy {fileCopy.Name} to {fileCopy.Destination}");
+                string? directoryName = Path.GetDirectoryName(fileCopy.Destination);
+                if (directoryName != null)
+                {
+                    directoriesToCreate.Add(directoryName);
+                }
+                copyPaths.Add(new(Path.Combine(extractPath, fileCopy.Name), fileCopy.Destination));
+            }
+
+            if (directoriesToCreate.Count > 0)
+            {
+                await _debugBridge.CreateDirectories(directoriesToCreate);
+            }
+
+            await _debugBridge.CopyFiles(copyPaths);
+
+            var chmodPaths = copyPaths.AsEnumerable().Select(path => path.Value).ToList();
+            await _debugBridge.Chmod(chmodPaths, "+r");
+
+            IsInstalled = true;
+            installedInBranch.Remove(Id);
         }
 
         /// <summary>
@@ -257,8 +273,9 @@ namespace QuestPatcher.Core.Modding
         /// If it's not installed, we will attempt to download the dependency if it specifies a download path, otherwise this fails.
         /// Does sanity checking for cyclical dependencies and will also attempt to upgrade installed versions via the download link where possible.
         /// </summary>
-        /// <param name="dependency">The dependency to install</param>
-        /// <param name="installedInBranch">The number of mods that are currently downloading down this branch of the install "tree", used to check for cyclic dependencies</param>
+        /// <param name="dependency">The dependency to install.</param>
+        /// <param name="installedInBranch">The number of mods that are currently downloading down this branch of the install "tree", used to check for cyclic dependencies.</param>
+        /// <exception cref="InstallationException">If installing the dependency was not possible, or failed.</exception>
         private async Task PrepareDependency(Dependency dependency, List<string> installedInBranch)
         {
             Log.Debug($"Preparing dependency of {dependency.Id} version {dependency.VersionRange}");
@@ -272,7 +289,7 @@ namespace QuestPatcher.Core.Modding
                 }
                 dependMessage += dependency.Id;
 
-                throw new InstallationException($"Recursive dependency detected: {dependMessage}");
+                throw new InstallationException($"Cylical dependency detected: {dependMessage}");
             }
 
             _provider.ModsById.TryGetValue(dependency.Id, out QPMod? existing);
@@ -285,7 +302,7 @@ namespace QuestPatcher.Core.Modding
                     if (!existing.IsInstalled)
                     {
                         Log.Information($"Installing dependency {dependency.Id} . . .");
-                        await existing.Install(installedInBranch);
+                        await existing.InstallInternal(installedInBranch);
                     }
                     return;
                 }
@@ -321,7 +338,7 @@ namespace QuestPatcher.Core.Modding
                 installedDependency = (QPMod) await _provider.LoadFromFile(downloadFile.Path);
             }
 
-            await installedDependency.Install(installedInBranch);
+            await installedDependency.InstallInternal(installedInBranch);
 
             // Sanity checks that the download link actually pointed to the right mod
             if (dependency.Id != installedDependency.Id)
@@ -335,6 +352,11 @@ namespace QuestPatcher.Core.Modding
                 await _provider.DeleteMod(installedDependency);
                 throw new InstallationException($"Downloaded dependency {installedDependency.Id} v{installedDependency.Version} was not within the version range stated in the dependency info ({dependency.VersionRange})");
             }
+        }
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

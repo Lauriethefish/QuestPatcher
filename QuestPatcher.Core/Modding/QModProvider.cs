@@ -12,12 +12,18 @@ using Serilog;
 
 namespace QuestPatcher.Core.Modding
 {
+    /// <summary>
+    /// The provider used to load/save QMOD files, the file format created for and preferred by QuestPatcher.
+    /// </summary>
     public class QModProvider : ConfigModProvider
     {
         public override string ConfigSaveId => "qmod";
 
         public override string FileExtension => "qmod";
 
+        /// <summary>
+        /// The mods currently registered to this provider, sorted by mod ID.
+        /// </summary>
         public Dictionary<string, QPMod> ModsById { get; } = new();
 
         private readonly ModManager _modManager;
@@ -31,16 +37,6 @@ namespace QuestPatcher.Core.Modding
             _config = config;
             _debugBridge = debugBridge;
             _filesDownloader = filesDownloader;
-        }
-
-        internal string GetExtractDirectory(string id)
-        {
-            return _modManager.GetModExtractPath(id);
-        }
-
-        private void AddMod(QPMod mod)
-        {
-            ModsById[mod.Id] = mod;
         }
 
         public override async Task<IMod> LoadFromFile(string modPath)
@@ -93,14 +89,161 @@ namespace QuestPatcher.Core.Modding
             return mod;
         }
 
+        public override async Task DeleteMod(IMod genericMod)
+        {
+            QPMod mod = AssertQMod(genericMod);
+
+            if (mod.IsInstalled)
+            {
+                Log.Information($"Uninstalling mod {mod.Id} to prepare for removal . . .");
+                await genericMod.Uninstall();
+            }
+
+            Log.Information($"Removing mod {mod.Id} . . .");
+            await _debugBridge.RemoveDirectory(GetExtractDirectory(mod.Id));
+
+            ModsById.Remove(mod.Id);
+            _modManager.ModRemovedCallback(mod);
+
+            if (!mod.Manifest.IsLibrary)
+            {
+                await CleanUnusedLibraries(false);
+            }
+        }
+
+        /// <summary>
+        /// Finds a list of mods which depend on this mod (i.e. ones with any dependency on this mod's ID)
+        /// </summary>
+        /// <param name="mod">The mod to check the dependant mods of</param>
+        /// <param name="onlyInstalledMods">Whether to only include mods which are actually installed (enabled)</param>
+        /// <returns>A list of all mods depending on the mod</returns>
+        public List<QPMod> FindModsDependingOn(QPMod mod, bool onlyInstalledMods = false)
+        {
+            return ModsById.Values.Where(otherMod => otherMod.Manifest.Dependencies.Any(dependency => dependency.Id == mod.Id) && (!onlyInstalledMods || otherMod.IsInstalled)).ToList();
+        }
+
+        public override IMod Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            QModManifest? manifest = JsonSerializer.Deserialize<QModManifest>(ref reader, options);
+            if (manifest == null)
+            {
+                throw new NullReferenceException("Null manifest for mod");
+            }
+            var mod = new QPMod(this, manifest, _debugBridge, _filesDownloader, _modManager);
+
+            AddMod(mod);
+            return mod;
+        }
+
+        public override void Write(Utf8JsonWriter writer, IMod value, JsonSerializerOptions options)
+        {
+            JsonSerializer.Serialize(writer, AssertQMod(value).Manifest, options);
+        }
+
+        public override async Task LoadModsStatus()
+        {
+            List<string> modFiles = await _debugBridge.ListDirectoryFiles(_modManager.ModsPath, true);
+            List<string> libFiles = await _debugBridge.ListDirectoryFiles(_modManager.LibsPath, true);
+            List<string> sl2EarlyModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2EarlyModsPath, true);
+            List<string> sl2LateModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LateModsPath, true);
+            List<string> sl2LibFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LibsPath, true);
+
+            foreach (QPMod mod in ModsById.Values)
+            {
+                SetModStatus(mod, modFiles, libFiles, sl2EarlyModFiles, sl2LateModFiles, sl2LibFiles);
+            }
+        }
+
+        public override void ClearMods()
+        {
+            ModsById.Clear();
+        }
+
+        public override async Task LoadLegacyMods()
+        {
+            var legacyFolders = await _debugBridge.ListDirectoryFolders(_modManager.ModsExtractPath);
+            Log.Information($"Attempting to load {legacyFolders.Count} legacy mods");
+            foreach (var legacyFolder in legacyFolders)
+            {
+                Log.Debug($"Loading legacy mod at {legacyFolder}");
+                var modJsonPath = Path.Combine(legacyFolder, "mod.json");
+                using var tmp = new TempFile();
+                await _debugBridge.DownloadFile(modJsonPath, tmp.Path);
+
+                await using var modJsonStream = File.OpenRead(tmp.Path);
+                var manifest = await QModManifest.ParseAsync(modJsonStream);
+
+                var mod = new QPMod(this, manifest, _debugBridge, _filesDownloader, _modManager);
+
+                AddMod(mod);
+                _modManager.ModLoadedCallback(mod);
+            }
+        }
+
+        /// <summary>
+        /// Uninstalls all libraries that are not depended on by another mod.
+        /// <param name="onlyDisable">Whether to only uninstall (disable) the libraries. If this is true, only mods that are enabled count as dependant mods as well.</param>
+        /// </summary>
+        internal async Task CleanUnusedLibraries(bool onlyDisable)
+        {
+            bool actionPerformed = true;
+            while (actionPerformed) // Keep attempting to remove libraries until none get removed this iteration
+            {
+                actionPerformed = false;
+                List<QPMod> unused = ModsById.Values.Where(mod => mod.Manifest.IsLibrary && FindModsDependingOn(mod, onlyDisable).Count == 0).ToList();
+
+                // Uninstall any unused libraries this iteration
+                foreach (QPMod mod in unused)
+                {
+                    try
+                    {
+                        if (mod.IsInstalled)
+                        {
+                            Log.Information($"{mod.Id} is unused - " + (onlyDisable ? "uninstalling" : "unloading"));
+                            actionPerformed = true;
+                            await mod.Uninstall();
+                        }
+                        if (!onlyDisable)
+                        {
+                            actionPerformed = true;
+                            await DeleteMod(mod);
+                        }
+                    }
+                    catch (InstallationException ex)
+                    {
+                        Log.Warning(ex, "Failed to clean mod with ID {ModId}", mod.Id);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the location where a mod will be extracted.
+        /// </summary>
+        /// <param name="id">The ID of the mod.</param>
+        /// <returns>The full path to where the mod will be extracted.</returns>
+        internal string GetExtractDirectory(string id)
+        {
+            return _modManager.GetModExtractPath(id);
+        }
+
+        /// <summary>
+        /// Adds a mod to <see cref="ModsById"/>.
+        /// </summary>
+        /// <param name="mod">The mod to add.</param>
+        private void AddMod(QPMod mod)
+        {
+            ModsById[mod.Id] = mod;
+        }
+
         /// <summary>
         /// Checks to see if upgrading from the installed version to the new version is safe.
         /// i.e. this will throw an install exception if a mod depends on the older version being present.
-        /// If upgrading is safe, this will uninstall the currently installed version to prepare for the version upgrade
+        /// If upgrading is safe, this will uninstall the currently installed version to prepare for the version upgrade.
         /// </summary>
-        /// <param name="currentlyInstalled">The installed version of the mod</param>
-        /// <param name="newVersion">The version of the mod to be upgraded to</param>
-        /// <returns>True if the mod had installed dependants, and thus needs to be immediately installed</returns>
+        /// <param name="currentlyInstalled">The installed version of the mod.</param>
+        /// <param name="newVersion">The version of the mod to be upgraded to.</param>
+        /// <returns>True if the mod had installed dependants, and thus needs to be immediately installed.</returns>
         private async Task<bool> PrepareVersionChange(QPMod currentlyInstalled, QPMod newVersion)
         {
             Debug.Assert(currentlyInstalled.Id == newVersion.Id);
@@ -149,114 +292,6 @@ namespace QuestPatcher.Core.Modding
             }
         }
 
-        private QPMod AssertQMod(IMod genericMod)
-        {
-            if (genericMod is QPMod mod)
-            {
-                return mod;
-            }
-            else
-            {
-                throw new InvalidOperationException("Passed non-qmod to qmod provider function");
-            }
-        }
-
-        public override async Task DeleteMod(IMod genericMod)
-        {
-            QPMod mod = AssertQMod(genericMod);
-
-            if (mod.IsInstalled)
-            {
-                Log.Information($"Uninstalling mod {mod.Id} to prepare for removal . . .");
-                await genericMod.Uninstall();
-            }
-
-            Log.Information($"Removing mod {mod.Id} . . .");
-            await _debugBridge.RemoveDirectory(GetExtractDirectory(mod.Id));
-
-            ModsById.Remove(mod.Id);
-            _modManager.ModRemovedCallback(mod);
-
-            if (!mod.Manifest.IsLibrary)
-            {
-                await CleanUnusedLibraries(false);
-            }
-        }
-
-        /// <summary>
-        /// Finds a list of mods which depend on this mod (i.e. ones with any dependency on this mod's ID)
-        /// </summary>
-        /// <param name="mod">The mod to check the dependant mods of</param>
-        /// <param name="onlyInstalledMods">Whether to only include mods which are actually installed (enabled)</param>
-        /// <returns>A list of all mods depending on the mod</returns>
-        public List<QPMod> FindModsDependingOn(QPMod mod, bool onlyInstalledMods = false)
-        {
-            // Fun linq
-            return ModsById.Values.Where(otherMod => otherMod.Manifest.Dependencies.Any(dependency => dependency.Id == mod.Id) && (!onlyInstalledMods || otherMod.IsInstalled)).ToList();
-        }
-
-        /// <summary>
-        /// Uninstalls all libraries that are not depended on by another mod
-        /// <param name="onlyDisable">Whether to only uninstall (disable) the libraries. If this is true, only mods that are enabled count as dependant mods as well</param>
-        /// </summary>
-        internal async Task CleanUnusedLibraries(bool onlyDisable)
-        {
-            bool actionPerformed = true;
-            while (actionPerformed) // Keep attempting to remove libraries until none get removed this iteration
-            {
-                actionPerformed = false;
-                List<QPMod> unused = ModsById.Values.Where(mod => mod.Manifest.IsLibrary && FindModsDependingOn(mod, onlyDisable).Count == 0).ToList();
-
-                // Uninstall any unused libraries this iteration
-                foreach (QPMod mod in unused)
-                {
-                    if (mod.IsInstalled)
-                    {
-                        Log.Information($"{mod.Id} is unused - " + (onlyDisable ? "uninstalling" : "unloading"));
-                        actionPerformed = true;
-                        await mod.Uninstall();
-                    }
-                    if (!onlyDisable)
-                    {
-                        actionPerformed = true;
-                        await DeleteMod(mod);
-                    }
-                }
-            }
-        }
-
-        public override IMod Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            QModManifest? manifest = JsonSerializer.Deserialize<QModManifest>(ref reader, options);
-            if (manifest == null)
-            {
-                throw new NullReferenceException("Null manifest for mod");
-            }
-            var mod = new QPMod(this, manifest, _debugBridge, _filesDownloader, _modManager);
-
-            AddMod(mod);
-            return mod;
-        }
-
-        public override void Write(Utf8JsonWriter writer, IMod value, JsonSerializerOptions options)
-        {
-            JsonSerializer.Serialize(writer, AssertQMod(value).Manifest, options);
-        }
-
-        public override async Task LoadModsStatus()
-        {
-            List<string> modFiles = await _debugBridge.ListDirectoryFiles(_modManager.ModsPath, true);
-            List<string> libFiles = await _debugBridge.ListDirectoryFiles(_modManager.LibsPath, true);
-            List<string> sl2EarlyModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2EarlyModsPath, true);
-            List<string> sl2LateModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LateModsPath, true);
-            List<string> sl2LibFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LibsPath, true);
-
-            foreach (QPMod mod in ModsById.Values)
-            {
-                SetModStatus(mod, modFiles, libFiles, sl2EarlyModFiles, sl2LateModFiles, sl2LibFiles);
-            }
-        }
-
         private void SetModStatus(QPMod mod, List<string> modFiles, List<string> libFiles, List<string> sl2EarlyModFiles, List<string> sl2LateModFiles, List<string> sl2LibFiles)
         {
             bool hasAllMods;
@@ -264,7 +299,7 @@ namespace QuestPatcher.Core.Modding
             if (mod.ModLoader == Modloader.Scotland2)
             {
                 // Check for both early and late mods if using SL2
-                hasAllMods = mod.Manifest.ModFileNames.TrueForAll(sl2EarlyModFiles.Contains) 
+                hasAllMods = mod.Manifest.ModFileNames.TrueForAll(sl2EarlyModFiles.Contains)
                     && mod.Manifest.LateModFileNames.TrueForAll(sl2LateModFiles.Contains);
 
                 // Use the SL2 libs folder
@@ -283,29 +318,21 @@ namespace QuestPatcher.Core.Modding
             mod.IsInstalled = hasAllMods && hasAllLibs;
         }
 
-        public override void ClearMods()
+        /// <summary>
+        /// Checks that a mod is a QMOD.
+        /// </summary>
+        /// <param name="genericMod">The mod to cast.</param>
+        /// <returns><paramref name="genericMod"/>, casted to a QMOD.</returns>
+        /// <exception cref="ArgumentException">If <paramref name="genericMod"/> is not a QMOD.</exception>
+        private QPMod AssertQMod(IMod genericMod)
         {
-            ModsById.Clear();
-        }
-
-        public override async Task LoadLegacyMods()
-        {
-            var legacyFolders = await _debugBridge.ListDirectoryFolders(_modManager.ModsExtractPath);
-            Log.Information($"Attempting to load {legacyFolders.Count} legacy mods");
-            foreach (var legacyFolder in legacyFolders)
+            if (genericMod is QPMod mod)
             {
-                Log.Debug($"Loading legacy mod at {legacyFolder}");
-                var modJsonPath = Path.Combine(legacyFolder, "mod.json");
-                using var tmp = new TempFile();
-                await _debugBridge.DownloadFile(modJsonPath, tmp.Path);
-
-                await using var modJsonStream = File.OpenRead(tmp.Path);
-                var manifest = await QModManifest.ParseAsync(modJsonStream);
-
-                var mod = new QPMod(this, manifest, _debugBridge, _filesDownloader, _modManager);
-
-                AddMod(mod);
-                _modManager.ModLoadedCallback(mod);
+                return mod;
+            }
+            else
+            {
+                throw new ArgumentException("Passed non-qmod to qmod provider function");
             }
         }
     }
