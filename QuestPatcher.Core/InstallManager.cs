@@ -150,7 +150,7 @@ namespace QuestPatcher.Core
             await Task.Run(() =>
             {
                 using var apkStream = File.OpenRead(_currentlyInstalledPath);
-                using ApkZip apk = ApkZip.Open(apkStream);
+                using var apk = ApkZip.Open(apkStream);
 
 
                 modloader = GetModloaderSync(apk);

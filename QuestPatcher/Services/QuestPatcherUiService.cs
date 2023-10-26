@@ -1,18 +1,18 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using QuestPatcher.Models;
-using QuestPatcher.ViewModels;
-using QuestPatcher.Views;
-using Serilog;
-using Serilog.Events;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using QuestPatcher.ViewModels.Modding;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
+using QuestPatcher.Models;
+using QuestPatcher.ViewModels;
+using QuestPatcher.ViewModels.Modding;
+using QuestPatcher.Views;
+using Serilog;
+using Serilog.Events;
 
 namespace QuestPatcher.Services
 {
@@ -42,7 +42,7 @@ namespace QuestPatcher.Services
             _mainWindow = PrepareUi();
 
             _appLifetime.MainWindow = _mainWindow;
-            UIPrompter prompter = (UIPrompter) Prompter;
+            var prompter = (UIPrompter) Prompter;
             prompter.Init(_mainWindow, Config, this, SpecialFolders);
 
             _mainWindow.Opened += async (_, _) => await LoadAndHandleErrors();
@@ -52,9 +52,11 @@ namespace QuestPatcher.Services
         private Window PrepareUi()
         {
             _loggingViewModel = new LoggingViewModel();
-            MainWindow window = new();
-            window.Width = 900;
-            window.Height = 550;
+            MainWindow window = new()
+            {
+                Width = 900,
+                Height = 550
+            };
             _operationLocker = new();
             _operationLocker.StartOperation(); // Still loading
             _browseManager = new(OtherFilesManager, ModManager, window, InstallManager, _operationLocker, this);
@@ -167,7 +169,7 @@ namespace QuestPatcher.Services
             menuWindow.DataContext = viewModel;
             menuWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-            Task windowCloseTask = menuWindow.ShowDialog(_mainWindow);
+            var windowCloseTask = menuWindow.ShowDialog(_mainWindow);
 
             viewModel.InstalledApps = await DebugBridge.ListNonDefaultPackages();
 

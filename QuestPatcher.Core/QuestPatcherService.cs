@@ -1,13 +1,13 @@
-﻿using QuestPatcher.Core.Modding;
-using QuestPatcher.Core.Models;
-using QuestPatcher.Core.Patching;
-using Serilog;
-using Serilog.Core;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using QuestPatcher.Core.Modding;
+using QuestPatcher.Core.Models;
+using QuestPatcher.Core.Patching;
+using Serilog;
+using Serilog.Core;
 
 namespace QuestPatcher.Core
 {

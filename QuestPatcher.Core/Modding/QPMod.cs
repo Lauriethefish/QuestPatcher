@@ -122,7 +122,7 @@ namespace QuestPatcher.Core.Modding
             {
                 // Only remove libraries if they aren't used by another mod
                 bool isUsedElsewhere = false;
-                foreach (QPMod otherMod in _provider.ModsById.Values)
+                foreach (var otherMod in _provider.ModsById.Values)
                 {
                     if (otherMod != this && otherMod.IsInstalled && otherMod.Manifest.LibraryFileNames.Contains(libraryPath))
                     {
@@ -139,7 +139,7 @@ namespace QuestPatcher.Core.Modding
                 }
             }
 
-            foreach (FileCopy fileCopy in Manifest.FileCopies)
+            foreach (var fileCopy in Manifest.FileCopies)
             {
                 Log.Information("Removing copied file " + fileCopy.Destination);
                 filesToRemove.Add(fileCopy.Destination);
@@ -185,7 +185,7 @@ namespace QuestPatcher.Core.Modding
                 Log.Warning(ex, "Failed to load cover image for {ModId}", Id);
                 return null;
             }
-            
+
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace QuestPatcher.Core.Modding
 
             installedInBranch.Add(Id); // Add to the installed tree so that dependencies further down on us will trigger a recursive install error
 
-            foreach (Dependency dependency in Manifest.Dependencies)
+            foreach (var dependency in Manifest.Dependencies)
             {
                 await PrepareDependency(dependency, installedInBranch);
             }
@@ -243,7 +243,7 @@ namespace QuestPatcher.Core.Modding
                 }
             }
 
-            foreach (FileCopy fileCopy in Manifest.FileCopies)
+            foreach (var fileCopy in Manifest.FileCopies)
             {
                 Log.Information($"Starting file copy {fileCopy.Name} to {fileCopy.Destination}");
                 string? directoryName = Path.GetDirectoryName(fileCopy.Destination);
@@ -292,7 +292,7 @@ namespace QuestPatcher.Core.Modding
                 throw new InstallationException($"Cylical dependency detected: {dependMessage}");
             }
 
-            _provider.ModsById.TryGetValue(dependency.Id, out QPMod? existing);
+            _provider.ModsById.TryGetValue(dependency.Id, out var existing);
             // Could be significantly simpler but I want to do lots of logging since this behaviour can be confusing
             if (existing != null)
             {

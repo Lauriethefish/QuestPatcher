@@ -42,7 +42,7 @@ namespace QuestPatcher.Core.Modding
         public override async Task<IMod> LoadFromFile(string modPath)
         {
             await using Stream modStream = File.OpenRead(modPath);
-            await using QMod.QMod qmod = await QMod.QMod.ParseAsync(modStream);
+            await using var qmod = await QMod.QMod.ParseAsync(modStream);
 
             // Check that the package ID is correct. We don't want people installing Beat Saber mods on Gorilla Tag!
             Log.Information($"Mod ID: {qmod.Id}, Version: {qmod.Version}, Is Library: {qmod.IsLibrary}");
@@ -54,7 +54,7 @@ namespace QuestPatcher.Core.Modding
             var mod = new QPMod(this, qmod.GetManifest(), _debugBridge, _filesDownloader, _modManager);
 
             // Check if upgrading from a previous version is OK, or if we have to fail the import
-            ModsById.TryGetValue(qmod.Id, out QPMod? existingInstall);
+            ModsById.TryGetValue(qmod.Id, out var existingInstall);
             bool needImmediateInstall = false;
             if (existingInstall != null)
             {
@@ -91,7 +91,7 @@ namespace QuestPatcher.Core.Modding
 
         public override async Task DeleteMod(IMod genericMod)
         {
-            QPMod mod = AssertQMod(genericMod);
+            var mod = AssertQMod(genericMod);
 
             if (mod.IsInstalled)
             {
@@ -124,7 +124,7 @@ namespace QuestPatcher.Core.Modding
 
         public override IMod Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            QModManifest? manifest = JsonSerializer.Deserialize<QModManifest>(ref reader, options);
+            var manifest = JsonSerializer.Deserialize<QModManifest>(ref reader, options);
             if (manifest == null)
             {
                 throw new NullReferenceException("Null manifest for mod");
@@ -142,13 +142,13 @@ namespace QuestPatcher.Core.Modding
 
         public override async Task LoadModsStatus()
         {
-            List<string> modFiles = await _debugBridge.ListDirectoryFiles(_modManager.ModsPath, true);
-            List<string> libFiles = await _debugBridge.ListDirectoryFiles(_modManager.LibsPath, true);
-            List<string> sl2EarlyModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2EarlyModsPath, true);
-            List<string> sl2LateModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LateModsPath, true);
-            List<string> sl2LibFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LibsPath, true);
+            var modFiles = await _debugBridge.ListDirectoryFiles(_modManager.ModsPath, true);
+            var libFiles = await _debugBridge.ListDirectoryFiles(_modManager.LibsPath, true);
+            var sl2EarlyModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2EarlyModsPath, true);
+            var sl2LateModFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LateModsPath, true);
+            var sl2LibFiles = await _debugBridge.ListDirectoryFiles(_modManager.Sl2LibsPath, true);
 
-            foreach (QPMod mod in ModsById.Values)
+            foreach (var mod in ModsById.Values)
             {
                 SetModStatus(mod, modFiles, libFiles, sl2EarlyModFiles, sl2LateModFiles, sl2LibFiles);
             }
@@ -163,10 +163,10 @@ namespace QuestPatcher.Core.Modding
         {
             var legacyFolders = await _debugBridge.ListDirectoryFolders(_modManager.ModsExtractPath);
             Log.Information($"Attempting to load {legacyFolders.Count} legacy mods");
-            foreach (var legacyFolder in legacyFolders)
+            foreach (string legacyFolder in legacyFolders)
             {
                 Log.Debug($"Loading legacy mod at {legacyFolder}");
-                var modJsonPath = Path.Combine(legacyFolder, "mod.json");
+                string modJsonPath = Path.Combine(legacyFolder, "mod.json");
                 using var tmp = new TempFile();
                 await _debugBridge.DownloadFile(modJsonPath, tmp.Path);
 
@@ -190,10 +190,10 @@ namespace QuestPatcher.Core.Modding
             while (actionPerformed) // Keep attempting to remove libraries until none get removed this iteration
             {
                 actionPerformed = false;
-                List<QPMod> unused = ModsById.Values.Where(mod => mod.Manifest.IsLibrary && FindModsDependingOn(mod, onlyDisable).Count == 0).ToList();
+                var unused = ModsById.Values.Where(mod => mod.Manifest.IsLibrary && FindModsDependingOn(mod, onlyDisable).Count == 0).ToList();
 
                 // Uninstall any unused libraries this iteration
-                foreach (QPMod mod in unused)
+                foreach (var mod in unused)
                 {
                     try
                     {
@@ -253,14 +253,14 @@ namespace QuestPatcher.Core.Modding
             StringBuilder errorBuilder = new();
             errorBuilder.AppendLine($"Failed to upgrade installation of mod {currentlyInstalled.Id} to {newVersion.Version}: ");
             bool installedDependants = false;
-            foreach (QPMod mod in ModsById.Values)
+            foreach (var mod in ModsById.Values)
             {
                 if (!mod.IsInstalled)
                 {
                     continue;
                 }
 
-                foreach (Dependency dependency in mod.Manifest.Dependencies)
+                foreach (var dependency in mod.Manifest.Dependencies)
                 {
                     if (dependency.Id == currentlyInstalled.Id)
                     {

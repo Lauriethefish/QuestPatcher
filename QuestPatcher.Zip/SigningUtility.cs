@@ -1,12 +1,12 @@
-﻿using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Asn1;
+﻿using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.X509.Store;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.X509.Store;
 
 namespace QuestPatcher.Zip
 {
@@ -50,7 +50,7 @@ namespace QuestPatcher.Zip
         /// <returns>The signature in PKCS1 format</returns>
         internal static byte[] SignPKCS1(byte[] data, AsymmetricKeyParameter privateKey)
         {
-            ISigner signerType = SignerUtilities.GetSigner("SHA256WithRSA");
+            var signerType = SignerUtilities.GetSigner("SHA256WithRSA");
             signerType.Init(true, privateKey);
             signerType.BlockUpdate(data, 0, data.Length);
 

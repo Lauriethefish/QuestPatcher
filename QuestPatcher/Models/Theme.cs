@@ -25,7 +25,7 @@ namespace QuestPatcher.Models
 
         private IStyle? _loadedStyle;
         private readonly string? _xamlFilePath;
-        
+
         /// <summary>
         /// Name of the theme
         /// </summary>
@@ -36,7 +36,7 @@ namespace QuestPatcher.Models
             _xamlFilePath = xamlFilePath;
             Name = name;
         }
-        
+
         private Theme(IStyle nonLazyStyle, string name)
         {
             _loadedStyle = nonLazyStyle;
@@ -67,10 +67,10 @@ namespace QuestPatcher.Models
         /// <returns>Loaded theme</returns>
         public static Theme LoadEmbeddedTheme(string xamlPath, string name)
         {
-            IStyle styling = new StyleInclude(new Uri("resm:Styles?assembly=QuestPatcher")) 
-            { 
-                Source = new Uri($"avares://QuestPatcher/{xamlPath}") 
-            }; 
+            IStyle styling = new StyleInclude(new Uri("resm:Styles?assembly=QuestPatcher"))
+            {
+                Source = new Uri($"avares://QuestPatcher/{xamlPath}")
+            };
 
             return new Theme(styling, name);
         }

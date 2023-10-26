@@ -11,7 +11,7 @@
         /// <returns>The Crc32 of source, as found in a ZIP file</returns>
         public static uint CopyToCrc32(this Stream source, Stream? destination, int bufferSize = 8192)
         {
-            var buffer = new byte[bufferSize];
+            byte[] buffer = new byte[bufferSize];
             var crc = new Crc32();
 
             int bytesRead;

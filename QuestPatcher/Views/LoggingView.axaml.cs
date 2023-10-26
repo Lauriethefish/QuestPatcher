@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
@@ -24,7 +23,7 @@ namespace QuestPatcher.Views
                 if (args.Property.Name == nameof(_loggingBox.Text))
                 {
                     _loggingBox.CaretIndex = int.MaxValue;
-                } 
+                }
             };
         }
     }

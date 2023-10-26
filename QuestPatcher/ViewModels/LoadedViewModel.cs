@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
-using ReactiveUI;
-using QuestPatcher.ViewModels.Modding;
-using QuestPatcher.Core.Models;
-using Avalonia.Input;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Linq;
-using Serilog;
+using System.Runtime.InteropServices;
+using Avalonia.Input;
 using QuestPatcher.Core;
+using QuestPatcher.Core.Models;
+using QuestPatcher.ViewModels.Modding;
+using ReactiveUI;
+using Serilog;
 
 namespace QuestPatcher.ViewModels
 {
@@ -30,7 +29,7 @@ namespace QuestPatcher.ViewModels
         {
             get
             {
-                DateTime now = DateTime.Now;
+                var now = DateTime.Now;
                 bool isAprilFools = now.Month == 4 && now.Day == 1;
                 return isAprilFools ? "QuestCorrupter" : "QuestPatcher";
             }
@@ -92,7 +91,7 @@ namespace QuestPatcher.ViewModels
             // We need to handle this to avoid crashing QuestPatcher.
             try
             {
-                IEnumerable<string>? fileNames = args.Data.GetFileNames();
+                var fileNames = args.Data.GetFileNames();
                 if (fileNames == null) // Non-file items dragged
                 {
                     Log.Debug("Drag and drop contained no file names");

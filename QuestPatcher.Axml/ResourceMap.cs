@@ -9,13 +9,13 @@ namespace QuestPatcher.Axml
     internal class ResourceMap
     {
         internal Dictionary<(string attributeName, int resourceKey), int> Map { get; } = new Dictionary<(string attributeName, int resourceKey), int>();
-        
+
         private int _currentIdx;
-        
+
         internal void Add(string attributeName, int resourceKey)
         {
             var key = (attributeName, resourceKey);
-            if(!Map.ContainsKey(key))
+            if (!Map.ContainsKey(key))
             {
                 Map[key] = _currentIdx;
                 _currentIdx++;
@@ -24,7 +24,7 @@ namespace QuestPatcher.Axml
 
         internal int GetIndex(string resourceName, int resourceKey)
         {
-            if(Map.TryGetValue((resourceName, resourceKey), out int idx))
+            if (Map.TryGetValue((resourceName, resourceKey), out int idx))
             {
                 return idx;
             }
@@ -35,8 +35,8 @@ namespace QuestPatcher.Axml
         internal int[] Save()
         {
             int[] result = new int[Map.Count];
-            
-            foreach(var resource in Map)
+
+            foreach (var resource in Map)
             {
                 result[resource.Value] = resource.Key.resourceKey;
             }

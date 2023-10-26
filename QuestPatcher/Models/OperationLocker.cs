@@ -17,7 +17,7 @@ namespace QuestPatcher.Models
             get => _isFree;
             private set
             {
-                if(_isFree != value)
+                if (_isFree != value)
                 {
                     _isFree = value;
                     NotifyPropertyChanged();
@@ -32,7 +32,7 @@ namespace QuestPatcher.Models
             get => _isAdbAvailable;
             private set
             {
-                if(_isAdbAvailable != value)
+                if (_isAdbAvailable != value)
                 {
                     _isAdbAvailable = value;
                     NotifyPropertyChanged();
@@ -57,7 +57,7 @@ namespace QuestPatcher.Models
         /// <returns>Whether starting the operation was successful</returns>
         public void StartOperation(bool preventsAdb = false)
         {
-            if(!IsFree)
+            if (!IsFree)
             {
                 throw new Exception("Attempted to start operation when one was in progress");
             }

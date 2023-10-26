@@ -62,7 +62,7 @@
 
         public static LocalFileHeader Read(BinaryReader reader)
         {
-            if(reader.ReadUInt32() != Header)
+            if (reader.ReadUInt32() != Header)
             {
                 throw new ZipFormatException("Invalid LocalFileHeader signature");
             }
@@ -78,15 +78,15 @@
                 UncompressedSize = reader.ReadUInt32(),
             };
 
-            var fileNameLength = reader.ReadUInt16();
-            var extraFieldLength = reader.ReadUInt16();
+            ushort fileNameLength = reader.ReadUInt16();
+            ushort extraFieldLength = reader.ReadUInt16();
 
-            if(fileNameLength != 0)
+            if (fileNameLength != 0)
             {
-                inst.FileName = reader.ReadZipString(fileNameLength, inst.Flags);        
+                inst.FileName = reader.ReadZipString(fileNameLength, inst.Flags);
             }
 
-            if(extraFieldLength != 0)
+            if (extraFieldLength != 0)
             {
                 inst.ExtraField = reader.ReadBytes(extraFieldLength);
             }
@@ -136,11 +136,13 @@
                 writer.Write((ushort) 0);
             }
 
-            if (fileNameBytes != null) {
+            if (fileNameBytes != null)
+            {
                 writer.Write(fileNameBytes);
             }
 
-            if (ExtraField != null) {
+            if (ExtraField != null)
+            {
                 writer.Write(ExtraField);
             }
         }

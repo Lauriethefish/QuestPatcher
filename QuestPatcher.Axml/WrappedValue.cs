@@ -10,7 +10,7 @@
         Class,
         Reference
     }
-    
+
     /// <summary>
     /// Represents an AXML ID, Style or Class attribute value.
     /// These values have a reference ID and an underlying string value
@@ -21,12 +21,12 @@
         /// Type of the underlying string value
         /// </summary>
         public WrappedValueType Type { get; }
-        
+
         /// <summary>
         /// Raw underlying string value that represents this value, <code>null</code> if a reference value.
         /// </summary>
         public string? RawValue { get; }
-        
+
         /// <summary>
         /// ID of the value this wrapped value refers to. Not quite sure what this points to as of now
         /// </summary>

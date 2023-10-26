@@ -1,10 +1,10 @@
-﻿using QuestPatcher.Core.Models;
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
-using Serilog;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using QuestPatcher.Core.Models;
+using Serilog;
 
 namespace QuestPatcher.Core
 {
@@ -78,7 +78,7 @@ namespace QuestPatcher.Core
             if (File.Exists(ConfigPath) && !overwrite) { return; }
 
             Log.Debug("Saving default config file . . .");
-            using Stream? resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.default-config.json");
+            using var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.default-config.json");
             if (resourceStream == null)
             {
                 throw new NullReferenceException("Unable to find default-config.json in resources!");
@@ -99,7 +99,7 @@ namespace QuestPatcher.Core
 
             // Load the config
             using var configStream = File.OpenRead(ConfigPath);
-            Config? newConfig = JsonSerializer.Deserialize<Config>(configStream, SerializerOptions);
+            var newConfig = JsonSerializer.Deserialize<Config>(configStream, SerializerOptions);
             if (newConfig == null)
             {
                 throw new FormatException("Loaded config contained no config object");

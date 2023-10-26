@@ -17,9 +17,9 @@ namespace QuestPatcher.Core
                 return _path;
             }
         }
-    
+
         private string? _path;
-    
+
         public TempFile(string path)
         {
             _path = path;
@@ -37,7 +37,7 @@ namespace QuestPatcher.Core
             GC.SuppressFinalize(this);
             DisposeInternal();
         }
-            
+
         private void DisposeInternal()
         {
             if (_path == null) { return; }
@@ -46,7 +46,7 @@ namespace QuestPatcher.Core
 
             _path = null;
         }
-        
+
         public override string ToString()
         {
             return _path ?? throw new ObjectDisposedException(GetType().Name);

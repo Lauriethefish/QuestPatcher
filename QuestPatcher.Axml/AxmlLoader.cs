@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Collections.Generic;
 
 namespace QuestPatcher.Axml
 {
@@ -21,7 +21,7 @@ namespace QuestPatcher.Axml
                 Uri = uri;
             }
         }
-        
+
         /// <summary>
         /// Loads an AXML document from the given stream.
         /// The stream must be seekable.
@@ -37,7 +37,7 @@ namespace QuestPatcher.Axml
                 throw new ArgumentException("Cannot read axml from non-seekable stream");
             }
 
-            BinaryReader input = new BinaryReader(stream);
+            var input = new BinaryReader(stream);
             if (input.ReadResourceType() != ResourceType.Xml)
             {
                 throw new AxmlParseException("Initial tag was not xml");
@@ -48,14 +48,14 @@ namespace QuestPatcher.Axml
             string[]? stringPool = null;
             int[]? resourceMap = null;
 
-            Stack<AxmlElement> elementStack = new Stack<AxmlElement>();
-            List<QueuedNamespace> queuedNamespaces = new List<QueuedNamespace>();
+            var elementStack = new Stack<AxmlElement>();
+            var queuedNamespaces = new List<QueuedNamespace>();
             AxmlElement? rootElement = null;
-            
+
             int preChunkPosition = 8; // Already gone past two ints for initial XML tag and file size
-            while(preChunkPosition < fileSize)
+            while (preChunkPosition < fileSize)
             {
-                ResourceType chunkType = input.ReadResourceType();
+                var chunkType = input.ReadResourceType();
                 int chunkLength = input.ReadInt32();
 
                 if (stringPool == null && chunkType != ResourceType.StringPool)
@@ -93,8 +93,8 @@ namespace QuestPatcher.Axml
                         string? prefix = prefixId == -1 ? null : stringPool[prefixId];
 
                         string uriString = stringPool[input.ReadInt32()];
-                        Uri uri = ParseNamespaceUri(uriString);
-                        
+                        var uri = ParseNamespaceUri(uriString);
+
                         queuedNamespaces.Add(new QueuedNamespace(prefix, uri));
                         break;
                     case ResourceType.XmlEndNamespace:
@@ -113,8 +113,8 @@ namespace QuestPatcher.Axml
                         {
                             throw new AxmlParseException("Expected 0x00140014");
                         }
-                        
-                        AxmlElement childElement = new AxmlElement(elementName, namespaceId == -1 ? null : ParseNamespaceUri(stringPool[namespaceId]), currentLineNumber);
+
+                        var childElement = new AxmlElement(elementName, namespaceId == -1 ? null : ParseNamespaceUri(stringPool[namespaceId]), currentLineNumber);
 
                         int numAttributes = input.ReadInt16();
                         int idAttributeIndex = input.ReadInt16() - 1;
@@ -123,13 +123,13 @@ namespace QuestPatcher.Axml
                         for (int i = 0; i < numAttributes; i++)
                         {
                             int attrNamespaceId = input.ReadInt32();
-                            Uri? attrNamespace = attrNamespaceId == -1 ? null : ParseNamespaceUri(stringPool[attrNamespaceId]);
+                            var attrNamespace = attrNamespaceId == -1 ? null : ParseNamespaceUri(stringPool[attrNamespaceId]);
 
                             int attrNameAndResourceIdIndex = input.ReadInt32();
 
                             string attrName = stringPool[attrNameAndResourceIdIndex];
                             int? attrResourceId = null;
-                            
+
                             if (resourceMap == null)
                             {
                                 throw new AxmlParseException(
@@ -141,7 +141,7 @@ namespace QuestPatcher.Axml
                             }
 
                             int attrRawStringIndex = input.ReadInt32();
-                            AttributeType attrType = (AttributeType) (input.ReadInt32() >> 24); // The first byte contains the actual type, so we shift this to the right
+                            var attrType = (AttributeType) (input.ReadInt32() >> 24); // The first byte contains the actual type, so we shift this to the right
                             int attrRawValue = input.ReadInt32();
 
                             object value;
@@ -149,20 +149,23 @@ namespace QuestPatcher.Axml
                             {
                                 value = new WrappedValue(WrappedValueType.Id, stringPool[attrRawStringIndex], attrRawValue);
                             }
-                            else if(i == classAttributeIndex)
+                            else if (i == classAttributeIndex)
                             {
                                 value = new WrappedValue(WrappedValueType.Class, stringPool[attrRawStringIndex], attrRawValue);
-                            }   else if (i == styleAttributeIndex)
+                            }
+                            else if (i == styleAttributeIndex)
                             {
                                 value = new WrappedValue(WrappedValueType.Style, stringPool[attrRawStringIndex], attrRawValue);
-                            }   else if (attrType == AttributeType.Reference)
+                            }
+                            else if (attrType == AttributeType.Reference)
                             {
                                 value = new WrappedValue(WrappedValueType.Reference, null, attrRawValue);
                             }
-                            else if(attrType == AttributeType.String)
+                            else if (attrType == AttributeType.String)
                             {
                                 value = stringPool[attrRawValue];
-                            }   else if (attrType == AttributeType.Boolean)
+                            }
+                            else if (attrType == AttributeType.Boolean)
                             {
                                 value = attrRawValue != 0;
                             }
@@ -175,7 +178,7 @@ namespace QuestPatcher.Axml
                         }
 
                         // Add the namespaces of any parent StartNamespace resources to this element
-                        foreach (QueuedNamespace ns in queuedNamespaces)
+                        foreach (var ns in queuedNamespaces)
                         {
                             if (ns.Prefix == null) // No prefix means that this is a default namespace
                             {
@@ -203,8 +206,8 @@ namespace QuestPatcher.Axml
                         }
                         // Set this element as the bottom-most element
                         elementStack.Push(childElement);
-                        
-                        
+
+
                         break;
                     case ResourceType.XmlEndElement:
                         int lineNumber = input.ReadInt32();
@@ -218,7 +221,7 @@ namespace QuestPatcher.Axml
                         }
 
                         input.ReadInt32(); // TODO: ID of "text" value. Currently unused
-                        
+
                         // TODO: Unused bytes. (figure out what they are)
                         input.ReadInt32();
                         input.ReadInt32();

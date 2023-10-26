@@ -1,13 +1,12 @@
-﻿using QuestPatcher.Core.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using QuestPatcher.Core.Models;
 
 namespace QuestPatcher.Core.Modding
 {
@@ -55,7 +54,7 @@ namespace QuestPatcher.Core.Modding
 
             // Load the file copy paths from resources
             // I put them in there to allow for easier changing, although it makes things a little messier in here
-            using Stream? pathsStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.file-copy-paths.json");
+            using var pathsStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("QuestPatcher.Core.Resources.file-copy-paths.json");
             Debug.Assert(pathsStream != null);
 
             var serializerOptions = new JsonSerializerOptions

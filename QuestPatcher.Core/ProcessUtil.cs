@@ -13,7 +13,7 @@ namespace QuestPatcher.Core
         /// All lines the process wrote to stdout
         /// </summary>
         public string StandardOutput { get; set; }
-        
+
         /// <summary>
         /// All lines the process wrote to stderr
         /// </summary>
@@ -23,7 +23,7 @@ namespace QuestPatcher.Core
         /// Returns the error output added to the end of the standard output.
         /// </summary>
         public string AllOutput => StandardOutput + ErrorOutput;
-        
+
         /// <summary>
         /// The exit code of the process
         /// </summary>
@@ -43,7 +43,7 @@ namespace QuestPatcher.Core
         {
             Process process = new();
 
-            ProcessStartInfo startInfo = process.StartInfo;
+            var startInfo = process.StartInfo;
             startInfo.FileName = fileName;
             startInfo.Arguments = arguments;
             startInfo.RedirectStandardOutput = true;

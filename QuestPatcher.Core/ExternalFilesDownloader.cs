@@ -1,19 +1,19 @@
-﻿using ICSharpCode.SharpZipLib.Tar;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
-using Serilog;
-using System.Net.Http;
-using System.Text.Json.Serialization;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Tar;
+using Serilog;
 
 namespace QuestPatcher.Core
 {
@@ -277,11 +277,11 @@ namespace QuestPatcher.Core
 
             var downloadUrls = new Dictionary<ExternalFileType, List<string>>();
 
-            SemanticVersioning.Version qpVersion = VersionUtil.QuestPatcherVersion;
+            var qpVersion = VersionUtil.QuestPatcherVersion;
             // filter the compatible sets  
             downloadSets = downloadSets.Where(set => set.SupportedVersions.IsSatisfied(qpVersion));
             // Download sets are in order, highest priority comes first
-            foreach (DownloadSet downloadSet in downloadSets)
+            foreach (var downloadSet in downloadSets)
             {
                 foreach (var (type, specificValue) in downloadSet.Downloads)
                 {
@@ -317,8 +317,8 @@ namespace QuestPatcher.Core
         /// <exception cref="NullReferenceException">If the resource is missing</exception>
         private List<DownloadSet> LoadDownloadSetsFromResources()
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            using Stream? stream = assembly.GetManifestResourceStream("QuestPatcher.Core.Resources.file-downloads.json");
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("QuestPatcher.Core.Resources.file-downloads.json");
             if (stream == null)
             {
                 throw new NullReferenceException("Could not find file-downloads.json in resources");
@@ -360,7 +360,7 @@ namespace QuestPatcher.Core
             }
             Log.Information("Downloading {Name}", fileInfo.Name);
             Log.Verbose("Urls: {Urls}", downloadUrls);
-            foreach (var url in downloadUrls)
+            foreach (string url in downloadUrls)
             {
                 if (await TryDownloadFile(fileType, fileInfo, url, saveLocation))
                 {
@@ -373,7 +373,7 @@ namespace QuestPatcher.Core
 
         private async Task<bool> TryDownloadFile(ExternalFileType fileType, FileInfo fileInfo, string downloadUrl, string saveLocation)
         {
-            var succeeded = false;
+            bool succeeded = false;
             try
             {
                 Log.Debug($"Download URL: {downloadUrl}");
@@ -397,7 +397,7 @@ namespace QuestPatcher.Core
                         {
                             GZipStream zipStream = new(stream, CompressionMode.Decompress);
 
-                            TarArchive archive = TarArchive.CreateInputTarArchive(zipStream, Encoding.UTF8);
+                            var archive = TarArchive.CreateInputTarArchive(zipStream, Encoding.UTF8);
                             archive.SetKeepOldFiles(false);
                             archive.ExtractContents(extractFolder, false);
                         }
@@ -509,7 +509,7 @@ namespace QuestPatcher.Core
         /// <exception cref="FileDownloadFailedException">If downloading the file failed with every known URL</exception>
         public async Task<string> GetFileLocation(ExternalFileType fileType)
         {
-            FileInfo fileInfo = _fileTypes[fileType];
+            var fileInfo = _fileTypes[fileType];
 
             // The save location is relative to the extract folder if requires extraction, otherwise it's just relative to the tools folder
             string saveLocation;

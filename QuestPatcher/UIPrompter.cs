@@ -1,11 +1,11 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Avalonia.Controls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Services;
 using QuestPatcher.Views;
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace QuestPatcher
 {

@@ -175,7 +175,7 @@ namespace QuestPatcher.Zip
         public uint GetCrc32(string fileName)
         {
             fileName = NormaliseFileName(fileName);
-            if(!ContainsFile(fileName))
+            if (!ContainsFile(fileName))
             {
                 throw new ArgumentException($"No file with name {fileName} exists within the ZIP");
             }
@@ -259,17 +259,17 @@ namespace QuestPatcher.Zip
 
             // Move to a position after the last ZIP entry
             _stream.Position = _postFilesOffset;
-            var localHeaderOffset = _stream.Position;
+            long localHeaderOffset = _stream.Position;
 
             var flags = EntryFlags.UsesUtf8;
             byte[] fileNameBytes = flags.GetStringEncoding().GetBytes(fileName);
 
             // Move past where the local file header for this entry will go.
             _stream.Position += 30 + fileNameBytes.Length;
-            var dataOffset = _stream.Position;
+            long dataOffset = _stream.Position;
 
 
-            var uncompressedSize = sourceData.Length;
+            long uncompressedSize = sourceData.Length;
             var compressionMethod = compressionLevel == null ? CompressionMethod.Store : CompressionMethod.Deflate;
 
             // Copy the data into the entry, calculating the Crc32 at the same time.
@@ -285,12 +285,14 @@ namespace QuestPatcher.Zip
                 // However, this is likely unnecessary, as this is only important for large (e.g. media) files to allow them to be read with mmap.
                 crc32 = sourceData.CopyToCrc32(_stream);
             }
-            var postEntryDataOffset = _stream.Position;
-            var compressedSize = postEntryDataOffset - dataOffset;
+            long postEntryDataOffset = _stream.Position;
+            long compressedSize = postEntryDataOffset - dataOffset;
 
 
-            var lastModified = new Timestamp();
-            lastModified.DateTime = DateTime.Now; // ZIP files use the local timestamp
+            var lastModified = new Timestamp
+            {
+                DateTime = DateTime.Now // ZIP files use the local timestamp
+            };
             var localHeader = new LocalFileHeader()
             {
                 VersionNeededToExtract = MaxSupportedVersion,

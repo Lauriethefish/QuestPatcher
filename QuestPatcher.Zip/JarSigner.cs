@@ -29,7 +29,7 @@ namespace QuestPatcher.Zip
 
             using Stream manifestFile = new MemoryStream();
             using Stream sigFileBody = new MemoryStream();
-            using (StreamWriter manifestWriter = OpenStreamWriter(manifestFile))
+            using (var manifestWriter = OpenStreamWriter(manifestFile))
             {
                 manifestWriter.WriteLine("Manifest-Version: 1.0");
                 manifestWriter.WriteLine("Created-By: QuestPatcher");
@@ -37,7 +37,7 @@ namespace QuestPatcher.Zip
             }
 
             // Write the digest for each APK entry
-            foreach (var fileName in apk.Entries.ToList())
+            foreach (string? fileName in apk.Entries.ToList())
             {
                 if (fileName.StartsWith("META-INF"))
                 {
@@ -59,7 +59,7 @@ namespace QuestPatcher.Zip
 
             // Write the signature information
             using var signatureFile = new MemoryStream();
-            using (StreamWriter signatureWriter = OpenStreamWriter(signatureFile))
+            using (var signatureWriter = OpenStreamWriter(signatureFile))
             {
                 signatureWriter.WriteLine("Signature-Version: 1.0");
                 signatureWriter.WriteLine($"SHA-256-Digest-Manifest: {Convert.ToBase64String(manifestHash)}");
@@ -88,7 +88,7 @@ namespace QuestPatcher.Zip
         {
             string hash;
             if (existingHashes != null &&
-               existingHashes.TryGetValue(fileName, out var prePatchHash))
+               existingHashes.TryGetValue(fileName, out string? prePatchHash))
             {
                 hash = prePatchHash;
             }
@@ -100,7 +100,7 @@ namespace QuestPatcher.Zip
 
             // First write the digest of the file to a section of the manifest file
             using MemoryStream sectStream = new();
-            using (StreamWriter sectWriter = OpenStreamWriter(sectStream))
+            using (var sectWriter = OpenStreamWriter(sectStream))
             {
                 sectWriter.WriteLine($"Name: {fileName}");
                 sectWriter.WriteLine($"SHA-256-Digest: {hash}");
@@ -110,7 +110,7 @@ namespace QuestPatcher.Zip
             // Then write the hash for the section of the manifest file to the signature file
             sectStream.Position = 0;
             string sectHash = Convert.ToBase64String(sha.ComputeHash(sectStream));
-            using (StreamWriter signatureWriter = OpenStreamWriter(signatureStream))
+            using (var signatureWriter = OpenStreamWriter(signatureStream))
             {
                 signatureWriter.WriteLine($"Name: {fileName}");
                 signatureWriter.WriteLine($"SHA-256-Digest: {sectHash}");

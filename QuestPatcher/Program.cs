@@ -1,7 +1,6 @@
+using System;
 using Avalonia;
 using Avalonia.ReactiveUI;
-using System;
-using System.Threading;
 
 namespace QuestPatcher
 {

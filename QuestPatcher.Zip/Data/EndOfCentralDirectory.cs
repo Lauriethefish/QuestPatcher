@@ -47,7 +47,7 @@
 
         public static EndOfCentralDirectory Read(BinaryReader reader)
         {
-            if(reader.ReadUInt32() != Header)
+            if (reader.ReadUInt32() != Header)
             {
                 throw new FormatException("Invalid EndOfCentralDirectory signature");
             }
@@ -62,16 +62,16 @@
                 CentralDirectoryOffset = reader.ReadUInt32(),
             };
 
-            if(inst.CentralDirectoryRecords != inst.CentralDirectoryRecordsOnDisk || inst.NumberOfThisDisk != 0 || inst.StartOfCentralDirectoryDisk != 0)
+            if (inst.CentralDirectoryRecords != inst.CentralDirectoryRecordsOnDisk || inst.NumberOfThisDisk != 0 || inst.StartOfCentralDirectoryDisk != 0)
             {
                 throw new ZipFormatException("ZIP files split across multiple disks are not supported");
             }
 
-            var commentLength = reader.ReadUInt16();
+            ushort commentLength = reader.ReadUInt16();
 
             // NB: At this point we have no general flags short, so we don't know what the encoding is for the comment.
             // For this reason, we will keep it as a byte array.
-            if(commentLength != 0)
+            if (commentLength != 0)
             {
                 inst.Comment = reader.ReadBytes(commentLength);
             }
@@ -89,9 +89,9 @@
             writer.Write(CentralDirectorySize);
             writer.Write(CentralDirectoryOffset);
 
-            if(Comment != null)
+            if (Comment != null)
             {
-                if(Comment.Length > ushort.MaxValue)
+                if (Comment.Length > ushort.MaxValue)
                 {
                     throw new ZipDataException($"End of central directory comment too long: max length: {ushort.MaxValue}, got {Comment.Length}");
                 }

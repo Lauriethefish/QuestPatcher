@@ -106,12 +106,12 @@
                 UncompressedSize = reader.ReadUInt32(),
             };
 
-            var fileNameLength = reader.ReadUInt16();
-            var extraFieldLength = reader.ReadUInt16();
-            var commentLength = reader.ReadUInt16();
+            ushort fileNameLength = reader.ReadUInt16();
+            ushort extraFieldLength = reader.ReadUInt16();
+            ushort commentLength = reader.ReadUInt16();
 
             inst.DiskNumberStart = reader.ReadUInt16();
-            if(inst.DiskNumberStart != 0)
+            if (inst.DiskNumberStart != 0)
             {
                 throw new ZipFormatException("ZIP files split across multiple disks are not supported");
             }
@@ -130,7 +130,7 @@
                 inst.ExtraField = reader.ReadBytes(extraFieldLength);
             }
 
-            if(commentLength != 0)
+            if (commentLength != 0)
             {
                 inst.FileComment = reader.ReadZipString(fileNameLength, inst.Flags);
             }
@@ -183,7 +183,7 @@
             }
 
             byte[]? fileCommentBytes = null;
-            if(FileComment != null)
+            if (FileComment != null)
             {
                 fileCommentBytes = Flags.GetStringEncoding().GetBytes(FileComment);
 

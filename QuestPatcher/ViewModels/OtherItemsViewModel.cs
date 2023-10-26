@@ -1,14 +1,14 @@
-﻿using QuestPatcher.Core.Modding;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using ReactiveUI;
-using Avalonia.Controls;
-using QuestPatcher.Views;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using QuestPatcher.Core.Modding;
 using QuestPatcher.Models;
-using System.Collections.ObjectModel;
+using QuestPatcher.Views;
+using ReactiveUI;
 using Serilog;
 
 namespace QuestPatcher.ViewModels
@@ -55,7 +55,8 @@ namespace QuestPatcher.ViewModels
             _browseManager = browseManager;
 
             // Whenever the App ID changes, reset the selected file copy to the first in this list
-            filesManager.PropertyChanged += (_, args) => {
+            filesManager.PropertyChanged += (_, args) =>
+            {
                 if (args.PropertyName == nameof(filesManager.CurrentDestinations)) { OnCurrentDestinationsChanged(); }
             };
 
@@ -82,11 +83,11 @@ namespace QuestPatcher.ViewModels
                 SelectedFileCopy = null;
             }
         }
-        
+
 
         private async void OnSelectedFileCopyChanged()
         {
-            if(SelectedFileCopy == null) { return; }
+            if (SelectedFileCopy == null) { return; }
             if (!SelectedFileCopy.HasLoaded && Locker.IsFree)
             {
                 await RefreshFiles();
@@ -95,7 +96,7 @@ namespace QuestPatcher.ViewModels
 
         public async Task RefreshFiles()
         {
-            if(SelectedFileCopy == null) { return; }
+            if (SelectedFileCopy == null) { return; }
 
             try
             {
@@ -116,7 +117,7 @@ namespace QuestPatcher.ViewModels
 
         public async Task DeleteFiles(params string[] filePaths)
         {
-            if(!Locker.IsFree) { return; }
+            if (!Locker.IsFree) { return; }
 
             Locker.StartOperation();
             try

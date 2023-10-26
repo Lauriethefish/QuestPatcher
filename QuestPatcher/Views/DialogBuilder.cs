@@ -1,10 +1,8 @@
-﻿using Avalonia.Controls;
-using Avalonia.Media;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls;
+using Avalonia.Media;
 
 namespace QuestPatcher.Views
 {
@@ -44,7 +42,7 @@ namespace QuestPatcher.Views
         /// Used for the very important text.
         /// </summary>
         private static readonly Random Random = new();
-        
+
         /// <summary>
         /// Title of the dialogue window
         /// </summary>
@@ -82,7 +80,7 @@ namespace QuestPatcher.Views
         private string? _stackTrace;
 
         private IEnumerable<ButtonInfo>? _extraButtons;
-        
+
         /// <summary>
         /// Will display the stack trace of the exception within the dialogue
         /// </summary>
@@ -119,16 +117,16 @@ namespace QuestPatcher.Views
         public Task<bool> OpenDialogue(Window? parentWindow = null, WindowStartupLocation showLocation = WindowStartupLocation.CenterOwner)
         {
             MessageDialog dialogue = new();
-            TextBlock messageText = dialogue.FindControl<TextBlock>("MessageText");
+            var messageText = dialogue.FindControl<TextBlock>("MessageText");
             messageText.Text = Text ?? "Placeholder Text";
 
-            TextBlock titleText = dialogue.FindControl<TextBlock>("TitleText");
+            var titleText = dialogue.FindControl<TextBlock>("TitleText");
             titleText.Text = Title ?? "Placeholder Text";
 
             dialogue.Title = Title ?? "Placeholder Text";
 
-            TextBox stackTraceText = dialogue.FindControl<TextBox>("StackTraceText");
-            if(_stackTrace == null)
+            var stackTraceText = dialogue.FindControl<TextBox>("StackTraceText");
+            if (_stackTrace == null)
             {
                 stackTraceText.IsVisible = false;
             }
@@ -137,7 +135,7 @@ namespace QuestPatcher.Views
                 stackTraceText.Text = _stackTrace;
             }
 
-            StackPanel buttonsPanel = dialogue.FindControl<StackPanel>("ButtonsPanel");
+            var buttonsPanel = dialogue.FindControl<StackPanel>("ButtonsPanel");
             // Add the extra buttons if they have been set
             List<ButtonInfo> allButtons = _extraButtons != null ? new(_extraButtons) : new();
 
@@ -146,10 +144,13 @@ namespace QuestPatcher.Views
             if (!HideOkButton) { allButtons.Insert(0, OkButton); }
 
             TaskCompletionSource<bool> completionSource = new();
-            foreach(ButtonInfo buttonInfo in allButtons) {
-                Button button = new();
-                button.Content = buttonInfo.Text;
-                if(buttonInfo.Color != null)
+            foreach (var buttonInfo in allButtons)
+            {
+                Button button = new()
+                {
+                    Content = buttonInfo.Text
+                };
+                if (buttonInfo.Color != null)
                 {
                     button.Background = buttonInfo.Color;
                 }
@@ -159,7 +160,7 @@ namespace QuestPatcher.Views
                     buttonInfo.OnClick?.Invoke();
 
                     // Only buttons which close the dialogue complete the task
-                    if(buttonInfo.CloseDialogue)
+                    if (buttonInfo.CloseDialogue)
                     {
                         completionSource.SetResult(buttonInfo.ReturnValue);
                         dialogue.Close();
@@ -172,22 +173,24 @@ namespace QuestPatcher.Views
             }
 
             // Make sure to only show the normal button pretty rarely
-            Button normalButton = dialogue.FindControl<Button>("NormalButton");
+            var normalButton = dialogue.FindControl<Button>("NormalButton");
             if (Random.Next(20) == 0)
             {
                 normalButton.IsVisible = true;
                 normalButton.Click += (_, _) =>
                 {
                     // Show the important facts window
-                    Window factsWindow = new FactsWindow();
-                    factsWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                    Window factsWindow = new FactsWindow
+                    {
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner
+                    };
                     factsWindow.ShowDialog(dialogue);
                 };
             }
 
-            dialogue.Closed += (_, _) => 
+            dialogue.Closed += (_, _) =>
             {
-                if(!completionSource.Task.IsCompleted)
+                if (!completionSource.Task.IsCompleted)
                 {
                     completionSource.SetResult(false);
                 }
@@ -202,7 +205,7 @@ namespace QuestPatcher.Views
             {
                 dialogue.Show();
             }
-            
+
             // This task will complete when a button is clicked that is set to complete the task
             return completionSource.Task;
         }

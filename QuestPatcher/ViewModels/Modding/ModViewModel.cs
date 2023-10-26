@@ -1,13 +1,13 @@
-﻿using Avalonia.Controls;
-using Avalonia.Media.Imaging;
-using ReactiveUI;
-using System;
-using System.Threading.Tasks;
-using QuestPatcher.Views;
-using QuestPatcher.Models;
-using QuestPatcher.Core.Modding;
+﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Media.Imaging;
 using QuestPatcher.Core;
+using QuestPatcher.Core.Modding;
+using QuestPatcher.Models;
+using QuestPatcher.Views;
+using ReactiveUI;
 
 namespace QuestPatcher.ViewModels.Modding
 {

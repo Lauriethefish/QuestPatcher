@@ -23,14 +23,14 @@
         /// <param name="offset">Offset within the array to start reading from</param>
         /// <param name="length">Number of bytes of data to read</param>
         public void Update(byte[] data, int offset, int length)
-        { 
-            for(int addr = offset; addr < offset + length; addr++)
+        {
+            for (int addr = offset; addr < offset + length; addr++)
             {
                 _crc ^= data[addr];
 
-                for(int i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                 {
-                    if((_crc & 1) == 1)
+                    if ((_crc & 1) == 1)
                     {
                         _crc = (_crc >> 1) ^ ZipCrcPolynomial;
                     }

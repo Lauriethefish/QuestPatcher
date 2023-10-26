@@ -1,15 +1,15 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using QuestPatcher.Core;
+using QuestPatcher.Core.Models;
 using QuestPatcher.Models;
 using QuestPatcher.Services;
 using QuestPatcher.Views;
-using System;
-using System.Diagnostics;
-using System.IO;
 using ReactiveUI;
-using QuestPatcher.Core;
-using QuestPatcher.Core.Models;
 using Serilog;
-using System.Threading.Tasks;
 
 namespace QuestPatcher.ViewModels
 {

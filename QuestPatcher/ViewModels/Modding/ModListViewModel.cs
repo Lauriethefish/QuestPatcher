@@ -1,10 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
+using Avalonia.Controls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Models;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
 
 namespace QuestPatcher.ViewModels.Modding
 {

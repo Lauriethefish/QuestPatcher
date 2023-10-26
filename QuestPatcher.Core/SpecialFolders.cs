@@ -35,7 +35,7 @@ namespace QuestPatcher.Core
         public string StagingArea { get; }
 
         private ulong _currentStagingNumber = 0;
-        
+
         /// <summary>
         /// Creates and sets all special folders
         /// </summary>
@@ -43,7 +43,7 @@ namespace QuestPatcher.Core
         {
             // Make sure to create the AppData folder if it does not exist
             string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create);
-            
+
             DataFolder = Path.Combine(appDataPath, "QuestPatcher");
             Directory.CreateDirectory(DataFolder);
 
@@ -56,11 +56,11 @@ namespace QuestPatcher.Core
             TempFolder = Path.Combine(Path.GetTempPath(), "QuestPatcher");
             PatchingFolder = Path.Combine(TempFolder, "patching");
             StagingArea = Path.Combine(TempFolder, "stagingArea");
-            
+
             PatchingFolder = Path.Combine(TempFolder, "patching");
             StagingArea = Path.Combine(TempFolder, "stagingArea");
-            
-            if(Directory.Exists(TempFolder)) // Sometimes windows fails to delete this upon closing, and we have to do it ourselves
+
+            if (Directory.Exists(TempFolder)) // Sometimes windows fails to delete this upon closing, and we have to do it ourselves
             {
                 Directory.Delete(TempFolder, true);
             }
@@ -68,7 +68,7 @@ namespace QuestPatcher.Core
             Directory.CreateDirectory(PatchingFolder);
             Directory.CreateDirectory(StagingArea);
         }
-        
+
         /// <summary>
         /// Finds a path to write a file to before using ADB to push it
         /// </summary>

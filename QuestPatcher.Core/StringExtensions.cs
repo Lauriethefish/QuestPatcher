@@ -23,7 +23,7 @@ public static class StringExtensions
     {
         return $"\"{Regex.Replace(arg, @"(\\+)$", @"$1$1")}\"";
     }
-    
+
     /// <summary>
     /// Replaces all of the backslashes in <paramref name="arg"/> with forward slashes.
     /// </summary>

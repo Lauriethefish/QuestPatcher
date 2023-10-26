@@ -9,20 +9,22 @@
 
         public ushort DateShort { get; set; }
 
-        public DateTime? DateTime { 
-            get  {
-                if(TimeShort == 0 && DateShort == 0)
+        public DateTime? DateTime
+        {
+            get
+            {
+                if (TimeShort == 0 && DateShort == 0)
                 {
                     return null;
                 }
 
-                var second = (TimeShort & 0b11111) << 1;
-                var minute = (TimeShort >> 5) & 0b111111;
-                var hour = (TimeShort >> 11) & 0b11111;
+                int second = (TimeShort & 0b11111) << 1;
+                int minute = (TimeShort >> 5) & 0b111111;
+                int hour = (TimeShort >> 11) & 0b11111;
 
-                var day = DateShort & 0b11111;
-                var month = (DateShort >> 5) & 0b1111;
-                var year = (DateShort >> 9) + 1980;
+                int day = DateShort & 0b11111;
+                int month = (DateShort >> 5) & 0b1111;
+                int year = (DateShort >> 9) + 1980;
 
                 var dateTime = new DateTime(year, month, day);
 
@@ -33,7 +35,8 @@
 
                 return dateTime;
             }
-            set {
+            set
+            {
                 if (value == null)
                 {
                     TimeShort = 0;
@@ -41,7 +44,7 @@
                     return;
                 }
 
-                var time = 0;
+                int time = 0;
                 var dateTime = (DateTime) value;
 
                 time |= dateTime.Hour;
@@ -50,8 +53,8 @@
                 time <<= 5;
                 time |= (dateTime.Second >> 1);
 
-                var date = 0;
-                var correctedYear = dateTime.Year - 1980;
+                int date = 0;
+                int correctedYear = dateTime.Year - 1980;
 
                 if (correctedYear > 127)
                 {

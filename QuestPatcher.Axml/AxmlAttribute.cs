@@ -93,7 +93,7 @@ namespace QuestPatcher.Axml
 
         internal void PreparePooling(SavingContext ctx)
         {
-            if(ResourceId != null)
+            if (ResourceId != null)
             {
                 ctx.ResourceMap.Add(Name, (int) ResourceId);
             }
@@ -101,8 +101,8 @@ namespace QuestPatcher.Axml
             {
                 ctx.StringPool.Add(Name);
             }
-            
-            if(Namespace != null)
+
+            if (Namespace != null)
             {
                 ctx.StringPool.Add(Namespace.ToString());
             }
@@ -113,8 +113,8 @@ namespace QuestPatcher.Axml
                 {
                     ctx.StringPool.Add(wrappedValue.RawValue);
                 }
-            }    
-            else if(Value is string asString)
+            }
+            else if (Value is string asString)
             {
                 ctx.StringPool.Add(asString);
             }
@@ -124,7 +124,7 @@ namespace QuestPatcher.Axml
         {
             ctx.Writer.Write(Namespace == null ? -1 : ctx.StringPool.GetIndex(Namespace.ToString()));
 
-            if(ResourceId != null)
+            if (ResourceId != null)
             {
                 int resourceIdIdx = ctx.ResourceMap.GetIndex(Name, (int) ResourceId);
                 ctx.Writer.Write(resourceIdIdx);
@@ -133,9 +133,9 @@ namespace QuestPatcher.Axml
             {
                 ctx.Writer.Write(ctx.StringPool.GetIndex(Name));
             }
-            
+
             int rawStringIndex = -1;
-            int type = _valueType == null ? -1 : ((int)_valueType << 24) | 0x000008;
+            int type = _valueType == null ? -1 : ((int) _valueType << 24) | 0x000008;
             int rawValue;
             if (Value is WrappedValue wrappedValue)
             {
@@ -156,7 +156,7 @@ namespace QuestPatcher.Axml
             }
             else
             {
-                rawValue = (int)Value;
+                rawValue = (int) Value;
             }
 
             ctx.Writer.Write(rawStringIndex);

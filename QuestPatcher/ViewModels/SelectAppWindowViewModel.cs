@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
-using ReactiveUI;
 using Avalonia.Controls;
+using ReactiveUI;
 
 namespace QuestPatcher.ViewModels
 {
     public class SelectAppWindowViewModel : ViewModelBase
     {
         public List<string>? InstalledApps
-        { 
+        {
             get => _installedApps;
             set
             {
-                if(value != _installedApps)
+                if (value != _installedApps)
                 {
                     _installedApps = value;
                     this.RaisePropertyChanged();

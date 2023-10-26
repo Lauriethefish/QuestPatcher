@@ -1,8 +1,8 @@
-﻿using System.Text;
-using System.Security.Cryptography;
-using QuestPatcher.Zip.Data;
-using Org.BouncyCastle.X509;
+﻿using System.Security.Cryptography;
+using System.Text;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.X509;
+using QuestPatcher.Zip.Data;
 
 namespace QuestPatcher.Zip
 {
@@ -23,11 +23,11 @@ namespace QuestPatcher.Zip
         internal static void SignAndCompleteZipFile(ICollection<CentralDirectoryFileHeader> centralDirectoryRecords, Stream apkStream, X509Certificate certificate, AsymmetricKeyParameter privateKey)
         {
             // The signature block is placed after the data of the last ZIP entry
-            var sigBlockPosition = apkStream.Position;
+            long sigBlockPosition = apkStream.Position;
 
             using var cdStream = new MemoryStream();
             using var cdWriter = new BinaryWriter(cdStream);
-            foreach(var record in centralDirectoryRecords)
+            foreach (var record in centralDirectoryRecords)
             {
                 record.Write(cdWriter);
             }
@@ -36,7 +36,7 @@ namespace QuestPatcher.Zip
             {
                 throw new ZipDataException($"Too many central directory records. Max Length {ushort.MaxValue}, got {centralDirectoryRecords.Count}");
             }
-            var cdRecords = (ushort) centralDirectoryRecords.Count;
+            ushort cdRecords = (ushort) centralDirectoryRecords.Count;
 
             var eocd = new EndOfCentralDirectory()
             {
@@ -56,18 +56,18 @@ namespace QuestPatcher.Zip
             eocd.Write(eocdWriter);
 
             // Write the signature block
-            var apkDigest = CalculateApkDigest(eocdStream, cdStream, apkStream, apkStream.Position);
+            byte[] apkDigest = CalculateApkDigest(eocdStream, cdStream, apkStream, apkStream.Position);
             WriteSignature(apkStream, apkDigest, certificate, privateKey);
 
             // Save the central directory
-            if(apkStream.Position > uint.MaxValue)
+            if (apkStream.Position > uint.MaxValue)
             {
                 throw new ZipDataException("ZIP file too large to save central directory");
             }
             eocd.CentralDirectoryOffset = (uint) apkStream.Position;
 
             var apkWriter = new BinaryWriter(apkStream);
-            foreach(var record in centralDirectoryRecords)
+            foreach (var record in centralDirectoryRecords)
             {
                 record.Write(apkWriter);
             }
@@ -105,12 +105,12 @@ namespace QuestPatcher.Zip
             byte[] publicKeyData = certificate.CertificateStructure.SubjectPublicKeyInfo.GetDerEncoded();
 
             // Calculate the total length of the signer section
-            var signerLength = 4 + signedData.Length + 4 + 4 + 4 + 4 + signature.Length + 4 + publicKeyData.Length;
+            int signerLength = 4 + signedData.Length + 4 + 4 + 4 + 4 + signature.Length + 4 + publicKeyData.Length;
 
             // Calculate the total length of the signing block
-            var v2SignatureValueLength = signerLength + 4 + 4;
-            var v2SignaturePairLength = 4 + v2SignatureValueLength;
-            var signingBlockLength = 8 + v2SignaturePairLength + 8 + 16;
+            int v2SignatureValueLength = signerLength + 4 + 4;
+            int v2SignaturePairLength = 4 + v2SignatureValueLength;
+            int signingBlockLength = 8 + v2SignaturePairLength + 8 + 16;
 
             // Begin the APK signing block
             using var sigWriter = new BinaryWriter(apkStream, Encoding.ASCII, true);
@@ -164,7 +164,7 @@ namespace QuestPatcher.Zip
         private static uint WriteChunkDigests(long sectionStart, long length, Stream sourceData, BinaryWriter output)
         {
             const int CHUNK_SIZE = 1 << 20;
-            var chunkData = new byte[CHUNK_SIZE];
+            byte[] chunkData = new byte[CHUNK_SIZE];
 
             var chunkMagicStream = new MemoryStream();
             var chunkMagicWriter = new BinaryWriter(chunkMagicStream);
@@ -173,7 +173,7 @@ namespace QuestPatcher.Zip
             long sectionEnd = sectionStart + length;
             sourceData.Position = sectionStart;
             uint chunkCount = 0;
-            for(long i = sectionStart; i < sectionEnd; i += CHUNK_SIZE)
+            for (long i = sectionStart; i < sectionEnd; i += CHUNK_SIZE)
             {
                 int bytesInChunk = (int) Math.Min(sectionEnd - i, CHUNK_SIZE);
 

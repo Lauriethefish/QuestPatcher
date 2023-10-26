@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using System;
+﻿using System;
+using System.Reflection;
 
 namespace QuestPatcher.Core
 {
@@ -15,7 +15,7 @@ namespace QuestPatcher.Core
 
         static VersionUtil()
         {
-            Version? assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
+            var assemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
             if (assemblyVersion == null)
             {
                 throw new NullReferenceException("Assembly version was null, unable to get version of QuestPatcher");

@@ -13,7 +13,7 @@ namespace QuestPatcher.Axml
         /// Set if the string pool in the manifest is UTF-8 instead of UTF-16 (the default)
         /// </summary>
         private const int Utf8Flag = 0x00000100;
-        
+
         /// <summary>
         /// Loads the string pool from the binary data.
         /// Does not current load files.
@@ -25,10 +25,10 @@ namespace QuestPatcher.Axml
             int beginChunkOffset = (int) input.BaseStream.Position - 8;
             int numStrings = input.ReadInt32();
             input.ReadInt32(); // Style offset count, styles are currently unimplemented
-            
+
             int flags = input.ReadInt32();
             bool useUtf8 = (flags & Utf8Flag) != 0;
-            
+
             int stringsOffset = input.ReadInt32();
             input.ReadInt32(); // Style offset count, styles are currently unimplemented
 
@@ -39,9 +39,9 @@ namespace QuestPatcher.Axml
             }
 
             string[] result = new string[numStrings];
-            
+
             int stringsBeginning = beginChunkOffset + stringsOffset;
-            for(int i = 0; i < numStrings; i++)
+            for (int i = 0; i < numStrings; i++)
             {
                 input.BaseStream.Position = stringsBeginning + stringBeginOffsets[i];
 
@@ -51,21 +51,21 @@ namespace QuestPatcher.Axml
                     ReadUtf8Length(input); // Ignored, we just need to get past this varint
                     int statedLength = ReadUtf8Length(input);
 
-                    MemoryStream stringStream = new MemoryStream();
-                    BinaryWriter stringWriter = new BinaryWriter(stringStream);
+                    var stringStream = new MemoryStream();
+                    var stringWriter = new BinaryWriter(stringStream);
                     stringWriter.Write(input.ReadBytes(statedLength));
-                    while(true)
+                    while (true)
                     {
                         byte b = input.ReadByte();
                         if (b == 0)
                         {
                             break;
                         }
-                        
+
                         stringWriter.Write(b);
                     }
 
-                    currentStr =  Encoding.UTF8.GetString(stringStream.ToArray());
+                    currentStr = Encoding.UTF8.GetString(stringStream.ToArray());
                 }
                 else
                 {
@@ -108,20 +108,20 @@ namespace QuestPatcher.Axml
             writer.Write(pool.Length);
             writer.Write(0); // Style count, but we do not implement styles
             writer.Write(0); // We do not use UTF-8 at the moment, UTF-16 is always used instead. If we were using UTF-8, this would be the Utf8Flag.
-            
+
             // This value is the offset from the beginning of the chunk to the strings
             // The initial 7 integers are resource type, chunk length, number of strings (pool length), style count (unused), UTF-8 flag (never set to non-zero), this value and 0 (the last I am unsure about).
             // Then we have 1 integer per item in the pool, as the offset needs to be stored.
             writer.Write(7 * 4 + pool.Length * 4);
             writer.Write(0);
-            
+
             int currentStringPos = 0;
             foreach (string str in pool)
             {
                 writer.Write(currentStringPos);
                 currentStringPos += CalculatePooledStringLength(str);
             }
-            
+
             foreach (string str in pool)
             {
                 WriteUtf16Length(writer, str);
@@ -156,10 +156,11 @@ namespace QuestPatcher.Axml
         private static int ReadUtf16Length(BinaryReader input)
         {
             int length = input.ReadInt16();
-            
-            if (length > 0x7FFF)  { // Second two bytes required
+
+            if (length > 0x7FFF)
+            { // Second two bytes required
                 // Move the previous bytes to the left, and add the second two bytes to the end
-                length = ((length & 0x7FFF) << 8) | input.ReadUInt16(); 
+                length = ((length & 0x7FFF) << 8) | input.ReadUInt16();
             }
             return length;
         }
@@ -171,7 +172,8 @@ namespace QuestPatcher.Axml
         /// <param name="str">String to write the length of</param>
         private static void WriteUtf16Length(BinaryWriter output, string str)
         {
-            if (str.Length > 0x7FFF) {
+            if (str.Length > 0x7FFF)
+            {
                 int x = (str.Length >> 16) | 0x8000;
                 output.Write((byte) x);
                 output.Write((byte) (x >> 8));

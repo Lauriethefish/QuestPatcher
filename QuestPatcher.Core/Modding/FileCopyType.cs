@@ -94,7 +94,7 @@ namespace QuestPatcher.Core.Modding
             {
                 await _debugBridge.CreateDirectory(Path); // Create the destination if it does not exist
 
-                List<string> currentFiles = await _debugBridge.ListDirectoryFiles(Path);
+                var currentFiles = await _debugBridge.ListDirectoryFiles(Path);
                 ExistingFiles.Clear();
                 foreach (string file in currentFiles)
                 {

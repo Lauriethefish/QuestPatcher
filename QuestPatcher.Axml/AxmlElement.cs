@@ -15,7 +15,7 @@ namespace QuestPatcher.Axml
         /// TODO: Automatically set this to a sensible value upon saving?
         /// </summary>
         public int OpeningTextLineNumber { get; set; }
-        
+
         /// <summary>
         /// Axml text line number for the closing tag read from the parser.
         /// </summary>
@@ -70,13 +70,13 @@ namespace QuestPatcher.Axml
         internal void PreparePooling(SavingContext ctx)
         {
             // First we need to write the namespaces declared within this element
-            foreach (KeyValuePair<string, Uri> pair in DeclaredNamespaces)
+            foreach (var pair in DeclaredNamespaces)
             {
                 ctx.StringPool.Add(pair.Key);
                 ctx.StringPool.Add(pair.Value.ToString());
             }
 
-            if(NamespaceUri != null)
+            if (NamespaceUri != null)
             {
                 ctx.StringPool.Add(NamespaceUri.ToString());
             }
@@ -88,12 +88,12 @@ namespace QuestPatcher.Axml
             Attributes.Sort((a, b) =>
             {
                 int resourceIdDiff = (a.ResourceId ?? -1) - (b.ResourceId ?? -1);
-                if(resourceIdDiff != 0)
+                if (resourceIdDiff != 0)
                 {
                     return resourceIdDiff;
                 }
 
-                if(a.Namespace == null)
+                if (a.Namespace == null)
                 {
                     return b.Namespace == null ? 0 : -1;
                 }
@@ -102,13 +102,13 @@ namespace QuestPatcher.Axml
                     return b.Namespace == null ? 1 : String.CompareOrdinal(a.Namespace.ToString(), b.Namespace.ToString());
                 }
             });
-            
-            foreach(AxmlAttribute attribute in Attributes)
+
+            foreach (var attribute in Attributes)
             {
                 attribute.PreparePooling(ctx);
             }
 
-            foreach (AxmlElement element in Children)
+            foreach (var element in Children)
             {
                 element.PreparePooling(ctx);
             }
@@ -117,7 +117,7 @@ namespace QuestPatcher.Axml
         internal void Save(SavingContext ctx)
         {
             // First we need to write the namespaces declared within this element
-            foreach (KeyValuePair<string, Uri> pair in DeclaredNamespaces)
+            foreach (var pair in DeclaredNamespaces)
             {
                 ctx.Writer.WriteChunkHeader(ResourceType.XmlStartNamespace, 16); // Each namespace tag is 3 integers, so 3 * 4 = 12 bytes
                 ctx.Writer.Write(OpeningTextLineNumber);
@@ -139,8 +139,8 @@ namespace QuestPatcher.Axml
             short styleAttributeIndex = -1;
             for (short i = 0; i < Attributes.Count; i++)
             {
-                WrappedValue? wrappedValue = Attributes[i].Value as WrappedValue;
-                if(wrappedValue == null) { continue; }
+                var wrappedValue = Attributes[i].Value as WrappedValue;
+                if (wrappedValue == null) { continue; }
 
                 // Make sure to prevent multiple of these attributes, as this will save incorrectly
                 switch (wrappedValue.Type)
@@ -159,18 +159,18 @@ namespace QuestPatcher.Axml
                         break;
                 }
             }
-            
+
             ctx.Writer.Write((short) Attributes.Count);
             // Stored indices are one above the actual ones
             ctx.Writer.Write((short) (idAttributeIndex + 1));
             ctx.Writer.Write((short) (classAttributeIndex + 1));
             ctx.Writer.Write((short) (styleAttributeIndex + 1));
-            foreach(AxmlAttribute attribute in Attributes)
+            foreach (var attribute in Attributes)
             {
                 attribute.Save(ctx);
             }
 
-            foreach (AxmlElement child in Children)
+            foreach (var child in Children)
             {
                 child.Save(ctx);
             }
@@ -179,9 +179,9 @@ namespace QuestPatcher.Axml
             ctx.Writer.Write(0xFFFFFFFF);
             ctx.Writer.Write(NamespaceUri == null ? -1 : ctx.StringPool.GetIndex(NamespaceUri.ToString()));
             ctx.Writer.Write(ctx.StringPool.GetIndex(Name));
-            
+
             // End the namespaces stated by this element, as we have exited it
-            foreach (KeyValuePair<string, Uri> pair in DeclaredNamespaces.Reverse())
+            foreach (var pair in DeclaredNamespaces.Reverse())
             {
                 ctx.Writer.WriteChunkHeader(ResourceType.XmlEndNamespace, 16); // Each namespace tag is 3 integers, so 3 * 4 = 12 bytes
                 ctx.Writer.Write(ClosingTextLineNumber);

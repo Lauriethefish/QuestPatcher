@@ -10,7 +10,7 @@
         PackageTable = 0x0200,
         TypeSpecTable = 0x0202,
         TypeTable = 0x0201,
-        
+
         Xml = 0x0003,
         XmlResourceMap = 0x0180,
         XmlEndNamespace = 0x0101,

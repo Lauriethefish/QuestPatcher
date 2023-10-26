@@ -1,14 +1,4 @@
-using Avalonia.Controls;
 using QuestPatcher.Core;
-using QuestPatcher.Models;
-using QuestPatcher.Services;
-using QuestPatcher.Views;
-using ReactiveUI;
-using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace QuestPatcher.ViewModels
 {
@@ -16,7 +6,7 @@ namespace QuestPatcher.ViewModels
     {
         public LoadedViewModel LoadedView { get; }
         public LoadingViewModel LoadingView { get; }
-        
+
         public string WindowName { get; }
 
         public QuestPatcherService MainService { get; }

@@ -120,7 +120,7 @@ namespace QuestPatcher.Core.Modding
         {
             string extension = NormalizeFileExtension(Path.GetExtension(path));
 
-            if (_modProviders.TryGetValue(extension, out IModProvider? provider))
+            if (_modProviders.TryGetValue(extension, out var provider))
             {
                 return await provider.LoadFromFile(path);
             }
@@ -147,7 +147,7 @@ namespace QuestPatcher.Core.Modding
             Mods.Clear();
             Libraries.Clear();
             _modConfig = null;
-            foreach (IModProvider provider in _modProviders.Values)
+            foreach (var provider in _modProviders.Values)
             {
                 provider.ClearMods();
             }
@@ -184,7 +184,7 @@ namespace QuestPatcher.Core.Modding
                 try
                 {
                     await using Stream configStream = File.OpenRead(configTemp.Path);
-                    ModConfig? modConfig = await JsonSerializer.DeserializeAsync<ModConfig>(configStream, _configSerializationOptions);
+                    var modConfig = await JsonSerializer.DeserializeAsync<ModConfig>(configStream, _configSerializationOptions);
                     if (modConfig != null)
                     {
                         modConfig.Mods.ForEach(ModLoadedCallback);
@@ -220,7 +220,7 @@ namespace QuestPatcher.Core.Modding
         public async Task UpdateModsStatus()
         {
             Log.Information("Checking if mods are installed");
-            foreach (IModProvider provider in _modProviders.Values)
+            foreach (var provider in _modProviders.Values)
             {
                 await provider.LoadModsStatus();
             }
@@ -278,7 +278,7 @@ namespace QuestPatcher.Core.Modding
             }
             _awaitingConfigSave = true;
         }
-        
+
         /// <summary>
         /// Unregisters a mod with the mod manager.
         /// Should be called whenever a mod is unloaded/deleted by a provider.

@@ -15,15 +15,15 @@ namespace QuestPatcher.Core.Patching
         /// <returns>Stream which can be used to read/write to the entry</returns>
         public static Stream CreateAndOpenEntry(this ZipArchive archive, string entryName)
         {
-            ZipArchiveEntry? existing = archive.GetEntry(entryName);
-            if(existing != null)
+            var existing = archive.GetEntry(entryName);
+            if (existing != null)
             {
                 existing.Delete();
             }
 
             return archive.CreateEntry(entryName).Open();
         }
-        
+
         /// <summary>
         /// Asynchronously copies a file to the archive, overwriting if <code>overwrite</code> is set to <code>true</code>.
         /// </summary>
@@ -39,8 +39,8 @@ namespace QuestPatcher.Core.Patching
             {
                 entryName = entryName.Replace("\\", "/");
             }
-            
-            ZipArchiveEntry? existingEntry = archive.GetEntry(entryName);
+
+            var existingEntry = archive.GetEntry(entryName);
             if (existingEntry != null)
             {
                 if (overwrite)
@@ -55,9 +55,9 @@ namespace QuestPatcher.Core.Patching
             }
 
             // We do not use the built in CreateEntryFromFile method, as it is not async
-            ZipArchiveEntry newEntry = archive.CreateEntry(entryName);
+            var newEntry = archive.CreateEntry(entryName);
             await using Stream fileStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            await using Stream destinationStream = newEntry.Open();
+            await using var destinationStream = newEntry.Open();
             await fileStream.CopyToAsync(destinationStream);
         }
     }

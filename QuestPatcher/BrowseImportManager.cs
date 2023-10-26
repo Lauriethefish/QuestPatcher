@@ -1,16 +1,16 @@
-﻿using Avalonia.Controls;
-using QuestPatcher.Core.Modding;
-using QuestPatcher.Models;
-using QuestPatcher.Views;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Serilog;
+using Avalonia.Controls;
 using QuestPatcher.Core;
+using QuestPatcher.Core.Modding;
+using QuestPatcher.Models;
 using QuestPatcher.Services;
+using QuestPatcher.Views;
+using Serilog;
 
 namespace QuestPatcher
 {
@@ -61,7 +61,7 @@ namespace QuestPatcher
 
         private void AddAllCosmeticFilters(OpenFileDialog dialog)
         {
-            foreach (FileCopyType copyType in _otherFilesManager.CurrentDestinations)
+            foreach (var copyType in _otherFilesManager.CurrentDestinations)
             {
                 dialog.Filters.Add(GetCosmeticFilter(copyType));
             }
@@ -74,7 +74,7 @@ namespace QuestPatcher
         /// <returns>A task that completes when the dialog has closed and the files have been imported</returns>
         public async Task ShowAllItemsBrowse()
         {
-            OpenFileDialog dialog = ConstructDialog();
+            var dialog = ConstructDialog();
 
             // Add a filter for any file type that QuestPatcher supports
             // This includes qmod and all cosmetic/file copy types.
@@ -83,9 +83,9 @@ namespace QuestPatcher
                 Name = "All Allowed Files"
             };
 
-            List<string> allExtensions = allFiles.Extensions;
+            var allExtensions = allFiles.Extensions;
             allExtensions.Add("qmod");
-            foreach (FileCopyType copyType in _otherFilesManager.CurrentDestinations)
+            foreach (var copyType in _otherFilesManager.CurrentDestinations)
             {
                 allExtensions.AddRange(copyType.SupportedExtensions);
             }
@@ -103,7 +103,7 @@ namespace QuestPatcher
         /// <returns>A task that completes when the dialog has closed and the files have been imported</returns>
         public async Task ShowModsBrowse()
         {
-            OpenFileDialog dialog = ConstructDialog();
+            var dialog = ConstructDialog();
             dialog.Filters.Add(_modsFilter);
             await ShowDialogAndHandleResult(dialog);
         }
@@ -115,7 +115,7 @@ namespace QuestPatcher
         /// <returns>A task that completes when the dialog has closed and the files have been imported</returns>
         public async Task ShowFileCopyBrowse(FileCopyType cosmeticType)
         {
-            OpenFileDialog dialog = ConstructDialog();
+            var dialog = ConstructDialog();
             dialog.Filters.Add(GetCosmeticFilter(cosmeticType));
             await ShowDialogAndHandleResult(dialog, cosmeticType);
         }
@@ -209,7 +209,7 @@ namespace QuestPatcher
             // Attempt to import each file, and catch the exceptions if any to display them below
             Dictionary<string, Exception> failedFiles = new();
             int totalProcessed = 0; // We cannot know how many files were enqueued in total, so we keep track of that here
-            while (_currentImportQueue.TryDequeue(out FileImportInfo importInfo))
+            while (_currentImportQueue.TryDequeue(out var importInfo))
             {
                 string path = importInfo.Path;
                 totalProcessed++;
@@ -233,15 +233,15 @@ namespace QuestPatcher
 
             DialogBuilder builder = new()
             {
-                Title = "Import Failed"
+                Title = "Import Failed",
+                HideCancelButton = true
             };
-            builder.HideCancelButton = true;
 
             if (multiple)
             {
                 // Show the exceptions for multiple files in the logs to avoid a giagantic dialog
                 builder.Text = "Multiple files failed to install. Check logs for details about each";
-                foreach (KeyValuePair<string, Exception> pair in failedFiles)
+                foreach (var pair in failedFiles)
                 {
                     Log.Error($"Failed to install {Path.GetFileName(pair.Key)}: {pair.Value.Message}");
                     Log.Debug($"Full error: {pair.Value}");
@@ -251,7 +251,7 @@ namespace QuestPatcher
             {
                 // Display single files with more detail for the user
                 string filePath = failedFiles.Keys.First();
-                Exception exception = failedFiles.Values.First();
+                var exception = failedFiles.Values.First();
 
                 // Don't display the full stack trace for InstallationExceptions, since these are thrown by QP and are not bugs/issues
                 if (exception is InstallationException)
@@ -305,7 +305,7 @@ namespace QuestPatcher
                 if (copyTypes.Count > 1)
                 {
                     // If there are multiple different file copy types for this file, prompt the user to decide what they want to import it as
-                    FileCopyType? chosen = await OpenSelectCopyTypeDialog(copyTypes, path);
+                    var chosen = await OpenSelectCopyTypeDialog(copyTypes, path);
                     if (chosen == null)
                     {
                         Log.Information($"Cancelling file {Path.GetFileName(path)}");
@@ -348,7 +348,7 @@ namespace QuestPatcher
             };
 
             List<ButtonInfo> dialogButtons = new();
-            foreach (FileCopyType copyType in copyTypes)
+            foreach (var copyType in copyTypes)
             {
                 dialogButtons.Add(new ButtonInfo
                 {
@@ -376,7 +376,7 @@ namespace QuestPatcher
         private async Task<bool> TryImportMod(string path)
         {
             // Import the mod file and copy it to the quest
-            IMod? mod = await _modManager.TryParseMod(path);
+            var mod = await _modManager.TryParseMod(path);
             if (mod is null)
             {
                 return false;

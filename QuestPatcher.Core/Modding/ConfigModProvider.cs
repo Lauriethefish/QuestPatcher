@@ -9,7 +9,7 @@ namespace QuestPatcher.Core.Modding
     public abstract class ConfigModProvider : JsonConverter<IMod>, IModProvider
     {
         public abstract string ConfigSaveId { get; }
-       
+
         public abstract string FileExtension { get; }
         public abstract Task<IMod> LoadFromFile(string modPath);
         public abstract Task DeleteMod(IMod mod);

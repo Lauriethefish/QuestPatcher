@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -56,7 +55,7 @@ namespace QuestPatcher.Core
                 File.Delete(location);
             }
 
-            await using FileStream stream = File.Open(location, FileMode.Create);
+            await using var stream = File.Open(location, FileMode.Create);
             using ZipArchive dumpArchive = new(stream, ZipArchiveMode.Update);
 
             try { await SaveQuestPatcherLogs(dumpArchive); }
@@ -102,7 +101,7 @@ namespace QuestPatcher.Core
             {
                 try
                 {
-                    using TempFile tempPath = _specialFolders.GetTempFile();
+                    using var tempPath = _specialFolders.GetTempFile();
                     Log.Information($"Downloading {logPath} to {tempPath} . . .");
                     await _debugBridge.DownloadFile(logPath, tempPath.Path);
                     await CreateLogEntry(dump, tempPath.Path, GameLogsDirectory, Path.GetFileName(logPath));
@@ -121,7 +120,7 @@ namespace QuestPatcher.Core
             {
                 try
                 {
-                    using TempFile tempPath = _specialFolders.GetTempFile();
+                    using var tempPath = _specialFolders.GetTempFile();
                     Log.Information($"Downloading {configPath} to {tempPath} . . .");
                     await _debugBridge.DownloadFile(configPath, tempPath.Path);
                     await dump.AddFileAsync(tempPath.Path, Path.Combine(GameConfigsDirectory, Path.GetFileName(configPath)));
@@ -163,14 +162,14 @@ namespace QuestPatcher.Core
         private async Task SaveInfoFile(ZipArchive dump)
         {
             Log.Information("Saving state/information file . . .");
-            ZipArchiveEntry infoEntry = dump.CreateEntry("status.txt");
-            await using Stream stream = infoEntry.Open();
+            var infoEntry = dump.CreateEntry("status.txt");
+            await using var stream = infoEntry.Open();
             await using StreamWriter writer = new(stream);
 
             await writer.WriteLineAsync("QuestPatcher Information dump");
             await writer.WriteLineAsync("=============================");
 
-            ApkInfo? app = _installManager.InstalledApp;
+            var app = _installManager.InstalledApp;
             if (app != null)
             {
                 await writer.WriteLineAsync(
@@ -183,7 +182,7 @@ namespace QuestPatcher.Core
 
             await writer.WriteLineAsync($"Total loaded mods: {_modManager.AllMods.Count}. {_modManager.AllMods.Count(mod => mod.IsInstalled)} Installed");
 
-            foreach (IMod mod in _modManager.AllMods)
+            foreach (var mod in _modManager.AllMods)
             {
                 string authorText = mod.Porter == null ? $"by {mod.Author}" : $"by {mod.Author} ported by {mod.Porter}";
                 await writer.WriteLineAsync($"{mod.Id} v{mod.Version} {authorText}. Installed: {mod.IsInstalled}. Is Library: {mod.IsLibrary}. Package version: {mod.PackageVersion}");
@@ -210,7 +209,7 @@ namespace QuestPatcher.Core
         {
             await writer.WriteLineAsync($"{name} (contents of {path}):");
             var files = await _debugBridge.ListDirectoryFiles(path, true);
-            foreach(string fileName in files)
+            foreach (string fileName in files)
             {
                 await writer.WriteLineAsync(fileName);
             }

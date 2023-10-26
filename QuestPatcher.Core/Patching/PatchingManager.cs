@@ -1,23 +1,23 @@
-﻿using QuestPatcher.Core.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using AssetsTools.NET;
 using AssetsTools.NET.Extra;
 using QuestPatcher.Axml;
 using QuestPatcher.Core.Modding;
-using Serilog;
+using QuestPatcher.Core.Models;
 using QuestPatcher.Zip;
-using System.Net.Http;
-using System.Runtime.CompilerServices;
-using System.Net.Http.Json;
-using System.Text.Json;
+using Serilog;
 
 namespace QuestPatcher.Core.Patching
 {
@@ -115,7 +115,7 @@ namespace QuestPatcher.Core.Patching
 
             Log.Information("Unstripped libunity found. Downloading . . .");
 
-            TempFile tempDownloadPath = _specialFolders.GetTempFile();
+            var tempDownloadPath = _specialFolders.GetTempFile();
             try
             {
                 await _filesDownloader.DownloadUrl(
@@ -145,20 +145,20 @@ namespace QuestPatcher.Core.Patching
 
             // The AMXL loader requires a seekable stream
             using var ms = new MemoryStream();
-            using (Stream stream = apk.OpenReader(InstallManager.ManifestPath))
+            using (var stream = apk.OpenReader(InstallManager.ManifestPath))
             {
                 stream.CopyTo(ms);
             }
 
             ms.Position = 0;
             Log.Information("Loading manifest as AXML . . .");
-            AxmlElement manifest = AxmlLoader.LoadDocument(ms);
+            var manifest = AxmlLoader.LoadDocument(ms);
             bool manifestModified = false;
 
             // First we add permissions and features to the APK for modding
             List<string> addingPermissions = new();
             List<string> addingFeatures = new();
-            PatchingOptions permissions = _config.PatchingOptions;
+            var permissions = _config.PatchingOptions;
             if (permissions.ExternalFiles)
             {
                 // Technically, we only need READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE, but we also add MANAGE_EXTERNAL_STORAGE as this is what Android 11 needs instead
@@ -188,8 +188,8 @@ namespace QuestPatcher.Core.Patching
             }
 
             // Find which features and permissions already exist to avoid adding existing ones
-            ISet<string> existingPermissions = GetExistingChildren(manifest, "uses-permission");
-            ISet<string> existingFeatures = GetExistingChildren(manifest, "uses-feature");
+            var existingPermissions = GetExistingChildren(manifest, "uses-permission");
+            var existingFeatures = GetExistingChildren(manifest, "uses-feature");
 
             foreach (string permission in addingPermissions)
             {
@@ -217,7 +217,7 @@ namespace QuestPatcher.Core.Patching
             }
 
             // Now we need to add the legacyStorageSupport and debuggable flags
-            AxmlElement appElement = manifest.Children.Single(element => element.Name == "application");
+            var appElement = manifest.Children.Single(element => element.Name == "application");
             if (permissions.Debuggable && !appElement.Attributes.Any(attribute => attribute.Name == "debuggable"))
             {
                 Log.Information("Adding debuggable flag . . .");
@@ -258,7 +258,7 @@ namespace QuestPatcher.Core.Patching
             }
 
             // Save the manifest using the AXML library
-            if(manifestModified)
+            if (manifestModified)
             {
                 Log.Information("Saving manifest as AXML . . .");
 
@@ -287,11 +287,11 @@ namespace QuestPatcher.Core.Patching
         {
             HashSet<string> result = new();
 
-            foreach (AxmlElement element in manifest.Children)
+            foreach (var element in manifest.Children)
             {
                 if (element.Name != childNames) { continue; }
 
-                List<AxmlAttribute> nameAttributes = element.Attributes.Where(attribute => attribute.Namespace == AndroidNamespaceUri && attribute.Name == "name").ToList();
+                var nameAttributes = element.Attributes.Where(attribute => attribute.Namespace == AndroidNamespaceUri && attribute.Name == "name").ToList();
                 // Only add children with the name attribute
                 if (nameAttributes.Count > 0) { result.Add((string) nameAttributes[0].Value); }
             }
@@ -366,8 +366,8 @@ namespace QuestPatcher.Core.Patching
 
                 var inf = inst.table.GetAssetsOfType((int) AssetClassID.BuildSettings).Single();
 
-                Assembly assembly = Assembly.GetExecutingAssembly();
-                using Stream? classPkgStream = assembly.GetManifestResourceStream("QuestPatcher.Core.Resources.classdata.tpk");
+                var assembly = Assembly.GetExecutingAssembly();
+                using var classPkgStream = assembly.GetManifestResourceStream("QuestPatcher.Core.Resources.classdata.tpk");
                 if (classPkgStream == null)
                 {
                     throw new PatchingException("Could not find classdata.tpk in resources");
@@ -379,7 +379,7 @@ namespace QuestPatcher.Core.Patching
                 var baseField = type.GetBaseField();
 
                 baseField.Get("enabledVRDevices").GetChildrenList()[0].SetChildrenList(Array.Empty<AssetTypeValueField>());
-                var newBytes = baseField.WriteToByteArray();
+                byte[] newBytes = baseField.WriteToByteArray();
 
                 var replacer = new AssetsReplacerFromMemory(0, inf.index, (int) inf.curFileType, 0xffff, newBytes);
 
@@ -413,7 +413,7 @@ namespace QuestPatcher.Core.Patching
             AddFileToApkSync(mainPath, Path.Combine(libsDirectory, "libmain.so"), apk);
             if (modloaderPath == null)
             {
-                if(apk.RemoveFile(Path.Combine(libsDirectory, "libmodloader.so")))
+                if (apk.RemoveFile(Path.Combine(libsDirectory, "libmodloader.so")))
                 {
                     Log.Information("Removed QuestLoader from the APK");
                 }
@@ -459,11 +459,11 @@ namespace QuestPatcher.Core.Patching
         private void AddFileToApkSync(string filePath, string apkFilePath, ApkZip apk)
         {
             using var fileStream = File.OpenRead(filePath);
-            if(apk.ContainsFile(apkFilePath))
+            if (apk.ContainsFile(apkFilePath))
             {
                 uint existingCrc = apk.GetCrc32(apkFilePath);
                 uint newCrc = fileStream.CopyToCrc32(null);
-                if(existingCrc == newCrc)
+                if (existingCrc == newCrc)
                 {
                     Log.Debug($"Skipping adding file {apkFilePath} as the CRC-32 was identical");
                     return;
@@ -479,8 +479,8 @@ namespace QuestPatcher.Core.Patching
         /// </summary>
         public async Task SaveScotland2(bool replaceIfPresent)
         {
-            var sl2Path = await _filesDownloader.GetFileLocation(ExternalFileType.Scotland2);
-            var sl2SavePath = string.Format(Scotland2LocationTemplate, _config.AppId);
+            string sl2Path = await _filesDownloader.GetFileLocation(ExternalFileType.Scotland2);
+            string sl2SavePath = string.Format(Scotland2LocationTemplate, _config.AppId);
 
             await _debugBridge.CreateDirectory(Path.GetDirectoryName(sl2SavePath)!);
             if (!await _debugBridge.FileExists(sl2SavePath) || replaceIfPresent)
@@ -592,7 +592,7 @@ namespace QuestPatcher.Core.Patching
             PatchingStage = PatchingStage.Patching;
             Log.Information("Copying files to patch the apk . . .");
             using var apkStream = File.Open(_patchedApkPath, FileMode.Open);
-            ApkZip apk = await Task.Run(() => ApkZip.Open(apkStream));
+            var apk = await Task.Run(() => ApkZip.Open(apkStream));
             try
             {
                 await Task.Run(() => ModifyApkSync(mainPath, modloaderPath, libUnityFile?.Path, ovrPlatformSdkPath, libsPath, apk));
@@ -623,7 +623,7 @@ namespace QuestPatcher.Core.Patching
             {
                 await _debugBridge.UninstallApp(_config.AppId);
             }
-            catch(AdbException)
+            catch (AdbException)
             {
                 Log.Warning("Failed to remove the original APK, likely because it was already removed in a previous patching attempt");
                 Log.Warning("Will continue with modding anyway");

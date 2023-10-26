@@ -12,7 +12,7 @@ namespace QuestPatcher.Core.Modding
         /// File extension of mod files that can be loaded by this provider, lowercase, no period prefix.
         /// </summary>
         string FileExtension { get; }
-        
+
         /// <summary>
         /// Loads a mod from the given path and copies the files to the quest if necessary.
         /// Whenever a mod is loaded, by this method or by dependency installation, it should call <see cref="ModManager.ModLoadedCallback"/>.
