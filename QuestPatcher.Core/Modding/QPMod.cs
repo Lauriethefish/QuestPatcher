@@ -89,11 +89,11 @@ namespace QuestPatcher.Core.Modding
         {
             if (!IsInstalled)
             {
-                Log.Debug($"Mod {Id} is already uninstalled. Not uninstalling");
+                Log.Debug("Mod {ModId} is already uninstalled. Not uninstalling", Id);
                 return;
             }
 
-            Log.Information($"Uninstalling mod {Id} . . .");
+            Log.Information("Uninstalling mod {ModId} . . .", Id);
 
             List<string> filesToRemove = new();
             // Remove mod SOs so that the mod will not load
@@ -103,7 +103,7 @@ namespace QuestPatcher.Core.Modding
             string modFilesPath = sl2 ? _modManager.Sl2EarlyModsPath : _modManager.ModsPath;
             foreach (string modFilePath in Manifest.ModFileNames)
             {
-                Log.Information($"Removing (early) mod file {modFilePath}");
+                Log.Information("Removing (early) mod file {EarlyModFilePath}", modFilePath);
                 filesToRemove.Add(Path.Combine(modFilesPath, Path.GetFileName(modFilePath)));
             }
 
@@ -112,7 +112,7 @@ namespace QuestPatcher.Core.Modding
             {
                 foreach (string lateModFilePath in Manifest.LateModFileNames)
                 {
-                    Log.Information($"Removing late mod file {lateModFilePath}");
+                    Log.Information("Removing late mod file {LateModFilePath}", lateModFilePath);
                     filesToRemove.Add(Path.Combine(_modManager.Sl2LateModsPath, Path.GetFileName(lateModFilePath)));
                 }
             }
@@ -126,7 +126,7 @@ namespace QuestPatcher.Core.Modding
                 {
                     if (otherMod != this && otherMod.IsInstalled && otherMod.Manifest.LibraryFileNames.Contains(libraryPath))
                     {
-                        Log.Information($"Other mod {otherMod.Id} still needs lib file {libraryPath}, not removing");
+                        Log.Information("Other mod {OtherModId} still needs lib file {LibraryFilePath}, not removing", otherMod.Id, libraryPath);
                         isUsedElsewhere = true;
                         break;
                     }
@@ -134,14 +134,14 @@ namespace QuestPatcher.Core.Modding
 
                 if (!isUsedElsewhere)
                 {
-                    Log.Information("Removing library file " + libraryPath);
+                    Log.Information("Removing library file {LibraryFilePath}", libraryPath);
                     filesToRemove.Add(Path.Combine(libsPath, Path.GetFileName(libraryPath)));
                 }
             }
 
             foreach (var fileCopy in Manifest.FileCopies)
             {
-                Log.Information("Removing copied file " + fileCopy.Destination);
+                Log.Information("Removing copied file {FileCopyDestination}", fileCopy.Destination);
                 filesToRemove.Add(fileCopy.Destination);
             }
 
@@ -151,7 +151,7 @@ namespace QuestPatcher.Core.Modding
             }
             catch (AdbException ex)
             {
-                Log.Warning($"Failed to delete some of the files to uninstall a mod: {ex}. Were they manually deleted outside of QuestPatcher's knowledge?");
+                Log.Warning(ex, "Failed to delete some of the files to uninstall a mod. Were they manually deleted outside of QuestPatcher's knowledge?");
             }
 
             IsInstalled = false;
@@ -196,11 +196,11 @@ namespace QuestPatcher.Core.Modding
         {
             if (IsInstalled)
             {
-                Log.Debug($"Mod {Id} is already installed. Not installing");
+                Log.Debug("Mod {ModId} is already installed. Not installing", Id);
                 return;
             }
 
-            Log.Information($"Installing mod {Id}");
+            Log.Information("Installing mod {ModId}", Id);
 
             installedInBranch.Add(Id); // Add to the installed tree so that dependencies further down on us will trigger a recursive install error
 
@@ -221,7 +221,7 @@ namespace QuestPatcher.Core.Modding
             List<string> directoriesToCreate = new();
             foreach (string libraryPath in Manifest.LibraryFileNames)
             {
-                Log.Information($"Starting library file copy {libraryPath} . . .");
+                Log.Information("Starting library file copy {LibraryFilePath} . . .", libraryPath);
                 copyPaths.Add(new(Path.Combine(extractPath, libraryPath), Path.Combine(libsPath, Path.GetFileName(libraryPath))));
             }
 
@@ -230,7 +230,7 @@ namespace QuestPatcher.Core.Modding
             string modFilesPath = sl2 ? _modManager.Sl2EarlyModsPath : _modManager.ModsPath;
             foreach (string modPath in Manifest.ModFileNames)
             {
-                Log.Information($"Starting (early) mod file copy {modPath} . . .");
+                Log.Information("Starting (early) mod file copy {EarlyModPath} . . .", modPath);
                 copyPaths.Add(new(Path.Combine(extractPath, modPath), Path.Combine(modFilesPath, Path.GetFileName(modPath))));
             }
 
@@ -238,14 +238,14 @@ namespace QuestPatcher.Core.Modding
             {
                 foreach (string lateModPath in Manifest.LateModFileNames)
                 {
-                    Log.Information($"Starting late mod file copy {lateModPath} . . .");
+                    Log.Information("Starting late mod file copy {LateModPath} . . .", lateModPath);
                     copyPaths.Add(new(Path.Combine(extractPath, lateModPath), Path.Combine(_modManager.Sl2LateModsPath, Path.GetFileName(lateModPath))));
                 }
             }
 
             foreach (var fileCopy in Manifest.FileCopies)
             {
-                Log.Information($"Starting file copy {fileCopy.Name} to {fileCopy.Destination}");
+                Log.Information("Starting file copy {FileCopyName} to {FileCopyDestination}", fileCopy.Name, fileCopy.Destination);
                 string? directoryName = Path.GetDirectoryName(fileCopy.Destination);
                 if (directoryName != null)
                 {
@@ -278,7 +278,7 @@ namespace QuestPatcher.Core.Modding
         /// <exception cref="InstallationException">If installing the dependency was not possible, or failed.</exception>
         private async Task PrepareDependency(Dependency dependency, List<string> installedInBranch)
         {
-            Log.Debug($"Preparing dependency of {dependency.Id} version {dependency.VersionRange}");
+            Log.Debug("Preparing dependency of {DependencyId} version {DependencyVersionRange}", dependency.Id, dependency.VersionRange);
             int existingIndex = installedInBranch.FindIndex(downloadedDep => downloadedDep == dependency.Id);
             if (existingIndex != -1)
             {
@@ -298,10 +298,10 @@ namespace QuestPatcher.Core.Modding
             {
                 if (dependency.VersionRange.IsSatisfied(existing.Version))
                 {
-                    Log.Debug($"Dependency {dependency.VersionRange} is already loaded and within the version range");
+                    Log.Debug("Dependency {DependencyVersionRange} is already loaded and within the version range", dependency.VersionRange);
                     if (!existing.IsInstalled)
                     {
-                        Log.Information($"Installing dependency {dependency.Id} . . .");
+                        Log.Information("Installing dependency {DependencyId} . . .", dependency.Id);
                         await existing.InstallInternal(installedInBranch);
                     }
                     return;
@@ -309,7 +309,7 @@ namespace QuestPatcher.Core.Modding
 
                 if (dependency.DownloadUrlString != null)
                 {
-                    Log.Warning($"Dependency with ID {dependency.Id} is already installed but with an incorrect version ({existing.Version} does not intersect {dependency.VersionRange}). QuestPatcher will attempt to upgrade the dependency");
+                    Log.Warning("Dependency with ID {DependencyId} is already installed but with an incorrect version ({ExistingVersion} does not intersect {DependencyVersionRange}). QuestPatcher will attempt to upgrade the dependency", dependency.Id, existing.Version, dependency.VersionRange);
                 }
                 else
                 {
@@ -324,7 +324,7 @@ namespace QuestPatcher.Core.Modding
             QPMod installedDependency;
             using (TempFile downloadFile = new())
             {
-                Log.Information($"Downloading dependency {dependency.Id} . . .");
+                Log.Information("Downloading dependency {DependencyId} . . .", dependency.Id);
                 try
                 {
                     await _filesDownloader.DownloadUrl(dependency.DownloadUrlString, downloadFile.Path, dependency.Id);

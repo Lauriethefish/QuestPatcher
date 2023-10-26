@@ -82,7 +82,7 @@ namespace QuestPatcher.ViewModels
             }
             catch (Exception ex)
             {
-                Log.Error($"Failed to uninstall app: {ex}");
+                Log.Error(ex, "Failed to uninstall app");
             }
         }
 
@@ -106,7 +106,7 @@ namespace QuestPatcher.ViewModels
             }
             catch (Exception ex)
             {
-                Log.Error($"Failed to clear cache: {ex}");
+                Log.Error(ex, "Failed to clear cache");
                 DialogBuilder builder = new()
                 {
                     Title = "Failed to clear cache",
@@ -162,7 +162,7 @@ namespace QuestPatcher.ViewModels
             catch (Exception ex)
             {
                 // Show a dialog with any errors
-                Log.Error($"Failed to create dump: {ex}");
+                Log.Error(ex, "Failed to create dump");
                 DialogBuilder builder = new()
                 {
                     Title = "Failed to create dump",

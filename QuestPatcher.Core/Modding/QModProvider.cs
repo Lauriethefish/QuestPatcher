@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace QuestPatcher.Core.Modding
             await using var qmod = await QMod.QMod.ParseAsync(modStream);
 
             // Check that the package ID is correct. We don't want people installing Beat Saber mods on Gorilla Tag!
-            Log.Information($"Mod ID: {qmod.Id}, Version: {qmod.Version}, Is Library: {qmod.IsLibrary}");
+            Log.Information("Mod ID: {ModId}, Version: {ModVersion}, Is Library: {IsLibrary}", qmod.Id, qmod.Version, qmod.IsLibrary);
             if (qmod.PackageId != null && qmod.PackageId != _config.AppId)
             {
                 throw new InstallationException($"Mod is intended for app {qmod.PackageId}, but {_config.AppId} is selected");
@@ -60,7 +61,7 @@ namespace QuestPatcher.Core.Modding
             {
                 if (existingInstall.Version == qmod.Version)
                 {
-                    Log.Warning($"Version of existing {existingInstall.Id} is the same as the installing version ({mod.Version})");
+                    Log.Warning("Version of existing {ModId} is the same as the installing version ({InstallingVersion})", existingInstall.Id, mod.Version);
                 }
                 if (existingInstall.Version > qmod.Version)
                 {
@@ -95,11 +96,11 @@ namespace QuestPatcher.Core.Modding
 
             if (mod.IsInstalled)
             {
-                Log.Information($"Uninstalling mod {mod.Id} to prepare for removal . . .");
+                Log.Information("Uninstalling mod {ModId} to prepare for removal . . .", mod.Id);
                 await genericMod.Uninstall();
             }
 
-            Log.Information($"Removing mod {mod.Id} . . .");
+            Log.Information("Removing mod {ModId} . . .", mod.Id);
             await _debugBridge.RemoveDirectory(GetExtractDirectory(mod.Id));
 
             ModsById.Remove(mod.Id);
@@ -162,10 +163,10 @@ namespace QuestPatcher.Core.Modding
         public override async Task LoadLegacyMods()
         {
             var legacyFolders = await _debugBridge.ListDirectoryFolders(_modManager.ModsExtractPath);
-            Log.Information($"Attempting to load {legacyFolders.Count} legacy mods");
+            Log.Information("Attempting to load {LegacyModsCount} legacy mods", legacyFolders.Count);
             foreach (string legacyFolder in legacyFolders)
             {
-                Log.Debug($"Loading legacy mod at {legacyFolder}");
+                Log.Debug("Loading legacy mod at {LegacyModPath}", legacyFolder);
                 string modJsonPath = Path.Combine(legacyFolder, "mod.json");
                 using var tmp = new TempFile();
                 await _debugBridge.DownloadFile(modJsonPath, tmp.Path);
@@ -199,7 +200,7 @@ namespace QuestPatcher.Core.Modding
                     {
                         if (mod.IsInstalled)
                         {
-                            Log.Information($"{mod.Id} is unused - " + (onlyDisable ? "uninstalling" : "unloading"));
+                            Log.Information("{ModId} is unused - " + (onlyDisable ? "uninstalling" : "unloading"), mod.Id);
                             actionPerformed = true;
                             await mod.Uninstall();
                         }
@@ -247,7 +248,7 @@ namespace QuestPatcher.Core.Modding
         private async Task<bool> PrepareVersionChange(QPMod currentlyInstalled, QPMod newVersion)
         {
             Debug.Assert(currentlyInstalled.Id == newVersion.Id);
-            Log.Information($"Attempting to upgrade {currentlyInstalled.Id} v{currentlyInstalled.Version} to {newVersion.Id} v{newVersion.Version}");
+            Log.Information("Attempting to upgrade {ModId} v{CurrentVersion} to v{NewVersion}", currentlyInstalled.Id, currentlyInstalled.Version, newVersion.Version);
 
             bool didFailToMatch = false;
             StringBuilder errorBuilder = new();
@@ -286,7 +287,7 @@ namespace QuestPatcher.Core.Modding
             }
             else
             {
-                Log.Information($"Deleting old version of {newVersion.Id} to prepare for upgrade . . .");
+                Log.Information("Deleting old version of {ModId} to prepare for upgrade . . .", newVersion.Id);
                 await DeleteMod(currentlyInstalled);
                 return installedDependants;
             }

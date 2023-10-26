@@ -52,7 +52,7 @@ namespace QuestPatcher.Services
 
             AddDefaultThemes();
             LoadCustomThemes();
-            Log.Debug($"{AvailableThemes.Count} themes loaded successfully!");
+            Log.Debug("{AvailableThemes} themes loaded successfully!", AvailableThemes.Count);
 
             // Default back to the dark theme if the selected theme was deleted
             _selectedTheme = AvailableThemes.FirstOrDefault(theme => theme.Name == config.SelectedThemeName) ?? AvailableThemes.Single(theme => theme.Name == "Dark");
@@ -73,7 +73,7 @@ namespace QuestPatcher.Services
 
             foreach (string themeDirName in Directory.EnumerateDirectories(ThemesDirectory))
             {
-                Log.Debug($"Loading theme from {themeDirName}");
+                Log.Debug("Loading theme from {ThemeDirectoryName}", themeDirName);
                 try
                 {
                     AvailableThemes.Add(Theme.LoadFromDirectory(themeDirName));
@@ -81,7 +81,7 @@ namespace QuestPatcher.Services
                 catch (Exception ex)
                 {
                     // TODO: Show an exception dialog instead of just logging?
-                    Log.Error($"Failed to load theme from {themeDirName}: {ex}");
+                    Log.Error(ex, "Failed to load theme from {ThemeDirectoryName}", themeDirName);
                 }
             }
         }

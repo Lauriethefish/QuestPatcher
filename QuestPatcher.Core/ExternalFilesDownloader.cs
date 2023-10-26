@@ -340,7 +340,7 @@ namespace QuestPatcher.Core
         /// <exception cref="NullReferenceException">If no download sets were in the pulled file, i.e. it was empty</exception>
         private async Task<List<DownloadSet>> LoadDownloadSetsFromWeb()
         {
-            Log.Debug($"Getting download URLs from {DownloadsUrl} . . .");
+            Log.Debug("Getting download URLs from {DownloadsUrl} . . .", DownloadsUrl);
             using var jsonStream = await _httpClient.GetStreamAsync(DownloadsUrl);
 
             var result = await JsonSerializer.DeserializeAsync<List<DownloadSet>>(jsonStream, SerializerOptions);
@@ -376,7 +376,7 @@ namespace QuestPatcher.Core
             bool succeeded = false;
             try
             {
-                Log.Debug($"Download URL: {downloadUrl}");
+                Log.Debug("Download URL: {DownloadUrl}", downloadUrl);
                 DownloadingFileName = fileInfo.Name;
 
                 if (fileInfo.ExtractionFolder != null)
@@ -566,7 +566,7 @@ namespace QuestPatcher.Core
             Log.Information("Clearing downloaded file cache . . .");
             await Task.Run(() =>
             {
-                Log.Debug($"Deleting {_specialFolders.ToolsFolder} . . .");
+                Log.Debug("Deleting {FolderPath} . . .", _specialFolders.ToolsFolder);
                 Directory.Delete(_specialFolders.ToolsFolder, true); // Also deletes the saved downloaded files file
                 _fullyDownloaded.Clear();
             });

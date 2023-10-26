@@ -109,7 +109,7 @@ namespace QuestPatcher.Core.Patching
 
             if (correctVersion == null)
             {
-                Log.Warning($"Unstripped libunity found for other versions of this app, but not {InstalledApp.Version}");
+                Log.Warning("Unstripped libunity found for other versions of this app, but not {InstalledVersion}", InstalledApp.Version);
                 return null;
             }
 
@@ -195,7 +195,7 @@ namespace QuestPatcher.Core.Patching
             {
                 if (existingPermissions.Contains(permission)) { continue; } // Do not add existing permissions
 
-                Log.Information($"Adding permission {permission}");
+                Log.Information("Adding permission {Permission}", permission);
                 manifestModified = true;
                 AxmlElement permElement = new("uses-permission");
                 AddNameAttribute(permElement, permission);
@@ -206,7 +206,7 @@ namespace QuestPatcher.Core.Patching
             {
                 if (existingFeatures.Contains(feature)) { continue; } // Do not add existing features
 
-                Log.Information($"Adding feature {feature}");
+                Log.Information("Adding feature {Feature}", feature);
                 manifestModified = true;
                 AxmlElement featureElement = new("uses-feature");
                 AddNameAttribute(featureElement, feature);
@@ -465,7 +465,7 @@ namespace QuestPatcher.Core.Patching
                 uint newCrc = fileStream.CopyToCrc32(null);
                 if (existingCrc == newCrc)
                 {
-                    Log.Debug($"Skipping adding file {apkFilePath} as the CRC-32 was identical");
+                    Log.Debug("Skipping adding file {FilePath} as the CRC-32 was identical", apkFilePath);
                     return;
                 }
                 fileStream.Position = 0;
@@ -614,7 +614,7 @@ namespace QuestPatcher.Core.Patching
             }
             catch (Exception ex)
             {
-                Log.Error($"Failed to create data backup: {ex}");
+                Log.Error(ex, "Failed to create data backup");
                 backupPath = null; // Indicate that the backup failed
             }
 
@@ -642,7 +642,7 @@ namespace QuestPatcher.Core.Patching
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Failed to restore data backup: {ex}");
+                    Log.Error(ex, "Failed to restore data backup");
                 }
             }
 

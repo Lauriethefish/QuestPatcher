@@ -110,7 +110,7 @@ namespace QuestPatcher
             }
 
             // Append all files to the new or existing queue
-            Log.Debug($"Enqueuing {files.Count} files");
+            Log.Debug("Enqueuing {FilesEnqueued} files", files.Count);
             foreach (string file in files)
             {
                 _currentImportQueue.Enqueue(new FileImportInfo
@@ -170,7 +170,7 @@ namespace QuestPatcher
                 totalProcessed++;
                 try
                 {
-                    Log.Information($"Importing {path} . . .");
+                    Log.Information("Importing {ImportingPath} . . .", path);
                     await ImportUnknownFile(path, importInfo.PreferredCopyType);
                 }
                 catch (Exception ex)
@@ -180,7 +180,7 @@ namespace QuestPatcher
             }
             _currentImportQueue = null; // New files added should go to a new queue
 
-            Log.Information($"{totalProcessed - failedFiles.Count}/{totalProcessed} files imported successfully");
+            Log.Information("{SuccessfullyProcessed}/{TotalFilesProcessed} files imported successfully", totalProcessed - failedFiles.Count, totalProcessed);
 
             if (failedFiles.Count == 0) { return; }
 
@@ -198,8 +198,8 @@ namespace QuestPatcher
                 builder.Text = "Multiple files failed to install. Check logs for details about each";
                 foreach (var pair in failedFiles)
                 {
-                    Log.Error($"Failed to install {Path.GetFileName(pair.Key)}: {pair.Value.Message}");
-                    Log.Debug($"Full error: {pair.Value}");
+                    Log.Error("Failed to install {FileName}: {Error}", Path.GetFileName(pair.Key), pair.Value.Message);
+                    Log.Debug(pair.Value, "Full error");
                 }
             }
             else
@@ -218,7 +218,8 @@ namespace QuestPatcher
                     builder.Text = $"The file {Path.GetFileName(filePath)} failed to install";
                     builder.WithException(exception);
                 }
-                Log.Error($"Failed to install {Path.GetFileName(filePath)}: {exception}");
+                Log.Error("Failed to install {FileName}: {Error}", Path.GetFileName(filePath), exception.Message);
+                Log.Debug(exception, "Full Error");
             }
 
             await builder.OpenDialogue(_mainWindow);
@@ -263,7 +264,7 @@ namespace QuestPatcher
                     var chosen = await OpenSelectCopyTypeDialog(copyTypes, path);
                     if (chosen == null)
                     {
-                        Log.Information($"Cancelling file {Path.GetFileName(path)}");
+                        Log.Information("No file type selected, cancelling import of {FileName}", Path.GetFileName(path));
                         return;
                     }
                     else

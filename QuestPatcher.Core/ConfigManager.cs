@@ -51,7 +51,7 @@ namespace QuestPatcher.Core
                     if (ex is FormatException or JsonException)
                     {
                         // Attempt to respond to config load errors by overwriting with the default config file
-                        Log.Warning($"Failed to load the config file, overwriting with default config instead! ({ex})");
+                        Log.Warning(ex, "Failed to load the config file, overwriting with default config instead!");
                         SaveDefaultConfig(true);
                         _loadedConfig = LoadConfig();
                         Log.Information("Overwriting with default config fixed the issue, continuing");

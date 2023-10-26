@@ -189,12 +189,12 @@ namespace QuestPatcher.Core.Modding
                     {
                         modConfig.Mods.ForEach(ModLoadedCallback);
                         _modConfig = modConfig;
-                        Log.Debug($"{AllMods.Count} mods loaded");
+                        Log.Debug("{ModsCount} mods loaded", AllMods.Count);
                     }
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"Failed to load mods from quest config: {ex}");
+                    Log.Warning(ex, "Failed to load mods from quest config");
                 }
             }
             else
@@ -242,7 +242,7 @@ namespace QuestPatcher.Core.Modding
                 return;
             }
 
-            Log.Information($"Saving {AllMods.Count} mods . . .");
+            Log.Information("Saving {ModsCount} mods . . .", AllMods.Count);
             using TempFile configTemp = new();
             await using (Stream configStream = File.OpenWrite(configTemp.Path))
             {

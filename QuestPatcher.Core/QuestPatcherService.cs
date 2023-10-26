@@ -56,7 +56,7 @@ namespace QuestPatcher.Core
             PatchingManager = new PatchingManager(Config, DebugBridge, SpecialFolders, FilesDownloader, Prompter, ModManager, InstallManager);
             InfoDumper = new InfoDumper(SpecialFolders, DebugBridge, ModManager, _configManager, InstallManager);
 
-            Log.Debug($"QuestPatcherService constructed (QuestPatcher version {VersionUtil.QuestPatcherVersion})");
+            Log.Debug("QuestPatcherService constructed (QuestPatcher version {QuestPatcherVersion})", VersionUtil.QuestPatcherVersion);
         }
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -170,7 +170,7 @@ namespace QuestPatcher.Core
             }
             catch (Exception ex)
             {
-                Log.Warning($"Failed to delete QP1 files: {ex}");
+                Log.Warning(ex, "Failed to delete QP1 files");
             }
         }
 

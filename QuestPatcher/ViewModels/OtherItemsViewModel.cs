@@ -136,7 +136,7 @@ namespace QuestPatcher.ViewModels
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"Failed to delete file {filePath}: {ex}");
+                        Log.Error(ex, "Failed to delete file {FilePath}", filePath);
                         lastException = ex;
                         lastFailed = filePath;
                         failed++;

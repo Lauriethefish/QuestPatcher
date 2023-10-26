@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -24,7 +24,7 @@ namespace QuestPatcher
                 return;
             }
 
-            Log.Error($"Unhandled exception, QuestPatcher quitting!: {args.ExceptionObject}");
+            Log.Error((Exception) args.ExceptionObject, "Unhandled exception, QuestPatcher quitting!");
             Log.CloseAndFlush();
         }
 

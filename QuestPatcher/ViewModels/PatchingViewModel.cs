@@ -73,7 +73,7 @@ namespace QuestPatcher.ViewModels
             catch (Exception ex)
             {
                 // Print troubleshooting information for debugging
-                Log.Error($"Patching failed!: {ex}");
+                Log.Error(ex, $"Patching failed!");
                 DialogBuilder builder = new()
                 {
                     Title = "Patching Failed",

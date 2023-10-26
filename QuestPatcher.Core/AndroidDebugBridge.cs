@@ -110,16 +110,16 @@ namespace QuestPatcher.Core
             }
             Debug.Assert(_adbPath != null);
 
-            Log.Debug($"Executing ADB command: adb {command}");
+            Log.Debug("Executing ADB command: {Command}", $"adb {command}");
             while (true)
             {
                 var output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, command);
-                Log.Verbose($"Standard output: \"{output.StandardOutput}\"");
+                Log.Verbose("Standard output: {StandardOutput}", output.StandardOutput);
                 if (output.ErrorOutput.Length > 0)
                 {
-                    Log.Verbose($"Error output: \"{output.ErrorOutput}\"");
+                    Log.Verbose("Error output: {ErrorOutput}", output.ErrorOutput);
                 }
-                Log.Verbose($"Exit code: {output.ExitCode}");
+                Log.Verbose("Exit code: {ExitCode}", output.ExitCode);
 
                 // Command execution was a success if the exit code was zero or an allowed exit code
                 // -1073740940 is always allowed as some ADB installations return it randomly, even when commands are successful.
@@ -326,7 +326,7 @@ namespace QuestPatcher.Core
             List<string> commands = new();
             foreach (string path in paths)
             {
-                Log.Verbose($"Ran Chmod on {path} with {permissions}");
+                Log.Verbose("Ran Chmod on {Path} with {Permissions}", path, permissions);
                 commands.Add($"chmod {permissions} {path.WithForwardSlashes().EscapeBash()}");
             }
 
