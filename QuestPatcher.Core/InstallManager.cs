@@ -70,13 +70,13 @@ namespace QuestPatcher.Core
         /// </summary>
         /// <param name="apk">The APK to check for modloaders</param>
         /// <returns>The modloader detected, if any</returns>
-        private Modloader? GetModloaderSync(ApkZip apk)
+        private ModLoader? GetModloaderSync(ApkZip apk)
         {
             // If APK is patched with a legacy questloader tag
             if (QuestLoaderTagNames.Any(tag => apk.ContainsFile(tag)))
             {
                 Log.Information("Legacy tag indicates APK is modded with QuestLoader");
-                return Modloader.QuestLoader;
+                return ModLoader.QuestLoader;
             }
 
             // Otherwise, we will check for the modern "modded.json" tag
@@ -90,17 +90,17 @@ namespace QuestPatcher.Core
                     if (tag.ModloaderName.Equals("QuestLoader", StringComparison.OrdinalIgnoreCase))
                     {
                         Log.Information("APK is modded with QuestLoader");
-                        return Modloader.QuestLoader;
+                        return ModLoader.QuestLoader;
                     }
                     else if (tag.ModloaderName.Equals("Scotland2", StringComparison.OrdinalIgnoreCase))
                     {
                         Log.Information("APK is modded with Scotland2");
-                        return Modloader.Scotland2;
+                        return ModLoader.Scotland2;
                     }
                     else
                     {
                         Log.Warning("Unknown modloader found in APK: {ModloaderName}", tag.ModloaderName);
-                        return Modloader.Unknown;
+                        return ModLoader.Unknown;
                     }
                 }
             }
@@ -143,7 +143,7 @@ namespace QuestPatcher.Core
         {
             bool is32Bit = false;
             bool is64Bit = false;
-            Modloader? modloader = null;
+            ModLoader? modloader = null;
             string version = "";
 
             Log.Information("Checking APK modding status");

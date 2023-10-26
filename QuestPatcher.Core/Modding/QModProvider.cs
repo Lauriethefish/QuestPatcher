@@ -297,7 +297,7 @@ namespace QuestPatcher.Core.Modding
         {
             bool hasAllMods;
             bool hasAllLibs;
-            if (mod.ModLoader == Modloader.Scotland2)
+            if (mod.ModLoader == Models.ModLoader.Scotland2)
             {
                 // Check for both early and late mods if using SL2
                 hasAllMods = mod.Manifest.ModFileNames.TrueForAll(sl2EarlyModFiles.Contains)

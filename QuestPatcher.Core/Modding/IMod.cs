@@ -75,7 +75,7 @@ namespace QuestPatcher.Core.Modding
         /// <summary>
         /// The modloader that this mod must be loaded with.
         /// </summary>
-        Modloader ModLoader { get; }
+        ModLoader ModLoader { get; }
 
         /// <summary>
         /// Installs the mod.

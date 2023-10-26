@@ -27,7 +27,7 @@ namespace QuestPatcher.Core.Models
 
         public HandTrackingVersion HandTrackingType { get; set; }
 
-        public Modloader ModLoader { get; set; } = Modloader.QuestLoader;
+        public ModLoader ModLoader { get; set; } = ModLoader.QuestLoader;
 
     }
 }

@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents the modloader that the APK is patched with
     /// </summary>
-    public enum Modloader
+    public enum ModLoader
     {
         /// <summary>
         /// QuestLoader, maintained by Sc2ad

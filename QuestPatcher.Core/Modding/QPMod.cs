@@ -31,11 +31,11 @@ namespace QuestPatcher.Core.Modding
         public bool IsLibrary => Manifest.IsLibrary;
 
         // Convert the QuestPatcher.QMod modloader to our own format, which supports an "Unknown" modloader in the case of an unrecognised modding tag.
-        public Modloader ModLoader => Manifest.ModLoader switch
+        public Models.ModLoader ModLoader => Manifest.ModLoader switch
         {
-            QMod.ModLoader.QuestLoader => Modloader.QuestLoader,
-            QMod.ModLoader.Scotland2 => Modloader.Scotland2,
-            _ => Modloader.Unknown
+            QMod.ModLoader.QuestLoader => Models.ModLoader.QuestLoader,
+            QMod.ModLoader.Scotland2 => Models.ModLoader.Scotland2,
+            _ => Models.ModLoader.Unknown
         };
 
         public IEnumerable<FileCopyType> FileCopyTypes { get; }
@@ -97,7 +97,7 @@ namespace QuestPatcher.Core.Modding
 
             List<string> filesToRemove = new();
             // Remove mod SOs so that the mod will not load
-            bool sl2 = ModLoader == Modloader.Scotland2;
+            bool sl2 = ModLoader == Models.ModLoader.Scotland2;
 
             // When using questloader, early mods get put in the late mods directory (legacy)
             string modFilesPath = sl2 ? _modManager.Sl2EarlyModsPath : _modManager.ModsPath;
@@ -215,7 +215,7 @@ namespace QuestPatcher.Core.Modding
 
             List<KeyValuePair<string, string>> copyPaths = new();
 
-            bool sl2 = ModLoader == Modloader.Scotland2;
+            bool sl2 = ModLoader == Models.ModLoader.Scotland2;
 
             string libsPath = sl2 ? _modManager.Sl2LibsPath : _modManager.LibsPath;
             List<string> directoriesToCreate = new();

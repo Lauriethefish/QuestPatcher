@@ -129,7 +129,7 @@ namespace QuestPatcher.Core
             MigrateOldFiles();
 
             await InstallManager.LoadInstalledApp();
-            if (InstallManager.InstalledApp!.ModLoader == Modloader.Scotland2)
+            if (InstallManager.InstalledApp!.ModLoader == ModLoader.Scotland2)
             {
                 await PatchingManager.SaveScotland2(false); // Make sure that Scotland2 is saved to the right location
             }
@@ -199,7 +199,7 @@ namespace QuestPatcher.Core
             await FilesDownloader.ClearCache();
             await DebugBridge.PrepareAdbPath(); // Re-download ADB if necessary
 
-            if (InstallManager.InstalledApp?.ModLoader == Modloader.Scotland2)
+            if (InstallManager.InstalledApp?.ModLoader == ModLoader.Scotland2)
             {
                 // Force a reupload of sl2
                 await PatchingManager.SaveScotland2(true);

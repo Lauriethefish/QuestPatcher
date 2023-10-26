@@ -13,13 +13,13 @@ namespace QuestPatcher.Core.Models
         /// <summary>
         /// Whether or not the APK is modded with a modloader that we recognise (QuestLoader or Scotland2)
         /// </summary>
-        public bool IsModded => ModLoader != null && ModLoader != Modloader.Unknown;
+        public bool IsModded => ModLoader != null && ModLoader != Models.ModLoader.Unknown;
 
         /// <summary>
         /// The modloader that the APK is modded with.
         /// Null if unmodded.
         /// </summary>
-        public Modloader? ModLoader
+        public ModLoader? ModLoader
         {
             get => _modloader;
             set
@@ -45,9 +45,9 @@ namespace QuestPatcher.Core.Models
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private Modloader? _modloader;
+        private ModLoader? _modloader;
 
-        public ApkInfo(string version, Modloader? modloader, bool is64Bit, string path)
+        public ApkInfo(string version, ModLoader? modloader, bool is64Bit, string path)
         {
             Version = version;
             _modloader = modloader;

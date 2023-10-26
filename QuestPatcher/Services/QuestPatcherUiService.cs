@@ -192,11 +192,11 @@ namespace QuestPatcher.Services
         /// Opens a window that allows the user to change the modloader they have installed by re-patching their app.
         /// </summary>
         /// <param name="preferredModloader">The modloader that will be selected for patching by default. The user can change this.</param>
-        public async void OpenRepatchMenu(Modloader? preferredModloader = null)
+        public async void OpenRepatchMenu(ModLoader? preferredModloader = null)
         {
             if (preferredModloader != null)
             {
-                Config.PatchingOptions.ModLoader = (Modloader) preferredModloader;
+                Config.PatchingOptions.ModLoader = (ModLoader) preferredModloader;
             }
 
             Window menuWindow = new RepatchWindow();

@@ -441,7 +441,7 @@ namespace QuestPatcher.Core.Patching
             Log.Information("Adding tag");
             using var tagStream = new MemoryStream();
 
-            string modloaderName = _config.PatchingOptions.ModLoader == Modloader.QuestLoader ? "QuestLoader" : "Scotland2";
+            string modloaderName = _config.PatchingOptions.ModLoader == ModLoader.QuestLoader ? "QuestLoader" : "Scotland2";
             var tag = new ModdedTag("QuestPatcher", VersionUtil.QuestPatcherVersion.ToString(), modloaderName, null);
             JsonSerializer.Serialize(tagStream, tag, InstallManager.TagSerializerOptions);
             tagStream.Position = 0;
@@ -504,7 +504,7 @@ namespace QuestPatcher.Core.Patching
                 throw new NullReferenceException("Cannot patch before installed app has been checked");
             }
 
-            bool scotland2 = _config.PatchingOptions.ModLoader == Modloader.Scotland2;
+            bool scotland2 = _config.PatchingOptions.ModLoader == ModLoader.Scotland2;
 
             if (!InstalledApp.Is64Bit)
             {
@@ -523,7 +523,7 @@ namespace QuestPatcher.Core.Patching
                 }
             }
 
-            if (InstalledApp.ModLoader == Modloader.Unknown)
+            if (InstalledApp.ModLoader == ModLoader.Unknown)
             {
                 Log.Warning("APK contains unknown modloader");
                 if (!await _prompter.PromptUnknownModLoader())
