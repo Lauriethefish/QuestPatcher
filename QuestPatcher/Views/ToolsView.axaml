@@ -68,7 +68,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="18">
                 <TextBlock FontSize="15" VerticalAlignment="Center">Select Theme:</TextBlock>
-                <ComboBox Items="{Binding ThemeManager.AvailableThemes}" MinWidth="150" SelectedItem="{Binding ThemeManager.SelectedTheme}">
+                <ComboBox ItemsSource="{Binding ThemeManager.AvailableThemes}" MinWidth="150" SelectedItem="{Binding ThemeManager.SelectedTheme}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}" />

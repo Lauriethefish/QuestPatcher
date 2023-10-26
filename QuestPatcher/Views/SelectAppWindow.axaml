@@ -32,7 +32,7 @@
             </StackPanel>
             
             <StackPanel Spacing="10" IsVisible="{Binding !IsLoading}">
-              <ComboBox Items="{Binding InstalledApps}" SelectedItem="{Binding SelectedApp}" SelectedIndex="0" Width="350" HorizontalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding InstalledApps}" SelectedItem="{Binding SelectedApp}" SelectedIndex="0" Width="350" HorizontalAlignment="Center"/>
               <Button Command="{Binding ConfirmNewApp}" HorizontalAlignment="Center" HorizontalContentAlignment="Center">Confirm new App</Button>
             </StackPanel>
           </StackPanel>

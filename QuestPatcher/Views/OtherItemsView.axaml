@@ -19,7 +19,7 @@
       <StackPanel DockPanel.Dock="Top" Spacing="10">
         <UserControl Content="{Binding ProgressView}" />
         <TextBlock>Choose a file type to manage:</TextBlock>
-        <ComboBox Items="{Binding FilesManager.CurrentDestinations}" SelectedItem="{Binding SelectedFileCopy}" HorizontalAlignment="Stretch">
+        <ComboBox ItemsSource="{Binding FilesManager.CurrentDestinations}" SelectedItem="{Binding SelectedFileCopy}" HorizontalAlignment="Stretch">
           <ComboBox.ItemTemplate>
             <DataTemplate>
               <Panel>
@@ -41,7 +41,7 @@
             <Button Command="{Binding DeleteSelectedFiles}" IsEnabled="{Binding CanDeleteSelectedFiles}">Remove Selected</Button>
             <Button Command="{Binding DeleteAllFiles}" IsEnabled="{Binding CanUseFileCopies}">Remove All</Button>
           </StackPanel>
-          <ListBox Items="{Binding SelectedFileCopy.ExistingFiles}" SelectedItems="{Binding SelectedFiles}" SelectionMode="Multiple" ScrollViewer.HorizontalScrollBarVisibility="Disabled" DockPanel.Dock="Top">
+          <ListBox ItemsSource="{Binding SelectedFileCopy.ExistingFiles}" SelectedItems="{Binding SelectedFiles}" SelectionMode="Multiple" ScrollViewer.HorizontalScrollBarVisibility="Disabled" DockPanel.Dock="Top">
             <ListBox.Styles>
               <Style Selector="ListBoxItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"></Setter>

@@ -7,6 +7,6 @@
     </Application.DataTemplates>
 
     <Application.Styles>
-        <StyleInclude Source="/Styles/SideBar.axaml"/>
+      <StyleInclude Source="/Styles/SideBar.axaml"/>
     </Application.Styles>
 </Application>

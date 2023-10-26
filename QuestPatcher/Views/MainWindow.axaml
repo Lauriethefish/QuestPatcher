@@ -16,7 +16,9 @@
         Background="{x:Null}"
         ExtendClientAreaToDecorationsHint="true"
         ExtendClientAreaTitleBarHeightHint="-1"
-        TransparencyLevelHint="AcrylicBlur">
+        TransparencyLevelHint="AcrylicBlur"
+        RenderOptions.BitmapInterpolationMode="HighQuality"
+        RequestedThemeVariant="{DynamicResource ThemeVariant}">
   
   <Design.DataContext>
     <viewModels:MainWindowViewModel />

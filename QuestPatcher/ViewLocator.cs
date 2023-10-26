@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using QuestPatcher.ViewModels;
@@ -9,8 +9,13 @@ namespace QuestPatcher
     {
         public bool SupportsRecycling => false;
 
-        public IControl Build(object data)
+        public Control? Build(object? data)
         {
+            if(data == null)
+            {
+                return null;
+            }
+
             string name = data.GetType().FullName!.Replace("ViewModel", "View");
             var type = Type.GetType(name);
 
@@ -24,7 +29,7 @@ namespace QuestPatcher
             }
         }
 
-        public bool Match(object data)
+        public bool Match(object? data)
         {
             return data is ViewModelBase;
         }

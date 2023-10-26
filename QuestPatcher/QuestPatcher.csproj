@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ApplicationIcon>Assets\questpatcher-logo.ico</ApplicationIcon>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaNameGeneratorIsEnabled>false</AvaloniaNameGeneratorIsEnabled>
   </PropertyGroup>
 
   <Target Name="SetVersionFromFile" BeforeTargets="BeforeBuild">
@@ -51,20 +52,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.7" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.7" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.7" />
-    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="0.10.7" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.7" />
+    <PackageReference Include="Avalonia" Version="11.0.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.5" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.5" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.5" />
+    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="11.0.5" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.5" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.5" />
     <PackageReference Include="Dotnet.Bundle" Version="0.9.13" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\QuestPatcher.Core\QuestPatcher.Core.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
 </Project>

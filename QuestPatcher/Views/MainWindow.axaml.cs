@@ -1,3 +1,4 @@
+﻿using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -9,8 +10,6 @@ namespace QuestPatcher.Views
     {
         public MainWindow()
         {
-            TransparencyLevelHint = WindowTransparencyLevel.AcrylicBlur;
-
             InitializeComponent();
 #if DEBUG
             this.AttachDevTools();
