@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Avalonia.Input;
+using Org.BouncyCastle.Crypto.Tls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.ViewModels.Modding;
@@ -91,18 +92,27 @@ namespace QuestPatcher.ViewModels
             // We need to handle this to avoid crashing QuestPatcher.
             try
             {
-                var files = args.Data.GetFiles();
-                if (files == null) // Non-file items dragged
+                var text = args.Data.GetText();
+                if (text != null)
                 {
-                    Log.Debug("Drag and drop contained no file names");
-                    return;
+                    var creationOptions = new UriCreationOptions();
+                    if (Uri.TryCreate(text, in creationOptions, out var uri))
+                    {
+                        await _browseManager.AttemptImportUri(uri);
+                    }
+                    return; // Getting the URI text disposes the DragEventArgs.Data, so avoid accessing this disposed object.
                 }
 
-                Log.Debug("Files found in drag and drop. Processing . . .");
-                await _browseManager.AttemptImportFiles(files.Select(file => new FileImportInfo(file.Path.LocalPath)
+                var files = args.Data.GetFiles();
+                if(files != null)
                 {
-                    PreferredCopyType = OtherItemsView.SelectedFileCopy
-                }).ToList());
+                    Log.Debug("Files found in drag and drop. Processing . . .");
+                    await _browseManager.AttemptImportFiles(files.Select(file => new FileImportInfo(file.Path.LocalPath)
+                    {
+                        PreferredCopyType = OtherItemsView.SelectedFileCopy
+                    }).ToList());
+                }
+                
             }
             catch (COMException)
             {

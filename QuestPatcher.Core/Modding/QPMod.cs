@@ -325,7 +325,7 @@ namespace QuestPatcher.Core.Modding
                 Log.Information("Downloading dependency {DependencyId} . . .", dependency.Id);
                 try
                 {
-                    await _filesDownloader.DownloadUrl(dependency.DownloadUrlString, downloadFile.Path, dependency.Id);
+                    await _filesDownloader.DownloadUri(dependency.DownloadUrlString, downloadFile.Path, dependency.Id);
                 }
                 catch (FileDownloadFailedException ex)
                 {

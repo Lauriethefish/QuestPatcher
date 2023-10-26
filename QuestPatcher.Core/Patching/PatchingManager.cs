@@ -118,7 +118,7 @@ namespace QuestPatcher.Core.Patching
             var tempDownloadPath = new TempFile();
             try
             {
-                await _filesDownloader.DownloadUrl(
+                await _filesDownloader.DownloadUri(
                     $"https://raw.githubusercontent.com/Lauriethefish/QuestUnstrippedUnity/main/versions/{correctVersion}.so",
                     tempDownloadPath.Path, "libunity.so");
 

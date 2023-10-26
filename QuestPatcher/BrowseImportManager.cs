@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
@@ -25,6 +26,7 @@ namespace QuestPatcher
         private readonly ModManager _modManager;
         private readonly Window _mainWindow;
         private readonly InstallManager _installManager;
+        private readonly ExternalFilesDownloader _filesDownloader;
         private readonly OperationLocker _locker;
         private readonly QuestPatcherUiService _uiService;
 
@@ -35,7 +37,7 @@ namespace QuestPatcher
 
         private Queue<FileImportInfo>? _currentImportQueue;
 
-        public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, InstallManager installManager, OperationLocker locker, QuestPatcherUiService uiService)
+        public BrowseImportManager(OtherFilesManager otherFilesManager, ModManager modManager, Window mainWindow, InstallManager installManager, OperationLocker locker, QuestPatcherUiService uiService, ExternalFilesDownloader filesDownloader)
         {
             _otherFilesManager = otherFilesManager;
             _modManager = modManager;
@@ -43,6 +45,7 @@ namespace QuestPatcher
             _installManager = installManager;
             _locker = locker;
             _uiService = uiService;
+            _filesDownloader = filesDownloader;
         }
 
         private static FilePickerFileType GetCosmeticFilter(FileCopyType copyType)
@@ -143,6 +146,65 @@ namespace QuestPatcher
         }
 
         /// <summary>
+        /// Attempts to download and import a file.
+        /// </summary>
+        /// <param name="uri">The URI to download the file from.</param>
+        public async Task AttemptImportUri(Uri uri)
+        {
+            // Download the data to a temporary file. This is necessary as we need a seekable stream.
+            using var tempFile = new TempFile();
+            HttpContentHeaders headers;
+            try
+            {
+                if(_locker.IsFree)
+                {
+                    // Make sure that the download progress bar is visible
+                    _locker.StartOperation();
+                }
+
+                // TODO: Should probably make DownloadUri also take a Uri to encourage better error handling when parsing in other parts of the app.
+                headers = await _filesDownloader.DownloadUri(uri.ToString(), tempFile.Path, Path.GetFileName(uri.LocalPath));
+            }
+            catch (FileDownloadFailedException)
+            {
+                var builder = new DialogBuilder
+                {
+                    Title = "Failed to download file",
+                    Text = $"Downloading the file from {uri} failed, and thus the file could not be imported.",
+                    HideCancelButton = true
+                };
+                await builder.OpenDialogue(_mainWindow);
+                return;
+            }   
+            finally 
+            {
+                _locker.FinishOperation();
+            }
+
+            // Get the file name/extension from the headers
+            string? extension = Path.GetExtension(headers.ContentDisposition?.FileName);
+            if(extension == null)
+            {
+                var builder = new DialogBuilder
+                {
+                    Title = "Failed to import file from URL",
+                    Text = $"The server at {uri} did not provide a valid file extension, and so QuestPatcher doesn't know how the import the file.",
+                    HideCancelButton = true
+                };
+                await builder.OpenDialogue(_mainWindow);
+                return;
+            }
+
+            // Import the downloaded temporary file
+            await AttemptImportFiles(new List<FileImportInfo> {
+                new FileImportInfo(tempFile.Path)
+                {
+                    OverrideExtension = extension
+                } 
+            });
+        }
+
+        /// <summary>
         /// Processes the current import queue until it reaches zero in size.
         /// Displays exceptions for any failed files
         /// </summary>
@@ -162,7 +224,7 @@ namespace QuestPatcher
                 totalProcessed++;
                 try
                 {
-                    Log.Information("Importing {ImportingPath} . . .", path);
+                    Log.Information("Importing {ImportingFileName} . . .", Path.GetFileName(path));
                     await ImportUnknownFile(importInfo);
                 }
                 catch (Exception ex)

@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -445,7 +446,8 @@ namespace QuestPatcher.Core
         /// </summary>
         /// <param name="url">The url to download from</param>
         /// <param name="copyTo">The stream to copy the data to</param>
-        private async Task DownloadToStreamWithProgressAsync(string url, Stream copyTo)
+        /// <returns>The content headers returned with the file in the HTTP response.</returns>
+        private async Task<HttpContentHeaders> DownloadToStreamWithProgressAsync(string url, Stream copyTo)
         {
             const int BufferSize = 4096;
 
@@ -475,6 +477,8 @@ namespace QuestPatcher.Core
                         DownloadProgress = totalBytesRead * 100.0 / contentLength;
                     }
                 }
+
+                return contentHeaders;
             }
             finally
             {
@@ -538,14 +542,15 @@ namespace QuestPatcher.Core
         /// <param name="saveName">Where to save the resultant file</param>
         /// <param name="overrideFileName">Used instead of the file name of saveName as the DownloadingFileName</param>
         /// <exception cref="FileDownloadFailedException">If downloading the file failed</exception>
-        public async Task DownloadUrl(string url, string saveName, string? overrideFileName = null)
+        /// <returns>The content headers returned with the file in the HTTP response.</returns>
+        public async Task<HttpContentHeaders> DownloadUri(string url, string saveName, string? overrideFileName = null)
         {
             try
             {
                 DownloadingFileName = overrideFileName ?? Path.GetFileName(saveName);
 
                 using var fileStream = File.Open(saveName, FileMode.Create);
-                await DownloadToStreamWithProgressAsync(url, fileStream);
+                return await DownloadToStreamWithProgressAsync(url, fileStream);
             }
             catch (HttpRequestException ex)
             {
