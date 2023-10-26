@@ -9,7 +9,7 @@ namespace QuestPatcher
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            if(value == null)
+            if (value == null)
             {
                 return null;
             }

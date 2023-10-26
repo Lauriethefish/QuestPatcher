@@ -91,15 +91,15 @@ namespace QuestPatcher.ViewModels
             // We need to handle this to avoid crashing QuestPatcher.
             try
             {
-                var fileNames = args.Data.GetFileNames();
-                if (fileNames == null) // Non-file items dragged
+                var files = args.Data.GetFiles();
+                if (files == null) // Non-file items dragged
                 {
                     Log.Debug("Drag and drop contained no file names");
                     return;
                 }
 
                 Log.Debug("Files found in drag and drop. Processing . . .");
-                await _browseManager.AttemptImportFiles(fileNames.ToList(), OtherItemsView.SelectedFileCopy);
+                await _browseManager.AttemptImportFiles(files.Select(file => file.Path.LocalPath).ToList(), OtherItemsView.SelectedFileCopy);
             }
             catch (COMException)
             {

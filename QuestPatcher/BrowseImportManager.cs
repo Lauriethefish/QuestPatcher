@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Models;
@@ -33,7 +34,10 @@ namespace QuestPatcher
         private readonly OperationLocker _locker;
         private readonly QuestPatcherUiService _uiService;
 
-        private readonly FileDialogFilter _modsFilter = new();
+        private readonly FilePickerFileType _modsFilter = new("Quest Mods")
+        {
+            Patterns = new List<string>() { "*.qmod" }
+        };
 
         private Queue<FileImportInfo>? _currentImportQueue;
 
@@ -45,56 +49,14 @@ namespace QuestPatcher
             _installManager = installManager;
             _locker = locker;
             _uiService = uiService;
-
-            _modsFilter.Name = "Quest Mods";
-            _modsFilter.Extensions.Add("qmod");
         }
 
-        private static FileDialogFilter GetCosmeticFilter(FileCopyType copyType)
+        private static FilePickerFileType GetCosmeticFilter(FileCopyType copyType)
         {
-            return new FileDialogFilter
+            return new FilePickerFileType(copyType.NamePlural)
             {
-                Name = copyType.NamePlural,
-                Extensions = copyType.SupportedExtensions
+                Patterns = copyType.SupportedExtensions.Select(extension => $"*.{extension}").ToList()
             };
-        }
-
-        private void AddAllCosmeticFilters(OpenFileDialog dialog)
-        {
-            foreach (var copyType in _otherFilesManager.CurrentDestinations)
-            {
-                dialog.Filters.Add(GetCosmeticFilter(copyType));
-            }
-        }
-
-        /// <summary>
-        /// Opens a browse dialog that has filters for all files supported by QuestPatcher.
-        /// This includes qmod and all other file copies.
-        /// </summary>
-        /// <returns>A task that completes when the dialog has closed and the files have been imported</returns>
-        public async Task ShowAllItemsBrowse()
-        {
-            var dialog = ConstructDialog();
-
-            // Add a filter for any file type that QuestPatcher supports
-            // This includes qmod and all cosmetic/file copy types.
-            FileDialogFilter allFiles = new()
-            {
-                Name = "All Allowed Files"
-            };
-
-            var allExtensions = allFiles.Extensions;
-            allExtensions.Add("qmod");
-            foreach (var copyType in _otherFilesManager.CurrentDestinations)
-            {
-                allExtensions.AddRange(copyType.SupportedExtensions);
-            }
-
-            dialog.Filters.Add(allFiles);
-            dialog.Filters.Add(_modsFilter);
-            AddAllCosmeticFilters(dialog);
-
-            await ShowDialogAndHandleResult(dialog);
         }
 
         /// <summary>
@@ -103,9 +65,7 @@ namespace QuestPatcher
         /// <returns>A task that completes when the dialog has closed and the files have been imported</returns>
         public async Task ShowModsBrowse()
         {
-            var dialog = ConstructDialog();
-            dialog.Filters.Add(_modsFilter);
-            await ShowDialogAndHandleResult(dialog);
+            await ShowDialogAndHandleResult(new() { _modsFilter });
         }
 
         /// <summary>
@@ -115,28 +75,23 @@ namespace QuestPatcher
         /// <returns>A task that completes when the dialog has closed and the files have been imported</returns>
         public async Task ShowFileCopyBrowse(FileCopyType cosmeticType)
         {
-            var dialog = ConstructDialog();
-            dialog.Filters.Add(GetCosmeticFilter(cosmeticType));
-            await ShowDialogAndHandleResult(dialog, cosmeticType);
+            await ShowDialogAndHandleResult(new() { GetCosmeticFilter(cosmeticType) }, cosmeticType);
         }
 
-        private static OpenFileDialog ConstructDialog()
+        private async Task ShowDialogAndHandleResult(List<FilePickerFileType> filters, FileCopyType? knownFileCopyType = null)
         {
-            return new OpenFileDialog()
+            var files = await _mainWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                AllowMultiple = true
-            };
-        }
+                AllowMultiple = true,
+                FileTypeFilter = filters
+            });
 
-        private async Task ShowDialogAndHandleResult(OpenFileDialog dialog, FileCopyType? knownFileCopyType = null)
-        {
-            string[] files = await dialog.ShowAsync(_mainWindow);
             if (files == null)
             {
                 return;
             }
 
-            await AttemptImportFiles(files, knownFileCopyType);
+            await AttemptImportFiles(files.Select(file => file.Path.LocalPath).ToList(), knownFileCopyType);
         }
 
         /// <summary>

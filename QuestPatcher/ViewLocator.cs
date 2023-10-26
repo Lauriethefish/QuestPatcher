@@ -11,7 +11,7 @@ namespace QuestPatcher
 
         public Control? Build(object? data)
         {
-            if(data == null)
+            if (data == null)
             {
                 return null;
             }
