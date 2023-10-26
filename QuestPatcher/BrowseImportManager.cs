@@ -20,12 +20,6 @@ namespace QuestPatcher
     /// </summary>
     public class BrowseImportManager
     {
-        private struct FileImportInfo
-        {
-            public string Path { get; set; }
-
-            public FileCopyType? PreferredCopyType { get; set; }
-        }
 
         private readonly OtherFilesManager _otherFilesManager;
         private readonly ModManager _modManager;
@@ -91,7 +85,10 @@ namespace QuestPatcher
                 return;
             }
 
-            await AttemptImportFiles(files.Select(file => file.Path.LocalPath).ToList(), knownFileCopyType);
+            await AttemptImportFiles(files.Select(file => new FileImportInfo(file.Path.LocalPath)
+            {
+                PreferredCopyType = knownFileCopyType 
+            }).ToList());
         }
 
         /// <summary>
@@ -99,9 +96,8 @@ namespace QuestPatcher
         /// Will prompt the user with any errors while importing the files.
         /// If a list of files is already importing, these files will be added to the queue
         /// </summary>
-        /// <param name="files">The paths of the files to import</param>
-        /// <param name="preferredCopyType">File copy type that will be used if there are multiple copy types for one of these files. If null or not valid for the item, a dialog will be displayed allowing the user to choose</param>
-        public async Task AttemptImportFiles(ICollection<string> files, FileCopyType? preferredCopyType = null)
+        /// <param name="files">The <see cref="FileImportInfo"/> of each file to import.</param>
+        public async Task AttemptImportFiles(ICollection<FileImportInfo> files)
         {
             bool queueExisted = _currentImportQueue != null;
             if (_currentImportQueue == null)
@@ -111,13 +107,9 @@ namespace QuestPatcher
 
             // Append all files to the new or existing queue
             Log.Debug("Enqueuing {FilesEnqueued} files", files.Count);
-            foreach (string file in files)
+            foreach(var importInfo in files)
             {
-                _currentImportQueue.Enqueue(new FileImportInfo
-                {
-                    Path = file,
-                    PreferredCopyType = preferredCopyType
-                });
+                _currentImportQueue.Enqueue(importInfo);
             }
 
             // If a queue already existed, that will be processed with our enqueued files, so we can stop here
@@ -171,7 +163,7 @@ namespace QuestPatcher
                 try
                 {
                     Log.Information("Importing {ImportingPath} . . .", path);
-                    await ImportUnknownFile(path, importInfo.PreferredCopyType);
+                    await ImportUnknownFile(importInfo);
                 }
                 catch (Exception ex)
                 {
@@ -229,21 +221,20 @@ namespace QuestPatcher
         /// Figures out what the given file is, and installs it accordingly.
         /// Throws an exception if the file cannot be installed by QuestPatcher.
         /// </summary>
-        /// <param name="path">The path of file to import</param>
-        /// <param name="preferredCopyType">File copy type that will be used if there are multiple copy types for this file. If null, a dialog will be displayed allowing the user to choose</param>
-        private async Task ImportUnknownFile(string path, FileCopyType? preferredCopyType)
+        /// <param name="importInfo">Information about the file to import</param>
+        private async Task ImportUnknownFile(FileImportInfo importInfo)
         {
-            string extension = Path.GetExtension(path).ToLower();
+            string extension = importInfo.OverrideExtension ?? Path.GetExtension(importInfo.Path).ToLower();
 
             // Attempt to install as a mod first
-            if (await TryImportMod(path))
+            if (await TryImportMod(importInfo))
             {
                 return;
             }
 
             // Attempt to copy the file to the quest as a map, hat or similar
             List<FileCopyType> copyTypes;
-            if (preferredCopyType == null || !preferredCopyType.SupportedExtensions.Contains(extension[1..]))
+            if (importInfo.PreferredCopyType == null || !importInfo.PreferredCopyType.SupportedExtensions.Contains(extension[1..]))
             {
                 copyTypes = _otherFilesManager.GetFileCopyTypes(extension);
             }
@@ -252,7 +243,7 @@ namespace QuestPatcher
                 // If we already know the file copy type
                 // e.g. from dragging into a particular part of the UI, or for browsing for a particular file type,
                 // we don't need to prompt on which file copy type to use
-                copyTypes = new() { preferredCopyType };
+                copyTypes = new() { importInfo.PreferredCopyType };
             }
 
             if (copyTypes.Count > 0)
@@ -261,10 +252,10 @@ namespace QuestPatcher
                 if (copyTypes.Count > 1)
                 {
                     // If there are multiple different file copy types for this file, prompt the user to decide what they want to import it as
-                    var chosen = await OpenSelectCopyTypeDialog(copyTypes, path);
+                    var chosen = await OpenSelectCopyTypeDialog(copyTypes, importInfo.Path);
                     if (chosen == null)
                     {
-                        Log.Information("No file type selected, cancelling import of {FileName}", Path.GetFileName(path));
+                        Log.Information("No file type selected, cancelling import of {FileName}", Path.GetFileName(importInfo.Path));
                         return;
                     }
                     else
@@ -278,7 +269,7 @@ namespace QuestPatcher
                     copyType = copyTypes[0];
                 }
 
-                await copyType.PerformCopy(path);
+                await copyType.PerformCopy(importInfo.Path);
                 return;
             }
 
@@ -327,12 +318,12 @@ namespace QuestPatcher
         /// Imports then installs a mod.
         /// Will prompt to ask the user if they want to install the mod in the case that it is outdated
         /// </summary>
-        /// <param name="path">The path of the mod</param>
+        /// <param name="importInfo">Information about the mod file to import.</param>
         /// <returns>Whether or not the file could be imported as a mod</returns>
-        private async Task<bool> TryImportMod(string path)
+        private async Task<bool> TryImportMod(FileImportInfo importInfo)
         {
             // Import the mod file and copy it to the quest
-            var mod = await _modManager.TryParseMod(path);
+            var mod = await _modManager.TryParseMod(importInfo.Path, importInfo.OverrideExtension);
             if (mod is null)
             {
                 return false;

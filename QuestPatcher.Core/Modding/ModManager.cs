@@ -115,10 +115,11 @@ namespace QuestPatcher.Core.Modding
         /// Attempts to parse the mod in a particular file.
         /// </summary>
         /// <param name="path">The path to the mod. File extension is important a this is used as an early check to see if a mod is valid.</param>
+        /// <param name="overrideExtension">Can be used if the file extension of <see cref="path"/> does not match the mod type.</param>
         /// <returns>The parsed mod, or null if no provider could load a mod with the given path.</returns>
-        public async Task<IMod?> TryParseMod(string path)
+        public async Task<IMod?> TryParseMod(string path, string? overrideExtension = null)
         {
-            string extension = NormalizeFileExtension(Path.GetExtension(path));
+            string extension = NormalizeFileExtension(overrideExtension ?? Path.GetExtension(path));
 
             if (_modProviders.TryGetValue(extension, out var provider))
             {

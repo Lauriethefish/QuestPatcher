@@ -99,7 +99,10 @@ namespace QuestPatcher.ViewModels
                 }
 
                 Log.Debug("Files found in drag and drop. Processing . . .");
-                await _browseManager.AttemptImportFiles(files.Select(file => file.Path.LocalPath).ToList(), OtherItemsView.SelectedFileCopy);
+                await _browseManager.AttemptImportFiles(files.Select(file => new FileImportInfo(file.Path.LocalPath)
+                {
+                    PreferredCopyType = OtherItemsView.SelectedFileCopy
+                }).ToList());
             }
             catch (COMException)
             {
