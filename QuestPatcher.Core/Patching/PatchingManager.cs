@@ -115,7 +115,7 @@ namespace QuestPatcher.Core.Patching
 
             Log.Information("Unstripped libunity found. Downloading . . .");
 
-            var tempDownloadPath = _specialFolders.GetTempFile();
+            var tempDownloadPath = new TempFile();
             try
             {
                 await _filesDownloader.DownloadUrl(

@@ -30,13 +30,6 @@ namespace QuestPatcher.Core
         public string PatchingFolder { get; }
 
         /// <summary>
-        /// Folder where files are temporarily stored to load as mods or upload/download to the quest.
-        /// </summary>
-        public string StagingArea { get; }
-
-        private ulong _currentStagingNumber = 0;
-
-        /// <summary>
         /// Creates and sets all special folders
         /// </summary>
         public SpecialFolders()
@@ -55,10 +48,8 @@ namespace QuestPatcher.Core
 
             TempFolder = Path.Combine(Path.GetTempPath(), "QuestPatcher");
             PatchingFolder = Path.Combine(TempFolder, "patching");
-            StagingArea = Path.Combine(TempFolder, "stagingArea");
 
             PatchingFolder = Path.Combine(TempFolder, "patching");
-            StagingArea = Path.Combine(TempFolder, "stagingArea");
 
             if (Directory.Exists(TempFolder)) // Sometimes windows fails to delete this upon closing, and we have to do it ourselves
             {
@@ -66,18 +57,6 @@ namespace QuestPatcher.Core
             }
             Directory.CreateDirectory(TempFolder);
             Directory.CreateDirectory(PatchingFolder);
-            Directory.CreateDirectory(StagingArea);
-        }
-
-        /// <summary>
-        /// Finds a path to write a file to before using ADB to push it
-        /// </summary>
-        /// <returns>A wrapper around a file to write to</returns>
-        public TempFile GetTempFile()
-        {
-            string path = Path.Combine(StagingArea, $"{_currentStagingNumber}.temp");
-            _currentStagingNumber++;
-            return new TempFile(path);
         }
     }
 }

@@ -101,10 +101,10 @@ namespace QuestPatcher.Core
             {
                 try
                 {
-                    using var tempPath = _specialFolders.GetTempFile();
-                    Log.Information("Downloading {LogPath} to {TempPath} . . .", logPath, tempPath);
-                    await _debugBridge.DownloadFile(logPath, tempPath.Path);
-                    await CreateLogEntry(dump, tempPath.Path, GameLogsDirectory, Path.GetFileName(logPath));
+                    using var tempFile = new TempFile();
+                    Log.Information("Downloading {LogPath} to {TempPath} . . .", logPath, tempFile);
+                    await _debugBridge.DownloadFile(logPath, tempFile.Path);
+                    await CreateLogEntry(dump, tempFile.Path, GameLogsDirectory, Path.GetFileName(logPath));
                 }
                 catch (Exception ex)
                 {
@@ -120,7 +120,7 @@ namespace QuestPatcher.Core
             {
                 try
                 {
-                    using var tempPath = _specialFolders.GetTempFile();
+                    using var tempPath = new TempFile();
                     Log.Information("Downloading {ConfigPath} to {TempPath} . . .", configPath, tempPath);
                     await _debugBridge.DownloadFile(configPath, tempPath.Path);
                     await dump.AddFileAsync(tempPath.Path, Path.Combine(GameConfigsDirectory, Path.GetFileName(configPath)));
