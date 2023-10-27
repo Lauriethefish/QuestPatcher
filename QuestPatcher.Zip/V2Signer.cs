@@ -12,6 +12,11 @@ namespace QuestPatcher.Zip
     internal static class V2Signer
     {
         /// <summary>
+        /// The size of the chunks in which the APK is hashed.
+        /// </summary>
+        private const int ChunkSize = 1 << 20;
+
+        /// <summary>
         /// Writes the signature block, central directory and EOCD for a v2 signed ZIP file.
         /// </summary>
         /// <param name="centralDirectoryRecords">The records to be written to the central directory</param>
@@ -149,9 +154,10 @@ namespace QuestPatcher.Zip
             // Write the chunk digests of the zip contents, CD and EOCD
             // Must be in this order for the digest to be valid
             uint chunkCount = 0;
-            chunkCount += WriteChunkDigests(0, apkEntriesLength, apkStream, topLevelDigestWriter);
-            chunkCount += WriteChunkDigests(0, cdStream.Length, cdStream, topLevelDigestWriter);
-            chunkCount += WriteChunkDigests(0, eocdStream.Length, eocdStream, topLevelDigestWriter);
+            byte[] chunkBuffer = new byte[ChunkSize];
+            chunkCount += WriteChunkDigests(0, apkEntriesLength, apkStream, topLevelDigestWriter, chunkBuffer);
+            chunkCount += WriteChunkDigests(0, cdStream.Length, cdStream, topLevelDigestWriter, chunkBuffer);
+            chunkCount += WriteChunkDigests(0, eocdStream.Length, eocdStream, topLevelDigestWriter, chunkBuffer);
             topLevelDigestStream.Position = 1;
             topLevelDigestWriter.Write(chunkCount); // Write the correct chunk count
 
@@ -161,11 +167,8 @@ namespace QuestPatcher.Zip
             return sha.ComputeHash(topLevelDigestStream.ToArray(), 0, (int) topLevelDigestStream.Length);
         }
 
-        private static uint WriteChunkDigests(long sectionStart, long length, Stream sourceData, BinaryWriter output)
+        private static uint WriteChunkDigests(long sectionStart, long length, Stream sourceData, BinaryWriter output, byte[] chunkBuffer)
         {
-            const int CHUNK_SIZE = 1 << 20;
-            byte[] chunkData = new byte[CHUNK_SIZE];
-
             var chunkMagicStream = new MemoryStream();
             var chunkMagicWriter = new BinaryWriter(chunkMagicStream);
 
@@ -173,9 +176,9 @@ namespace QuestPatcher.Zip
             long sectionEnd = sectionStart + length;
             sourceData.Position = sectionStart;
             uint chunkCount = 0;
-            for (long i = sectionStart; i < sectionEnd; i += CHUNK_SIZE)
+            for (long i = sectionStart; i < sectionEnd; i += ChunkSize)
             {
-                int bytesInChunk = (int) Math.Min(sectionEnd - i, CHUNK_SIZE);
+                int bytesInChunk = (int) Math.Min(sectionEnd - i, ChunkSize);
 
                 var sha = SHA256.Create();
 
@@ -187,8 +190,8 @@ namespace QuestPatcher.Zip
                 sha.TransformBlock(chunkMagicStream.GetBuffer(), 0, 4 + 1, null, -1);
 
                 // .. then finalise the hash with the full chunk data
-                sourceData.Read(chunkData, 0, bytesInChunk);
-                sha.TransformFinalBlock(chunkData, 0, bytesInChunk);
+                sourceData.Read(chunkBuffer, 0, bytesInChunk);
+                sha.TransformFinalBlock(chunkBuffer, 0, bytesInChunk);
 
                 output.Write(sha.Hash!);
                 chunkCount += 1;
