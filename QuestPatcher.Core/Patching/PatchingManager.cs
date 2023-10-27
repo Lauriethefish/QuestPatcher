@@ -585,8 +585,7 @@ namespace QuestPatcher.Core.Patching
                 File.Delete(_patchedApkPath);
             }
 
-            // No asynchronous File.Copy unfortunately
-            await Task.Run(() => File.Copy(InstalledApp.Path, _patchedApkPath));
+            await FileUtil.CopyAsync(InstalledApp.Path, _patchedApkPath);
 
             // Then actually do the patching, using the APK reader, which is synchronous
             PatchingStage = PatchingStage.Patching;
