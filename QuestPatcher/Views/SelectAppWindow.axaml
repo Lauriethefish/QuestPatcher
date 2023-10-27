@@ -13,29 +13,25 @@
   <Design.DataContext>
     <viewModels:SelectAppWindowViewModel />
   </Design.DataContext>
-  
-    <DockPanel HorizontalAlignment="Stretch">
-        <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="30" Material="{DynamicResource MainBackgroundMaterial}"/>
 
-            <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10" IsHitTestVisible="True">
-          <ExperimentalAcrylicBorder.Material>
-            <ExperimentalAcrylicMaterial TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
-          </ExperimentalAcrylicBorder.Material>
-          
-          <StackPanel Spacing="10" HorizontalAlignment="Center">
-            <TextBlock HorizontalAlignment="Center" TextDecorations="Underline">Change Selected App</TextBlock>
-            <TextBlock TextAlignment="Center" TextWrapping="Wrap">Changing your app will reload QuestPatcher to pull the new APK, which may take a minute or so.</TextBlock>
+  <DockPanel HorizontalAlignment="Stretch">
+    <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="30" Material="{DynamicResource MainBackgroundMaterial}"/>
+    <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10" IsHitTestVisible="True" Material="{DynamicResource MainBackgroundMaterial}">
 
-            <StackPanel Spacing="20" IsVisible="{Binding IsLoading}" HorizontalAlignment="Center">
-              <TextBlock>Loading installed applications . . .</TextBlock>
-              <ProgressBar IsIndeterminate="True" />
-            </StackPanel>
-            
-            <StackPanel Spacing="10" IsVisible="{Binding !IsLoading}">
-              <ComboBox ItemsSource="{Binding InstalledApps}" SelectedItem="{Binding SelectedApp}" SelectedIndex="0" Width="350" HorizontalAlignment="Center"/>
-              <Button Command="{Binding ConfirmNewApp}" HorizontalAlignment="Center" HorizontalContentAlignment="Center">Confirm new App</Button>
-            </StackPanel>
-          </StackPanel>
+      <StackPanel Spacing="10" HorizontalAlignment="Center">
+        <TextBlock HorizontalAlignment="Center" TextDecorations="Underline">Change Selected App</TextBlock>
+        <TextBlock TextAlignment="Center" TextWrapping="Wrap">Changing your app will reload QuestPatcher to pull the new APK, which may take a minute or so.</TextBlock>
+
+        <StackPanel Spacing="20" IsVisible="{Binding IsLoading}" HorizontalAlignment="Center">
+          <TextBlock>Loading installed applications . . .</TextBlock>
+          <ProgressBar IsIndeterminate="True" />
+        </StackPanel>
+
+        <StackPanel Spacing="10" IsVisible="{Binding !IsLoading}">
+          <ComboBox ItemsSource="{Binding InstalledApps}" SelectedItem="{Binding SelectedApp}" SelectedIndex="0" Width="350" HorizontalAlignment="Center"/>
+          <Button Command="{Binding ConfirmNewApp}" HorizontalAlignment="Center" HorizontalContentAlignment="Center">Confirm new App</Button>
+        </StackPanel>
+      </StackPanel>
     </ExperimentalAcrylicBorder>
   </DockPanel>
 </Window>
