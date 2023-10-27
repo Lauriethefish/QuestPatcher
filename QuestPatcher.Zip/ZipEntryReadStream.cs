@@ -9,12 +9,15 @@
         private readonly long _entryDataOffset;
         private readonly uint _entryDataLength;
 
+        private long _streamPosition;
+
         internal ZipEntryReadStream(Stream stream, ApkZip zip, long entryDataOffset, uint entryDataLength)
         {
             _stream = stream;
             _zip = zip;
             _entryDataOffset = entryDataOffset;
             _entryDataLength = entryDataLength;
+            _streamPosition = entryDataOffset; // Start reading from the beginning of the entry
         }
 
         public override bool CanRead => true;
@@ -27,7 +30,7 @@
 
         public override long Position
         {
-            get => _stream.Position - _entryDataOffset;
+            get => _streamPosition - _entryDataOffset;
             set
             {
                 if (value < 0 || value >= _entryDataLength)
@@ -35,21 +38,27 @@
                     throw new ArgumentException("Attempted to seek to position outside of ZIP entry");
                 }
 
-                _stream.Position = value + _entryDataOffset;
+                _streamPosition = value + _entryDataOffset;
             }
         }
 
         public override void Flush()
         {
-            // Necessary data will be flushed when the ZIP file is saved
+            // No need for Flush, as writing is unsupported.
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            long bytesLeftInStream = _entryDataLength - Position;
+            // Seek to the right position to start reading the entry data
+            // Multiple entry streams may be open at once, so we must seek each time we read.
+            _stream.Position = _streamPosition;
 
             // Do not permit reading beyond the end of the entry
-            return _stream.Read(buffer, offset, (int) Math.Min(bytesLeftInStream, count));
+            long bytesLeftInStream = _entryDataLength - Position;
+            int bytesRead = _stream.Read(buffer, offset, (int) Math.Min(bytesLeftInStream, count));
+
+            _streamPosition = _stream.Position;
+            return bytesRead;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -82,7 +91,7 @@
 
         public override void Close()
         {
-            _zip.FinishReading();
+            // ApkZip handles disposing the underlying Stream.
         }
     }
 }

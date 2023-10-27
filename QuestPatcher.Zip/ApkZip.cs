@@ -52,7 +52,6 @@ namespace QuestPatcher.Zip
         private readonly Stream _stream;
         private readonly BinaryReader _reader;
 
-        private bool _isStreamInUse = false;
         private AsymmetricKeyParameter? _privateKey;
         private X509Certificate? _certificate;
 
@@ -76,7 +75,7 @@ namespace QuestPatcher.Zip
         /// May support writing.</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException">If the stream does not support seeking or reading</exception>
-        /// <exception cref="ZipFormatException">If the ZIP file is not valid. Restrictions for this implementation are listed above.</exception>
+        /// <exception cref="ZipFormatException">If the ZIP file cannot be loaded by this ZIP implementation.</exception>
         public static ApkZip Open(Stream stream)
         {
             if (!stream.CanSeek || !stream.CanRead)
@@ -154,8 +153,11 @@ namespace QuestPatcher.Zip
             }
 
             var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, reader);
-            // Load the digests of each file from the signature. When we re-sign the APK later, we then only need to hash the changed files.
-            apkZip._existingHashes = JarSigner.CollectExistingHashes(apkZip);
+            if(stream.CanWrite)
+            {
+                // Load the digests of each file from the signature. When we re-sign the APK later, we then only need to hash the changed files.
+                apkZip._existingHashes = JarSigner.CollectExistingHashes(apkZip);
+            }
 
             return apkZip;
         }
@@ -215,17 +217,10 @@ namespace QuestPatcher.Zip
         /// </summary>
         /// <param name="fileName">The name of the file to open.</param>
         /// <returns>A stream that can be used to read from the file. Must only be read from the thread that opened it.</returns>
-        /// <exception cref="InvalidOperationException">If attempting to open a file when another file is already open. This is currently unsupported.</exception>
         /// <exception cref="ArgumentException">If no file with the given name exists within the APK</exception>
         public Stream OpenReader(string fileName)
         {
             ThrowIfDisposed();
-
-            if (_isStreamInUse)
-            {
-                throw new InvalidOperationException("Attempted to open a file for reading when another file was already being read/written to");
-            }
-            _isStreamInUse = true;
 
             if (_centralDirectoryRecords.TryGetValue(NormaliseFileName(fileName), out var centralDirectoryHeader))
             {
@@ -260,11 +255,6 @@ namespace QuestPatcher.Zip
         public void AddFile(string fileName, Stream sourceData, CompressionLevel? compressionLevel)
         {
             ThrowIfDisposed();
-
-            if (_isStreamInUse)
-            {
-                throw new InvalidOperationException("Attempted to open a file for writing when another file was already being read/written to");
-            }
 
             fileName = NormaliseFileName(fileName);
 
@@ -354,11 +344,6 @@ namespace QuestPatcher.Zip
             _postFilesOffset = postEntryDataOffset;
         }
 
-        internal void FinishReading()
-        {
-            _isStreamInUse = false;
-        }
-
         internal static ZipVersion CheckVersionSupported(ZipVersion version)
         {
             if (version.Major >= MaxSupportedVersion.Major)
@@ -407,7 +392,6 @@ namespace QuestPatcher.Zip
             {
                 return;
             }
-            _disposed = true;
 
             try
             {
@@ -418,6 +402,8 @@ namespace QuestPatcher.Zip
             }
             finally
             {
+                // Do not dispose until this point, as JarSigner needs to be able to add the signature files to the APK, and for that the ApkZip must not be disposed.
+                _disposed = true;
                 _stream.Dispose();
                 _reader.Dispose();
             }
