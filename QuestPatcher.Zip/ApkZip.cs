@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.SymbolStore;
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
 using QuestPatcher.Zip.Data;
@@ -113,10 +112,6 @@ namespace QuestPatcher.Zip
             for (int i = 0; i < eocd.CentralDirectoryRecords; i++)
             {
                 var record = CentralDirectoryFileHeader.Read(reader);
-                if(record.Flags.HasFlag(EntryFlags.UsesDataDescriptor))
-                {
-                    throw new ZipFormatException("Data descriptor is not supported");
-                }
                 if (record.FileName == null)
                 {
                     throw new ZipFormatException("Zero-length file names are not supported");
@@ -139,9 +134,7 @@ namespace QuestPatcher.Zip
             }
             else
             {
-                stream.Position = lastRecord.LocalHeaderOffset;
-                var _ = LocalFileHeader.Read(reader);
-                stream.Position += lastRecord.CompressedSize;
+                SeekToEndOfEntry(stream, lastRecord);
             }
             long postFilesOffset = stream.Position;
             stream.Position = 0;
@@ -359,6 +352,42 @@ namespace QuestPatcher.Zip
             }
 
             return version;
+        }
+
+        /// <summary>
+        /// Seeks the stream to the first byte after the contents of a ZIP entry (including after the data descriptor if present).
+        /// </summary>
+        /// <param name="stream">The stream to seek.</param>
+        /// <param name="header">The file's header.</param>
+        private static void SeekToEndOfEntry(Stream stream, CentralDirectoryFileHeader header)
+        {
+            const uint DataDescriptorSignature = 0x08074b50;
+
+            // Read the local header and skip past the compressed data.
+            stream.Position = header.LocalHeaderOffset;
+            var reader = new BinaryReader(stream);
+            var _ = LocalFileHeader.Read(reader);
+            stream.Position += header.CompressedSize;
+
+            if (header.Flags.HasFlag(EntryFlags.UsesDataDescriptor))
+            {
+                // If the entry has stated that it has a data descriptor, read this too.
+
+                // Some data descriptors contain the signature, some do not.
+                // The signature was originally not part of the ZIP specification but has been widely adopted.
+                uint _crc = reader.ReadUInt32();
+                if(_crc == DataDescriptorSignature)
+                {
+                    // If the signature was present, and so we just read the signature, read the actual CRC here.
+                    // In the situation that the CRC32 happened to equal the data descriptor signature, this will read invalid data.
+                    // This case is not accounted for in the ZIP specification, so we will have to live in fear.
+                    _crc = reader.ReadUInt32();
+                }
+
+
+                uint _compressedSize = reader.ReadUInt32();
+                uint _uncompressedSize = reader.ReadUInt32();
+            }
         }
 
         private string NormaliseFileName(string fileName)
