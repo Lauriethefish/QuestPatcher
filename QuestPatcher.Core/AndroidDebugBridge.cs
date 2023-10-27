@@ -114,12 +114,18 @@ namespace QuestPatcher.Core
             while (true)
             {
                 var output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, command);
-                Log.Verbose("Standard output: {StandardOutput}", output.StandardOutput);
+                if(output.StandardOutput.Length > 0)
+                {
+                    Log.Verbose("Standard output: {StandardOutput}", output.StandardOutput);
+                }
                 if (output.ErrorOutput.Length > 0)
                 {
                     Log.Verbose("Error output: {ErrorOutput}", output.ErrorOutput);
                 }
-                Log.Verbose("Exit code: {ExitCode}", output.ExitCode);
+                if(output.ExitCode != 0)
+                {
+                    Log.Verbose("Exit code: {ExitCode}", output.ExitCode);
+                }
 
                 // Command execution was a success if the exit code was zero or an allowed exit code
                 // -1073740940 is always allowed as some ADB installations return it randomly, even when commands are successful.
