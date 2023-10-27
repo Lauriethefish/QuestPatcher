@@ -6,6 +6,7 @@
         <Color x:Key="TabItemSelected">#1fffffff</Color>
         <Color x:Key="SelectedSectionBackground">#222222</Color>
         <Color x:Key="ModListBackground">#1f1f1f</Color>
+        <Color x:Key="PatchingOptionsBackground">#1f1f1f</Color>
         <Color x:Key="ModHover">#353535</Color>
         <ExperimentalAcrylicMaterial x:Key="MainBackgroundMaterial" TintColor="{DynamicResource MainBackground}" MaterialOpacity="0.85" TintOpacity="1" />
         <ExperimentalAcrylicMaterial x:Key="SelectedSectionBackgroundMaterial" TintColor="{DynamicResource SelectedSectionBackground}" MaterialOpacity="0.85" TintOpacity="1" />
