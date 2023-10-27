@@ -1,4 +1,6 @@
-﻿namespace QuestPatcher.Zip.Data
+﻿using System.IO;
+
+namespace QuestPatcher.Zip.Data
 {
     internal static class BinaryReaderExtensions
     {

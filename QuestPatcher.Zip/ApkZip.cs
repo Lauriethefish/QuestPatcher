@@ -1,4 +1,7 @@
-﻿using System.IO.Compression;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
 using QuestPatcher.Zip.Data;

@@ -1,4 +1,6 @@
-﻿namespace QuestPatcher.Zip.Data
+﻿using System.IO;
+
+namespace QuestPatcher.Zip.Data
 {
     /// <summary>
     /// The data stored about a file just before the file's contents.

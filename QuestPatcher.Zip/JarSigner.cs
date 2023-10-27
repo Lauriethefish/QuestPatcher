@@ -1,4 +1,8 @@
-﻿using System.IO.Compression;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Org.BouncyCastle.Crypto;
@@ -99,7 +103,7 @@ namespace QuestPatcher.Zip
             }
 
             // First write the digest of the file to a section of the manifest file
-            using MemoryStream sectStream = new();
+            using var sectStream = new MemoryStream();
             using (var sectWriter = OpenStreamWriter(sectStream))
             {
                 sectWriter.WriteLine($"Name: {fileName}");

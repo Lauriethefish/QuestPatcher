@@ -1,4 +1,7 @@
-﻿namespace QuestPatcher.Zip.Data
+﻿using System;
+using System.IO;
+
+namespace QuestPatcher.Zip.Data
 {
     /// <summary>
     /// A ZIP timestamp, equivalent to MS-DOS format

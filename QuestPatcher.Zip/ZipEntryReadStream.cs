@@ -1,4 +1,7 @@
-﻿namespace QuestPatcher.Zip
+﻿using System;
+using System.IO;
+
+namespace QuestPatcher.Zip
 {
     internal class ZipEntryReadStream : Stream
     {

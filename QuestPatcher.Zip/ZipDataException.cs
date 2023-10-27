@@ -1,4 +1,6 @@
-﻿namespace QuestPatcher.Zip
+﻿using System;
+
+namespace QuestPatcher.Zip
 {
     /// <summary>
     /// Thrown if the data to write to the ZIP file has a format problem

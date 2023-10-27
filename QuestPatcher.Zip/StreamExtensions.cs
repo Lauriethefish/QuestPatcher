@@ -1,4 +1,6 @@
-﻿namespace QuestPatcher.Zip
+﻿using System.IO;
+
+namespace QuestPatcher.Zip
 {
     public static class StreamExtensions
     {

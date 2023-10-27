@@ -1,4 +1,6 @@
-﻿namespace QuestPatcher.Zip.Data
+﻿using System.IO;
+
+namespace QuestPatcher.Zip.Data
 {
     /// <summary>
     /// The data stored for each file in the ZIP's central directory.

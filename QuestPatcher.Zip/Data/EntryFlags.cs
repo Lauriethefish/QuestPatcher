@@ -1,4 +1,6 @@
-﻿namespace QuestPatcher.Zip.Data
+﻿using System;
+
+namespace QuestPatcher.Zip.Data
 {
     [Flags]
     internal enum EntryFlags : short

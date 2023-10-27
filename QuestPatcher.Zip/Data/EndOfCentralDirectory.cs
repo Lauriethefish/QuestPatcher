@@ -1,4 +1,7 @@
-﻿namespace QuestPatcher.Zip.Data
+﻿using System;
+using System.IO;
+
+namespace QuestPatcher.Zip.Data
 {
     /// <summary>
     /// The record that marks the end of the central directory of a ZIP file.
