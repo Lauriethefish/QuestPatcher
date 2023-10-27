@@ -90,7 +90,7 @@ namespace QuestPatcher
 
             await AttemptImportFiles(files.Select(file => new FileImportInfo(file.Path.LocalPath)
             {
-                PreferredCopyType = knownFileCopyType 
+                PreferredCopyType = knownFileCopyType
             }).ToList());
         }
 
@@ -110,7 +110,7 @@ namespace QuestPatcher
 
             // Append all files to the new or existing queue
             Log.Debug("Enqueuing {FilesEnqueued} files", files.Count);
-            foreach(var importInfo in files)
+            foreach (var importInfo in files)
             {
                 _currentImportQueue.Enqueue(importInfo);
             }
@@ -156,7 +156,7 @@ namespace QuestPatcher
             HttpContentHeaders headers;
             try
             {
-                if(_locker.IsFree)
+                if (_locker.IsFree)
                 {
                     // Make sure that the download progress bar is visible
                     _locker.StartOperation();
@@ -175,15 +175,15 @@ namespace QuestPatcher
                 };
                 await builder.OpenDialogue(_mainWindow);
                 return;
-            }   
-            finally 
+            }
+            finally
             {
                 _locker.FinishOperation();
             }
 
             // Get the file name/extension from the headers
             string? extension = Path.GetExtension(headers.ContentDisposition?.FileName);
-            if(extension == null)
+            if (extension == null)
             {
                 var builder = new DialogBuilder
                 {
@@ -200,7 +200,7 @@ namespace QuestPatcher
                 new FileImportInfo(tempFile.Path)
                 {
                     OverrideExtension = extension
-                } 
+                }
             });
         }
 

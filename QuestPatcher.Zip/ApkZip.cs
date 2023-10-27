@@ -150,7 +150,7 @@ namespace QuestPatcher.Zip
             }
 
             var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, reader);
-            if(stream.CanWrite)
+            if (stream.CanWrite)
             {
                 // Load the digests of each file from the signature. When we re-sign the APK later, we then only need to hash the changed files.
                 apkZip._existingHashes = JarSigner.CollectExistingHashes(apkZip);
@@ -376,7 +376,7 @@ namespace QuestPatcher.Zip
                 // Some data descriptors contain the signature, some do not.
                 // The signature was originally not part of the ZIP specification but has been widely adopted.
                 uint _crc = reader.ReadUInt32();
-                if(_crc == DataDescriptorSignature)
+                if (_crc == DataDescriptorSignature)
                 {
                     // If the signature was present, and so we just read the signature, read the actual CRC here.
                     // In the situation that the CRC32 happened to equal the data descriptor signature, this will read invalid data.
@@ -413,7 +413,7 @@ namespace QuestPatcher.Zip
 
         private void ThrowIfDisposed()
         {
-            if(_disposed)
+            if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().FullName);
             }
@@ -421,7 +421,7 @@ namespace QuestPatcher.Zip
 
         public void Dispose()
         {
-            if(_disposed)
+            if (_disposed)
             {
                 return;
             }

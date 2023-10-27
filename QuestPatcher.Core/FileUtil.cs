@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using System.IO;
+﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace QuestPatcher.Core
 {

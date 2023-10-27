@@ -14,7 +14,7 @@
 
         static Crc32()
         {
-            for(uint b = 0; b < 256; b++)
+            for (uint b = 0; b < 256; b++)
             {
                 uint current = b;
 

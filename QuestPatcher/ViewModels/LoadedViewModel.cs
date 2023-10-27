@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Avalonia.Input;
-using Org.BouncyCastle.Crypto.Tls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.ViewModels.Modding;
@@ -92,7 +91,7 @@ namespace QuestPatcher.ViewModels
             // We need to handle this to avoid crashing QuestPatcher.
             try
             {
-                var text = args.Data.GetText();
+                string? text = args.Data.GetText();
                 if (text != null)
                 {
                     var creationOptions = new UriCreationOptions();
@@ -104,7 +103,7 @@ namespace QuestPatcher.ViewModels
                 }
 
                 var files = args.Data.GetFiles();
-                if(files != null)
+                if (files != null)
                 {
                     Log.Debug("Files found in drag and drop. Processing . . .");
                     await _browseManager.AttemptImportFiles(files.Select(file => new FileImportInfo(file.Path.LocalPath)
@@ -112,7 +111,7 @@ namespace QuestPatcher.ViewModels
                         PreferredCopyType = OtherItemsView.SelectedFileCopy
                     }).ToList());
                 }
-                
+
             }
             catch (COMException)
             {
