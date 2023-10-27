@@ -10,6 +10,30 @@
         /// </summary>
         private static uint ZipCrcPolynomial = 0xEDB88320;
 
+        private static uint[] Lookup = new uint[256];
+
+        static Crc32()
+        {
+            for(uint b = 0; b < 256; b++)
+            {
+                uint current = b;
+
+                for (int i = 0; i < 8; i++)
+                {
+                    if ((current & 1) == 1)
+                    {
+                        current = (current >> 1) ^ ZipCrcPolynomial;
+                    }
+                    else
+                    {
+                        current >>= 1;
+                    }
+                }
+
+                Lookup[b] = current;
+            }
+        }
+
         /// <summary>
         /// The value of the Crc32 for the data that has been hashed thus far
         /// </summary>
@@ -27,18 +51,7 @@
             for (int addr = offset; addr < offset + length; addr++)
             {
                 _crc ^= data[addr];
-
-                for (int i = 0; i < 8; i++)
-                {
-                    if ((_crc & 1) == 1)
-                    {
-                        _crc = (_crc >> 1) ^ ZipCrcPolynomial;
-                    }
-                    else
-                    {
-                        _crc >>= 1;
-                    }
-                }
+                _crc = (_crc >> 8) ^ Lookup[_crc & 255];
             }
         }
     }
