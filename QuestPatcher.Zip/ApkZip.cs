@@ -113,6 +113,10 @@ namespace QuestPatcher.Zip
             for (int i = 0; i < eocd.CentralDirectoryRecords; i++)
             {
                 var record = CentralDirectoryFileHeader.Read(reader);
+                if(record.Flags.HasFlag(EntryFlags.UsesDataDescriptor))
+                {
+                    throw new ZipFormatException("Data descriptor is not supported");
+                }
                 if (record.FileName == null)
                 {
                     throw new ZipFormatException("Zero-length file names are not supported");
