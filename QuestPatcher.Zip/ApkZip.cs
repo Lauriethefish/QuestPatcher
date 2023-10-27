@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics.SymbolStore;
+using System.IO.Compression;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
 using QuestPatcher.Zip.Data;
@@ -7,6 +8,7 @@ namespace QuestPatcher.Zip
 {
     /// <summary>
     /// ZIP implementation used for reading APK files.
+    /// Not thread safe; an ApkZip should only ever be called upon by one thread.
     /// </summary>
     public class ApkZip : IDisposable
     {
@@ -53,6 +55,8 @@ namespace QuestPatcher.Zip
         private bool _isStreamInUse = false;
         private AsymmetricKeyParameter? _privateKey;
         private X509Certificate? _certificate;
+
+        private bool _disposed = false;
 
         private ApkZip(Dictionary<string, CentralDirectoryFileHeader> centralDirectoryRecords, long postFilesOffset, Stream stream, BinaryReader reader)
         {
@@ -163,6 +167,8 @@ namespace QuestPatcher.Zip
         /// <returns>True if the ZIP contains an entry with this name</returns>
         public bool ContainsFile(string fileName)
         {
+            ThrowIfDisposed();
+
             return _centralDirectoryRecords.ContainsKey(NormaliseFileName(fileName));
         }
 
@@ -174,6 +180,8 @@ namespace QuestPatcher.Zip
         /// <returns>The CRC-32 of the file</returns>
         public uint GetCrc32(string fileName)
         {
+            ThrowIfDisposed();
+
             fileName = NormaliseFileName(fileName);
             if (!ContainsFile(fileName))
             {
@@ -191,6 +199,8 @@ namespace QuestPatcher.Zip
         /// <exception cref="InvalidOperationException">If this ZIP file is readonly</exception>
         public bool RemoveFile(string fileName)
         {
+            ThrowIfDisposed();
+
             fileName = NormaliseFileName(fileName);
             if (!_stream.CanWrite)
             {
@@ -204,11 +214,13 @@ namespace QuestPatcher.Zip
         /// Opens a stream to read a file in the APK.
         /// </summary>
         /// <param name="fileName">The name of the file to open.</param>
-        /// <returns>A stream that can be used to read from the file.</returns>
+        /// <returns>A stream that can be used to read from the file. Must only be read from the thread that opened it.</returns>
         /// <exception cref="InvalidOperationException">If attempting to open a file when another file is already open. This is currently unsupported.</exception>
         /// <exception cref="ArgumentException">If no file with the given name exists within the APK</exception>
         public Stream OpenReader(string fileName)
         {
+            ThrowIfDisposed();
+
             if (_isStreamInUse)
             {
                 throw new InvalidOperationException("Attempted to open a file for reading when another file was already being read/written to");
@@ -247,6 +259,8 @@ namespace QuestPatcher.Zip
         /// <param name="compressionLevel">The (DEFLATE) compression level to use. If null, the STORE method will be used for the file.</param>
         public void AddFile(string fileName, Stream sourceData, CompressionLevel? compressionLevel)
         {
+            ThrowIfDisposed();
+
             if (_isStreamInUse)
             {
                 throw new InvalidOperationException("Attempted to open a file for writing when another file was already being read/written to");
@@ -340,18 +354,6 @@ namespace QuestPatcher.Zip
             _postFilesOffset = postEntryDataOffset;
         }
 
-        private string NormaliseFileName(string fileName)
-        {
-            // Remove leading slash and normalise slashes to forward slashes
-            fileName = fileName.Replace('\\', '/');
-            if (fileName.StartsWith('/'))
-            {
-                fileName = fileName.Substring(1);
-            }
-
-            return fileName;
-        }
-
         internal void FinishReading()
         {
             _isStreamInUse = false;
@@ -370,6 +372,18 @@ namespace QuestPatcher.Zip
             return version;
         }
 
+        private string NormaliseFileName(string fileName)
+        {
+            // Remove leading slash and normalise slashes to forward slashes
+            fileName = fileName.Replace('\\', '/');
+            if (fileName.StartsWith('/'))
+            {
+                fileName = fileName.Substring(1);
+            }
+
+            return fileName;
+        }
+
         private void Save()
         {
             // _certificate and _privateKey are non-null due to the default certificate assigned in the constructor.
@@ -379,8 +393,22 @@ namespace QuestPatcher.Zip
             V2Signer.SignAndCompleteZipFile(_centralDirectoryRecords.Values, _stream, _certificate!, _privateKey!);
         }
 
+        private void ThrowIfDisposed()
+        {
+            if(_disposed)
+            {
+                throw new ObjectDisposedException(GetType().FullName);
+            }
+        }
+
         public void Dispose()
         {
+            if(_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+
             try
             {
                 if (_stream.CanWrite)
