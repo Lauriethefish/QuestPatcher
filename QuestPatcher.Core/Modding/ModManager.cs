@@ -161,10 +161,33 @@ namespace QuestPatcher.Core.Modding
         /// </summary>
         public async Task CreateModDirectories()
         {
+            const string Permissions = "777";
+
             var modDirectories = new List<string> { ModsPath, LibsPath, Sl2LibsPath, Sl2EarlyModsPath, Sl2LateModsPath, ModsExtractPath };
 
             await _debugBridge.CreateDirectories(modDirectories);
-            await _debugBridge.Chmod(modDirectories, "777");
+            try
+            {
+                await _debugBridge.Chmod(modDirectories, Permissions);
+            }
+            catch (AdbException ex)
+            {
+                Log.Warning(ex, "Failed to chmod mod directories, they will be deleted and recreated, this will disable all QuestLoader mods.");
+                var modsAndLibs = new List<string> { ModsPath, LibsPath };
+
+                await _debugBridge.RemoveDirectory(ModsPath);
+                await _debugBridge.RemoveDirectory(LibsPath);
+                await _debugBridge.CreateDirectories(modsAndLibs);
+
+                try
+                {
+                    await _debugBridge.Chmod(modsAndLibs, Permissions);
+                }
+                catch (AdbException ex2)
+                {
+                    Log.Error(ex2, "Failed to chmod mod directories on the second attempt! Mods will not load!");
+                }
+            }
         }
 
         /// <summary>
