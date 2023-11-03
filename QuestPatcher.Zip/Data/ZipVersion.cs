@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using System.Threading.Tasks;
 
 namespace QuestPatcher.Zip.Data
 {
@@ -8,7 +8,7 @@ namespace QuestPatcher.Zip.Data
 
         public byte Minor { get; set; }
 
-        public static ZipVersion Read(BinaryReader reader)
+        public static ZipVersion Read(ZipMemory reader)
         {
             return new ZipVersion()
             {
@@ -17,10 +17,25 @@ namespace QuestPatcher.Zip.Data
             };
         }
 
-        public void Write(BinaryWriter writer)
+        public void Write(ZipMemory writer)
         {
             writer.Write(Major);
             writer.Write(Minor);
+        }
+
+        public static async Task<ZipVersion> ReadAsync(ZipMemory reader)
+        {
+            return new ZipVersion()
+            {
+                Major = await reader.ReadByteAsync(),
+                Minor = await reader.ReadByteAsync()
+            };
+        }
+
+        public async Task WriteAsync(ZipMemory writer)
+        {
+            await writer.WriteAsync(Major);
+            await writer.WriteAsync(Minor);
         }
 
         public override string ToString()

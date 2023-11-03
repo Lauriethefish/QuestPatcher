@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Threading.Tasks;
 
 namespace QuestPatcher.Zip.Data
 {
@@ -75,7 +75,7 @@ namespace QuestPatcher.Zip.Data
             }
         }
 
-        public static Timestamp Read(BinaryReader reader)
+        public static Timestamp Read(ZipMemory reader)
         {
             return new Timestamp()
             {
@@ -84,10 +84,25 @@ namespace QuestPatcher.Zip.Data
             };
         }
 
-        public void Write(BinaryWriter writer)
+        public void Write(ZipMemory writer)
         {
             writer.Write(TimeShort);
             writer.Write(DateShort);
+        }
+
+        public static async Task<Timestamp> ReadAsync(ZipMemory reader)
+        {
+            return new Timestamp()
+            {
+                TimeShort = await reader.ReadUInt16Async(),
+                DateShort = await reader.ReadUInt16Async(),
+            };
+        }
+
+        public async Task WriteAsync(ZipMemory writer)
+        {
+            await writer.WriteAsync(TimeShort);
+            await writer.WriteAsync(DateShort);
         }
     }
 }

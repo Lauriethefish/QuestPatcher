@@ -52,19 +52,19 @@ namespace QuestPatcher.Zip
         private Dictionary<string, string>? _existingHashes;
         private long _postFilesOffset;
         private readonly Stream _stream;
-        private readonly BinaryReader _reader;
+        private readonly ZipMemory _memory;
 
         private AsymmetricKeyParameter? _privateKey;
         private X509Certificate? _certificate;
 
         private bool _disposed = false;
 
-        private ApkZip(Dictionary<string, CentralDirectoryFileHeader> centralDirectoryRecords, long postFilesOffset, Stream stream, BinaryReader reader)
+        private ApkZip(Dictionary<string, CentralDirectoryFileHeader> centralDirectoryRecords, long postFilesOffset, Stream stream, ZipMemory memory)
         {
             _centralDirectoryRecords = centralDirectoryRecords;
             _postFilesOffset = postFilesOffset;
             _stream = stream;
-            _reader = reader;
+            _memory = memory;
 
             // Use the default certificate until another is assigned
             CertificatePem = Certificates.DefaultCertificatePem;
@@ -85,13 +85,13 @@ namespace QuestPatcher.Zip
                 throw new ArgumentException("Must have seekable and readable stream.");
             }
 
-            var reader = new BinaryReader(stream);
+            var memory = new ZipMemory(stream);
 
             // A ZIP file must end with an end of central directory record, which is, at minimum, 22 bytes long.
             // The record starts with 4 header bytes, so we will locate these first.
             stream.Position = stream.Length - 22;
 
-            while (reader.ReadUInt32() != EndOfCentralDirectory.Header)
+            while (memory.ReadUInt32() != EndOfCentralDirectory.Header)
             {
                 // If we have just read from the start of the stream and there is still no EOCD signature, then this isn't a valid ZIP file
                 if (stream.Position == 0 + 4)
@@ -104,7 +104,7 @@ namespace QuestPatcher.Zip
             }
 
             stream.Position -= 4;
-            var eocd = EndOfCentralDirectory.Read(reader);
+            var eocd = EndOfCentralDirectory.Read(memory);
 
             stream.Position = eocd.CentralDirectoryOffset;
 
@@ -114,7 +114,7 @@ namespace QuestPatcher.Zip
             CentralDirectoryFileHeader? lastRecord = null;
             for (int i = 0; i < eocd.CentralDirectoryRecords; i++)
             {
-                var record = CentralDirectoryFileHeader.Read(reader);
+                var record = CentralDirectoryFileHeader.Read(memory);
                 if (record.FileName == null)
                 {
                     throw new ZipFormatException("Zero-length file names are not supported");
@@ -152,7 +152,7 @@ namespace QuestPatcher.Zip
                 stream.SetLength(postFilesOffset);
             }
 
-            var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, reader);
+            var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, memory);
             if (stream.CanWrite)
             {
                 // Load the digests of each file from the signature. When we re-sign the APK later, we then only need to hash the changed files.
@@ -225,7 +225,7 @@ namespace QuestPatcher.Zip
             if (_centralDirectoryRecords.TryGetValue(NormaliseFileName(fileName), out var centralDirectoryHeader))
             {
                 _stream.Position = centralDirectoryHeader.LocalHeaderOffset;
-                var _ = LocalFileHeader.Read(_reader); // LocalFileHeader currently doesn't contain any information we need
+                var _ = LocalFileHeader.Read(_memory); // LocalFileHeader currently doesn't contain any information we need
 
                 var entryStream = new ZipEntryReadStream(_stream, this, _stream.Position, centralDirectoryHeader.CompressedSize);
 
@@ -314,8 +314,7 @@ namespace QuestPatcher.Zip
 
             // Write the entry's local header
             _stream.Position = localHeaderOffset;
-            var writer = new BinaryWriter(_stream);
-            localHeader.Write(writer);
+            localHeader.Write(_memory);
 
             var centralDirectoryHeader = new CentralDirectoryFileHeader()
             {
@@ -368,7 +367,7 @@ namespace QuestPatcher.Zip
 
             // Read the local header and skip past the compressed data.
             stream.Position = header.LocalHeaderOffset;
-            var reader = new BinaryReader(stream);
+            var reader = new ZipMemory(stream);
             var _ = LocalFileHeader.Read(reader);
             stream.Position += header.CompressedSize;
 
@@ -441,7 +440,6 @@ namespace QuestPatcher.Zip
                 // Do not dispose until this point, as JarSigner needs to be able to add the signature files to the APK, and for that the ApkZip must not be disposed.
                 _disposed = true;
                 _stream.Dispose();
-                _reader.Dispose();
             }
         }
     }
