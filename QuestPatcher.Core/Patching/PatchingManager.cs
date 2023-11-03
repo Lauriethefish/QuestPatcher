@@ -434,6 +434,21 @@ namespace QuestPatcher.Core.Patching
                 Log.Information("Adding flatscreen support . . .");
                 AddFlatscreenSupportSync(apk, ovrPlatformSdkPath!);
             }
+            
+            if (_config.PatchingOptions.EnableCustomSplash)
+            {
+                Log.Information("Checking if Splash screen file exists");
+                if (File.Exists(_config.PatchingOptions.CustomSplash))
+                {
+                    apk.RemoveFile("assets/vr_splash.png");
+                    AddFileToApkSync(_config.PatchingOptions.CustomSplash, "assets/vr_splash.png", apk);
+                    Log.Information("Replaced Splash with custom Image");
+                }
+                else
+                {
+                    Log.Warning("Custom Splash is enabled but file wasn't found!");
+                }
+            }
 
             Log.Information("Patching manifest . . .");
             PatchManifestSync(apk);

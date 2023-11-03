@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Avalonia.Controls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
@@ -102,6 +103,59 @@ namespace QuestPatcher.ViewModels
                 };
                 await builder.OpenDialogue(_mainWindow);
             }
+        }
+
+        public async void SetSplash()
+        {
+            string path = Config.PatchingOptions.CustomSplash;
+
+            if (path.ToLower() == "none")
+            {
+                Config.PatchingOptions.EnableCustomSplash = false;
+                DialogBuilder builder = new()
+                {
+                    Title = "Success",
+                    Text = "The Default Splash screen will be used.",
+                    HideCancelButton = true
+                };
+                await builder.OpenDialogue(_mainWindow);
+                return;
+            }
+            
+            if (File.Exists(path))
+            {
+                if (!path.EndsWith(".png"))
+                {
+                    Config.PatchingOptions.EnableCustomSplash = false;
+                    DialogBuilder builder = new()
+                    {
+                        Title = "Error",
+                        Text = "Meta only supports .png files as splash screens! Please specify a .png file.",
+                        HideCancelButton = true
+                    };
+                    await builder.OpenDialogue(_mainWindow);
+                    return;
+                }
+                
+                Config.PatchingOptions.EnableCustomSplash = true;
+                DialogBuilder builder2 = new()
+                {
+                    Title = "Success",
+                    Text = "The Image (" + path + ") was set as the splash screen!\nTo use the default splash screen, set the value to \"None\" and click the button again.\n\nNote: Once Patching is finished you cant change the splash screen unless you redo the patching process!",
+                    HideCancelButton = true
+                };
+                await builder2.OpenDialogue(_mainWindow);
+                return;
+            }
+            
+            Config.PatchingOptions.EnableCustomSplash = false;
+            DialogBuilder builder3 = new()
+            {
+                Title = "Error",
+                Text = "The Specified file in path \"" + path + "\" doesn't exist!",
+                HideCancelButton = true
+            };
+            await builder3.OpenDialogue(_mainWindow);
         }
 
         /// <summary>
