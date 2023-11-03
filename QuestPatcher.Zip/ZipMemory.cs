@@ -118,6 +118,7 @@ namespace QuestPatcher.Zip
         {
             _buffer[0] = (byte) value;
             _buffer[1] = (byte) (value >> 8);
+            WriteBuffer(2);
         }
 
         /// <summary>
@@ -128,6 +129,7 @@ namespace QuestPatcher.Zip
         {
             _buffer[0] = (byte) value;
             _buffer[1] = (byte) (value >> 8);
+            WriteBuffer(2);
         }
 
         /// <summary>
@@ -140,6 +142,7 @@ namespace QuestPatcher.Zip
             _buffer[1] = (byte) (value >> 8);
             _buffer[2] = (byte) (value >> 16);
             _buffer[3] = (byte) (value >> 24);
+            WriteBuffer(4);
         }
 
         /// <summary>
@@ -152,6 +155,7 @@ namespace QuestPatcher.Zip
             _buffer[1] = (byte) (value >> 8);
             _buffer[2] = (byte) (value >> 16);
             _buffer[3] = (byte) (value >> 24);
+            WriteBuffer(4);
         }
 
         /// <summary>
