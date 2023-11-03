@@ -93,7 +93,7 @@ namespace QuestPatcher.Zip.Data
         {
             if (reader.ReadUInt32() != Header)
             {
-                throw new ZipFormatException("Invalid LocalFileHeader signature");
+                throw new ZipFormatException("Invalid CentralDirectoryFileHeader signature");
             }
 
             var inst = new CentralDirectoryFileHeader()
@@ -227,7 +227,7 @@ namespace QuestPatcher.Zip.Data
         {
             if (await reader.ReadUInt32Async() != Header)
             {
-                throw new ZipFormatException("Invalid LocalFileHeader signature");
+                throw new ZipFormatException("Invalid CentralDirectoryFileHeader signature");
             }
 
             var inst = new CentralDirectoryFileHeader()
