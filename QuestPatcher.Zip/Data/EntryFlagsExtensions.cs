@@ -8,8 +8,17 @@ namespace QuestPatcher.Zip.Data
 
         static EntryFlagsExtensions()
         {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            _codePage437 = Encoding.GetEncoding(437);
+            try
+            {
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                _codePage437 = Encoding.GetEncoding(437);
+            }
+            catch
+            {
+                // Fallback to ASCII if loading code page 437 fails
+                // This sometimes happens on Xamarin targets if the user has not added the correct internationalisation assemblies.
+                _codePage437 = Encoding.ASCII;
+            }
         }
 
         /// <summary>
