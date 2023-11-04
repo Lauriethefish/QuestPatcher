@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace QuestPatcher.Zip
 {
@@ -52,14 +54,20 @@ namespace QuestPatcher.Zip
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            // Seek to the right position to start reading the entry data
-            // Multiple entry streams may be open at once, so we must seek each time we read.
-            _stream.Position = _streamPosition;
+            int bytesLeftInEntry = PrepareToReadBytes(count);
+            int bytesRead = _stream.Read(buffer, offset, bytesLeftInEntry);
 
-            // Do not permit reading beyond the end of the entry
-            long bytesLeftInStream = _entryDataLength - Position;
-            int bytesRead = _stream.Read(buffer, offset, (int) Math.Min(bytesLeftInStream, count));
+            // Store the stream position for the next read call.
+            _streamPosition = _stream.Position;
+            return bytesRead;
+        }
 
+        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken ct)
+        {
+            int bytesLeftInEntry = PrepareToReadBytes(count);
+            int bytesRead = await _stream.ReadAsync(buffer, offset, bytesLeftInEntry, ct);
+
+            // Store the stream position for the next read call.
             _streamPosition = _stream.Position;
             return bytesRead;
         }
@@ -95,6 +103,24 @@ namespace QuestPatcher.Zip
         public override void Close()
         {
             // ApkZip handles disposing the underlying Stream.
+        }
+
+        /// <summary>
+        /// Returns the stream to the correct position to read data from the entry.
+        /// Calculates the maximum number of bytes that can be read based on the length of the entry.
+        /// </summary>
+        /// <param name="count">The caller-specified maximum bytes to read into the buffer.</param>
+        /// <returns>The number of bytes that can be safely read.</returns>
+        private int PrepareToReadBytes(int count)
+        {
+            // Seek to the right position to start reading the entry data
+            // Multiple entry streams may be open at once, so we must seek each time we read.
+            _stream.Position = _streamPosition;
+
+            // Do not permit reading beyond the end of the entry
+            long bytesLeftInEntry = _entryDataLength - Position;
+
+            return Math.Min(count, (int) bytesLeftInEntry);
         }
     }
 }
