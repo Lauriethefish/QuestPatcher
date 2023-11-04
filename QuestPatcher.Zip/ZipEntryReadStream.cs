@@ -80,7 +80,7 @@ namespace QuestPatcher.Zip
             }
             else if (origin == SeekOrigin.End)
             {
-                Position = _entryDataLength - 1 - offset;
+                Position = _entryDataLength - offset;
             }
             else if (origin == SeekOrigin.Current)
             {
