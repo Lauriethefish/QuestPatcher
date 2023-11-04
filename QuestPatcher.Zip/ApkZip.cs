@@ -15,8 +15,10 @@ namespace QuestPatcher.Zip
     /// ZIP implementation used for reading APK files.
     /// Not thread safe; an ApkZip should only ever be called upon by one thread.
     /// Similarly, read streams must only be called upon by one thread. Multiple can be open at once, however.
+    /// 
+    /// Disposing this class will automatically sign the APK.
     /// </summary>
-    public class ApkZip : IDisposable
+    public class ApkZip : IAsyncDisposable
     {
         internal static ZipVersion MaxSupportedVersion = new ZipVersion
         {
@@ -666,6 +668,29 @@ namespace QuestPatcher.Zip
                 // Do not dispose until this point, as JarSigner needs to be able to add the signature files to the APK, and for that the ApkZip must not be disposed.
                 _disposed = true;
                 _stream.Dispose();
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_stream.CanWrite)
+                {
+                    // We have no support for asynchronous signing currently, so threading is used.
+                    // Signing/calculating the APK digest is generally CPU-bound work anyway, so it doesn't make much sense to create an async implementation.
+                    await Task.Run(() => Save());
+                }
+            }
+            finally
+            {
+                _disposed = true;
+                await _stream.DisposeAsync();
             }
         }
     }
