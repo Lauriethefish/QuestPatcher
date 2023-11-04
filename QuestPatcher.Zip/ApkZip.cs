@@ -359,7 +359,10 @@ namespace QuestPatcher.Zip
             }
             finally
             {
-                compressor?.Dispose();
+                if (compressor != null && compressor != _stream)
+                {
+                    compressor.Dispose();
+                }
             }
 
             long postEntryDataOffset = _stream.Position;
@@ -421,14 +424,11 @@ namespace QuestPatcher.Zip
                     // This tryf block is necessary as we want to dispose the compressing stream BEFORE shortening the stream if cancelled.
                     // Otherwise, disposing the stream could cause more data to be written after truncating the data already written.
                     // This could lead to a corrupt archive.
-                    if (compressor != null)
+                    if (compressor != null && compressor != _stream)
                     {
                         await compressor.DisposeAsync();
                     }
                 }
-                (compressor, compressionMethod) = GetCompressor(compressionLevel);
-                crc32 = await sourceData.CopyToCrc32Async(compressor, ct);
-                await compressor.DisposeAsync();
             }
             catch (OperationCanceledException)
             {
