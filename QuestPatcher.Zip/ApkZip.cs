@@ -18,7 +18,7 @@ namespace QuestPatcher.Zip
     /// 
     /// Disposing this class will automatically sign the APK.
     /// </summary>
-    public class ApkZip : IAsyncDisposable
+    public class ApkZip : IAsyncDisposable, IDisposable
     {
         internal static ZipVersion MaxSupportedVersion = new ZipVersion
         {
@@ -325,7 +325,7 @@ namespace QuestPatcher.Zip
         /// <param name="fileName">The name/path of the file to write to</param>
         /// <param name="sourceData">The stream containing data to copy to the file. Must support the Length property and reading.</param>
         /// <param name="compressionLevel">The (DEFLATE) compression level to use. If null, the STORE method will be used for the file.</param>
-        public void AddFile(string fileName, Stream sourceData, CompressionLevel? compressionLevel)
+        public async void AddFile(string fileName, Stream sourceData, CompressionLevel? compressionLevel)
         {
             ThrowIfDisposed();
             fileName = NormaliseFileName(fileName);
@@ -345,8 +345,18 @@ namespace QuestPatcher.Zip
             // Copy the data into the entry, calculating the Crc32 at the same time.
             // TODO: Could align files using STORE to 4 bytes like zipalign does
             // However, this is likely unnecessary, as this is only important for large (e.g. media) files to allow them to be read with mmap.
-            var (compressor, compressionMethod) = GetCompressor(compressionLevel);
-            uint crc32 = sourceData.CopyToCrc32(compressor);
+            Stream? compressor = null;
+            uint crc32;
+            CompressionMethod compressionMethod;
+            try
+            {
+                (compressor, compressionMethod) = GetCompressor(compressionLevel);
+                crc32 = sourceData.CopyToCrc32(compressor);
+            }
+            finally
+            {
+                compressor?.Dispose();
+            }
 
             long postEntryDataOffset = _stream.Position;
             long compressedSize = postEntryDataOffset - dataOffset;
@@ -389,8 +399,21 @@ namespace QuestPatcher.Zip
             _stream.Position += 30 + fileNameBytes.Length;
             long dataOffset = _stream.Position;
 
-            var (compressor, compressionMethod) = GetCompressor(compressionLevel);
-            uint crc32 = await sourceData.CopyToCrc32Async(compressor);
+            Stream? compressor = null;
+            uint crc32;
+            CompressionMethod compressionMethod;
+            try
+            {
+                (compressor, compressionMethod) = GetCompressor(compressionLevel);
+                crc32 = await sourceData.CopyToCrc32Async(compressor);
+            }
+            finally
+            {
+                if (compressor != null)
+                {
+                    await compressor.DisposeAsync();
+                }
+            }
 
             long postEntryDataOffset = _stream.Position;
             long compressedSize = postEntryDataOffset - dataOffset;
