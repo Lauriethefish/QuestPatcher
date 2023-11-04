@@ -141,6 +141,13 @@ namespace QuestPatcher.Zip
             stream.Position = 0;
 
 
+            var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, memory);
+            if (stream.CanWrite)
+            {
+                // Load the digests of each file from the signature. When we re-sign the APK later, we then only need to hash the changed files.
+                apkZip._existingHashes = JarSigner.CollectExistingHashes(apkZip);
+            }
+
             // Delete the existing eocd and central directory.
             // This isn't strictly necessary, and we could also just append our new files and then a new central directory
             // BUT we might as well do it since it saves space and doesn't involve pushing too many bytes around
@@ -148,13 +155,6 @@ namespace QuestPatcher.Zip
             if (stream.CanWrite)
             {
                 stream.SetLength(postFilesOffset);
-            }
-
-            var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, memory);
-            if (stream.CanWrite)
-            {
-                // Load the digests of each file from the signature. When we re-sign the APK later, we then only need to hash the changed files.
-                apkZip._existingHashes = JarSigner.CollectExistingHashes(apkZip);
             }
 
             return apkZip;
@@ -169,6 +169,7 @@ namespace QuestPatcher.Zip
         /// <returns></returns>
         /// <exception cref="ArgumentException">If the stream does not support seeking or reading</exception>
         /// <exception cref="ZipFormatException">If the ZIP file cannot be loaded by this ZIP implementation.</exception>
+        /// <exception cref="OperationCanceledException">If operation cancelled.</exception>
         public static async Task<ApkZip> OpenAsync(Stream stream, CancellationToken ct = default)
         {
             if (!stream.CanSeek || !stream.CanRead)
@@ -186,6 +187,7 @@ namespace QuestPatcher.Zip
                 }
 
                 stream.Position -= (4 + 1);
+                ct.ThrowIfCancellationRequested();
             }
             stream.Position -= 4;
 
@@ -202,6 +204,7 @@ namespace QuestPatcher.Zip
                 {
                     lastRecord = record;
                 }
+                ct.ThrowIfCancellationRequested();
             }
 
             if (lastRecord == null)
@@ -215,16 +218,17 @@ namespace QuestPatcher.Zip
             long postFilesOffset = stream.Position;
             stream.Position = 0;
 
+            var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, memory);
+            if (stream.CanWrite)
+            {
+                apkZip._existingHashes = await JarSigner.CollectExistingHashesAsync(apkZip, ct);
+            }
+
             if (stream.CanWrite)
             {
                 stream.SetLength(postFilesOffset);
             }
 
-            var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, memory);
-            if (stream.CanWrite)
-            {
-                apkZip._existingHashes = await JarSigner.CollectExistingHashesAsync(apkZip);
-            }
             return apkZip;
         }
 
@@ -325,7 +329,7 @@ namespace QuestPatcher.Zip
         /// <param name="fileName">The name/path of the file to write to</param>
         /// <param name="sourceData">The stream containing data to copy to the file. Must support the Length property and reading.</param>
         /// <param name="compressionLevel">The (DEFLATE) compression level to use. If null, the STORE method will be used for the file.</param>
-        public async void AddFile(string fileName, Stream sourceData, CompressionLevel? compressionLevel)
+        public void AddFile(string fileName, Stream sourceData, CompressionLevel? compressionLevel)
         {
             ThrowIfDisposed();
             fileName = NormaliseFileName(fileName);
@@ -386,7 +390,9 @@ namespace QuestPatcher.Zip
         /// <param name="fileName">The name/path of the file to write to</param>
         /// <param name="sourceData">The stream containing data to copy to the file. Must support the Length property and reading.</param>
         /// <param name="compressionLevel">The (DEFLATE) compression level to use. If null, the STORE method will be used for the file.</param>
-        public async Task AddFileAsync(string fileName, Stream sourceData, CompressionLevel? compressionLevel)
+        /// <param name="ct">Cancellation token.</param>
+        /// <exception cref="OperationCanceledException">If <paramref name="ct"/> is cancelled.</exception>
+        public async Task AddFileAsync(string fileName, Stream sourceData, CompressionLevel? compressionLevel, CancellationToken ct = default)
         {
             ThrowIfDisposed();
             fileName = NormaliseFileName(fileName);
@@ -402,17 +408,34 @@ namespace QuestPatcher.Zip
             Stream? compressor = null;
             uint crc32;
             CompressionMethod compressionMethod;
+
             try
             {
-                (compressor, compressionMethod) = GetCompressor(compressionLevel);
-                crc32 = await sourceData.CopyToCrc32Async(compressor);
-            }
-            finally
-            {
-                if (compressor != null)
+                try
                 {
-                    await compressor.DisposeAsync();
+                    (compressor, compressionMethod) = GetCompressor(compressionLevel);
+                    crc32 = await sourceData.CopyToCrc32Async(compressor, ct);
                 }
+                finally
+                {
+                    // This tryf block is necessary as we want to dispose the compressing stream BEFORE shortening the stream if cancelled.
+                    // Otherwise, disposing the stream could cause more data to be written after truncating the data already written.
+                    // This could lead to a corrupt archive.
+                    if (compressor != null)
+                    {
+                        await compressor.DisposeAsync();
+                    }
+                }
+                (compressor, compressionMethod) = GetCompressor(compressionLevel);
+                crc32 = await sourceData.CopyToCrc32Async(compressor, ct);
+                await compressor.DisposeAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                // If the data copy was cancelled, delete the existing entry data/space for local header
+                _stream.SetLength(localHeaderOffset);
+
+                throw; // Then forward the cancellation up the call stack.
             }
 
             long postEntryDataOffset = _stream.Position;

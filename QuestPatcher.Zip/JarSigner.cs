@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
@@ -156,8 +157,10 @@ namespace QuestPatcher.Zip
         /// the hashes of the entries within the given APK.
         /// </summary>
         /// <param name="apk">The archive to get the entry hashes of</param>
+        /// <param name="ct">Cancellation token.</param>
+        /// <exception cref="OperationCanceledException">If operation is canceled.</exception>
         /// <returns>A dictionary of the full entry names and entry hashes, or null if parsing the manifest failed.</returns>
-        internal static async Task<Dictionary<string, string>?> CollectExistingHashesAsync(ApkZip apk)
+        internal static async Task<Dictionary<string, string>?> CollectExistingHashesAsync(ApkZip apk, CancellationToken ct)
         {
             // Fallback failure if the APK isn't signed
             if (!apk.ContainsFile(ManifestPath))
@@ -168,7 +171,7 @@ namespace QuestPatcher.Zip
             // Copy to a MemoryStream so that we can read the hashes without blocking.
             using var manifestStream = await apk.OpenReaderAsync(ManifestPath);
             using var memStream = new MemoryStream();
-            await manifestStream.CopyToAsync(memStream);
+            await manifestStream.CopyToAsync(memStream, ct);
             memStream.Position = 0;
             using var manifestReader = new StreamReader(memStream);
 
