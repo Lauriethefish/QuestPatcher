@@ -81,7 +81,7 @@ namespace QuestPatcher.Zip
         /// </summary>
         /// <param name="stream">The stream to load the APK ZIP from. Must support seeking and reading.
         /// May support writing.</param>
-        /// <returns></returns>
+        /// <returns>The opened ZIP file.</returns>
         /// <exception cref="ArgumentException">If the stream does not support seeking or reading</exception>
         /// <exception cref="ZipFormatException">If the ZIP file cannot be loaded by this ZIP implementation.</exception>
         public static ApkZip Open(Stream stream)
@@ -166,7 +166,7 @@ namespace QuestPatcher.Zip
         /// <param name="stream">The stream to load the APK ZIP from. Must support seeking and reading.
         /// May support writing.</param>
         /// <param name="ct">Cancellation token.</param>
-        /// <returns></returns>
+        /// <returns>The opened ZIP file.</returns>
         /// <exception cref="ArgumentException">If the stream does not support seeking or reading</exception>
         /// <exception cref="ZipFormatException">If the ZIP file cannot be loaded by this ZIP implementation.</exception>
         /// <exception cref="OperationCanceledException">If operation cancelled.</exception>
