@@ -221,8 +221,7 @@ namespace QuestPatcher.Zip
             var apkZip = new ApkZip(centralDirectoryRecords, postFilesOffset, stream, memory);
             if (stream.CanWrite)
             {
-                // TODO: Implement an async equivalent.
-                //apkZip._existingHashes = await JarSigner.CollectExistingHashesAsync(apkZip);
+                apkZip._existingHashes = await JarSigner.CollectExistingHashesAsync(apkZip);
             }
             return apkZip;
         }
