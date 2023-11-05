@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -48,9 +48,9 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="Styles\**" />
-    <None Include="iconfile.icns" CopyToOutputDirectory="Always" />
+    <None Include="iconfile.icns" CopyToOutputDirectory="Always" Condition="$(RuntimeIdentifier.StartsWith('osx'))"/>
   </ItemGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.0.5" />
     <PackageReference Include="Avalonia.Desktop" Version="11.0.5" />
