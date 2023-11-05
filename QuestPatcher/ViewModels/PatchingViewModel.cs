@@ -17,6 +17,8 @@ namespace QuestPatcher.ViewModels
         private bool _isPatchingInProgress;
 
         public string PatchingStageText { get; private set; } = "";
+        
+        public string SplashPathText { get; private set; } = "None";
 
         public Config Config { get; }
 
@@ -107,55 +109,17 @@ namespace QuestPatcher.ViewModels
 
         public async void SetSplash()
         {
-            string path = Config.PatchingOptions.CustomSplash;
-
-            if (path.ToLower() == "none")
+            var dialog = new OpenFileDialog();
+            dialog.Filters.Add(new FileDialogFilter() { Name = "Image", Extensions = { "png" } });
+            dialog.AllowMultiple = false;
+            dialog.Title = "Select a splash image";
+            var result = await dialog.ShowAsync(_mainWindow);
+            if (result != null && result.Length > 0)
             {
-                Config.PatchingOptions.EnableCustomSplash = false;
-                DialogBuilder builder = new()
-                {
-                    Title = "Success",
-                    Text = "The Default Splash screen will be used.",
-                    HideCancelButton = true
-                };
-                await builder.OpenDialogue(_mainWindow);
-                return;
+                Config.PatchingOptions.CustomSplash = result[0];
+                SplashPathText = result[0];
+                this.RaisePropertyChanged(nameof(SplashPathText));
             }
-            
-            if (File.Exists(path))
-            {
-                if (!path.EndsWith(".png"))
-                {
-                    Config.PatchingOptions.EnableCustomSplash = false;
-                    DialogBuilder builder = new()
-                    {
-                        Title = "Error",
-                        Text = "Meta only supports .png files as splash screens! Please specify a .png file.",
-                        HideCancelButton = true
-                    };
-                    await builder.OpenDialogue(_mainWindow);
-                    return;
-                }
-                
-                Config.PatchingOptions.EnableCustomSplash = true;
-                DialogBuilder builder2 = new()
-                {
-                    Title = "Success",
-                    Text = "The Image (" + path + ") was set as the splash screen!\nTo use the default splash screen, set the value to \"None\" and click the button again.\n\nNote: Once Patching is finished you cant change the splash screen unless you redo the patching process!",
-                    HideCancelButton = true
-                };
-                await builder2.OpenDialogue(_mainWindow);
-                return;
-            }
-            
-            Config.PatchingOptions.EnableCustomSplash = false;
-            DialogBuilder builder3 = new()
-            {
-                Title = "Error",
-                Text = "The Specified file in path \"" + path + "\" doesn't exist!",
-                HideCancelButton = true
-            };
-            await builder3.OpenDialogue(_mainWindow);
         }
 
         /// <summary>

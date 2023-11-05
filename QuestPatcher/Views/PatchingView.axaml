@@ -12,7 +12,7 @@
   <Panel>
     <DockPanel IsVisible="{Binding !IsPatchingInProgress}">
         <StackPanel Margin="20" Orientation="Vertical" DockPanel.Dock="Top">
-          <ToggleButton IsChecked="{Binding Config.ShowPatchingOptions}" VerticalAlignment="Top" HorizontalAlignment="Right">Customise Permissions</ToggleButton>
+          <ToggleButton IsChecked="{Binding Config.ShowPatchingOptions}" VerticalAlignment="Top" HorizontalAlignment="Right">Patching Options</ToggleButton>
           <ScrollViewer Margin="0 15 0 0" IsVisible="{Binding Config.ShowPatchingOptions}" HorizontalScrollBarVisibility="Auto" VerticalAlignment="Top" Background="{DynamicResource PatchingOptionsBackground}">
               <StackPanel Orientation="Horizontal" Spacing="25" Margin="10">
                   <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.ExternalFiles}" IsEnabled="False">Allow External Files</ToggleSwitch>
@@ -31,6 +31,16 @@
                   </StackPanel>
               </StackPanel>
           </ScrollViewer>
+            <ScrollViewer Margin="0 15 0 0" IsVisible="{Binding Config.ShowPatchingOptions}" HorizontalScrollBarVisibility="Auto" VerticalAlignment="Top" Background="{DynamicResource PatchingOptionsBackground}">
+                <StackPanel Orientation="Vertical" Spacing="25" Margin="10">
+                    <TextBlock Margin="0 7 0 0">Custom Splash Screen</TextBlock>
+                    <StackPanel Orientation="Horizontal" Spacing="25" Margin="10">
+                        <TextBlock Margin="0 7 0 0" Text="{Binding SplashPathText}"></TextBlock>
+                        <Button Command="{Binding SetSplash}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center">Select</Button>
+                        <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.EnableCustomSplash}">Enable Custom Splash Screen</ToggleSwitch>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
         </StackPanel>
         
         <StackPanel HorizontalAlignment="Center" Orientation="Vertical" VerticalAlignment="Center" Spacing="20">
@@ -46,13 +56,6 @@
             <ComboBoxItem>Scotland2</ComboBoxItem>
           </ComboBox>
         </StackPanel>
-            <StackPanel Orientation="Vertical" Spacing="10" HorizontalAlignment="Center">
-                <TextBlock Margin="0 7 0 0">If you want, you can set a custom splash screen which appears when starting Beat Saber.</TextBlock>
-                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                    <TextBox  Width="500" Height="6" Text="{Binding Config.PatchingOptions.CustomSplash}"></TextBox>
-                    <Button Command="{Binding SetSplash}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center">Save Path</Button>
-                </StackPanel>
-                </StackPanel>
         <Button Command="{Binding StartPatching}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" FontSize="15" Padding="12">Patch my App!</Button>
       </StackPanel>
     </DockPanel>

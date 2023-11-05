@@ -30,6 +30,6 @@ namespace QuestPatcher.Core.Models
         public ModLoader ModLoader { get; set; } = ModLoader.QuestLoader;
 
         public string CustomSplash { get; set; } = "None";
-        public bool EnableCustomSplash = false;
+        public bool EnableCustomSplash { get; set; } = false;
     }
 }
