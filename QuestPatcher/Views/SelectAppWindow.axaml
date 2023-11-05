@@ -9,7 +9,8 @@
         Title="Change Selected App"
         Background="{x:Null}"
         ExtendClientAreaToDecorationsHint="true"
-        ExtendClientAreaTitleBarHeightHint="-1">
+        ExtendClientAreaTitleBarHeightHint="-1"
+        RequestedThemeVariant="{DynamicResource ThemeVariant}">
   <Design.DataContext>
     <viewModels:SelectAppWindowViewModel />
   </Design.DataContext>
