@@ -9,7 +9,8 @@
         Icon="/Assets/questpatcher-logo.ico"
         Background="{x:Null}"
         ExtendClientAreaToDecorationsHint="true"
-        ExtendClientAreaTitleBarHeightHint="-1">
+        ExtendClientAreaTitleBarHeightHint="-1"
+        RequestedThemeVariant="{DynamicResource ThemeVariant}">
     <DockPanel HorizontalAlignment="Stretch">
         <ExperimentalAcrylicBorder DockPanel.Dock="Bottom" Material="{DynamicResource MainBackgroundMaterial}">
             <DockPanel Margin="0 20 0 0">

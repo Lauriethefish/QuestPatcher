@@ -6,16 +6,16 @@
         "any": "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar"
       },
       "Modloader64": {
-        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmodloader64.so"
+        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.3.0/libmodloader64.so"
       },
       "Main64": {
-        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmain64.so"
+        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.3.0/libmain64.so"
       },
       "Modloader32": {
-        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmodloader32.so"
+        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.3.0/libmodloader32.so"
       },
       "Main32": {
-        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.2.3/libmain32.so"
+        "any": "https://github.com/sc2ad/QuestLoader/releases/download/v1.3.0/libmain32.so"
       },
       "LibMainLoader": {
         "any": "https://github.com/sc2ad/LibMainLoader/releases/download/v0.1.0-alpha/libmain.so"

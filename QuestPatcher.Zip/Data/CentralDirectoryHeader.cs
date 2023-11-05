@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using System.Threading.Tasks;
 
 namespace QuestPatcher.Zip.Data
 {
@@ -89,11 +89,11 @@ namespace QuestPatcher.Zip.Data
         /// </summary>
         public uint LocalHeaderOffset { get; set; }
 
-        public static CentralDirectoryFileHeader Read(BinaryReader reader)
+        public static CentralDirectoryFileHeader Read(ZipMemory reader)
         {
             if (reader.ReadUInt32() != Header)
             {
-                throw new ZipFormatException("Invalid LocalFileHeader signature");
+                throw new ZipFormatException("Invalid CentralDirectoryFileHeader signature");
             }
 
             var inst = new CentralDirectoryFileHeader()
@@ -141,7 +141,7 @@ namespace QuestPatcher.Zip.Data
             return inst;
         }
 
-        public void Write(BinaryWriter writer)
+        public void Write(ZipMemory writer)
         {
             writer.Write(Header);
             writer.Write(VersionMadeBy);
@@ -220,6 +220,140 @@ namespace QuestPatcher.Zip.Data
             if (fileCommentBytes != null)
             {
                 writer.Write(fileCommentBytes);
+            }
+        }
+
+        public static async Task<CentralDirectoryFileHeader> ReadAsync(ZipMemory reader)
+        {
+            if (await reader.ReadUInt32Async() != Header)
+            {
+                throw new ZipFormatException("Invalid CentralDirectoryFileHeader signature");
+            }
+
+            var inst = new CentralDirectoryFileHeader()
+            {
+                VersionMadeBy = await reader.ReadUInt16Async(),
+                VersionNeededToExtract = ApkZip.CheckVersionSupported(await ZipVersion.ReadAsync(reader)),
+                Flags = (EntryFlags) reader.ReadInt16(),
+                CompressionMethod = (CompressionMethod) reader.ReadInt16(),
+                LastModified = await Timestamp.ReadAsync(reader),
+                Crc32 = await reader.ReadUInt32Async(),
+                CompressedSize = await reader.ReadUInt32Async(),
+                UncompressedSize = await reader.ReadUInt32Async(),
+            };
+
+            ushort fileNameLength = await reader.ReadUInt16Async();
+            ushort extraFieldLength = await reader.ReadUInt16Async();
+            ushort commentLength = await reader.ReadUInt16Async();
+
+            inst.DiskNumberStart = await reader.ReadUInt16Async();
+            if (inst.DiskNumberStart != 0)
+            {
+                throw new ZipFormatException("ZIP files split across multiple disks are not supported");
+            }
+
+            inst.InternalFileAttributes = await reader.ReadUInt16Async();
+            inst.ExternalFileAttributes = await reader.ReadUInt32Async();
+            inst.LocalHeaderOffset = await reader.ReadUInt32Async();
+
+            if (fileNameLength != 0)
+            {
+                inst.FileName = await reader.ReadZipStringAsync(fileNameLength, inst.Flags);
+            }
+
+            if (extraFieldLength != 0)
+            {
+                inst.ExtraField = await reader.ReadBytesAsync(extraFieldLength);
+            }
+
+            if (commentLength != 0)
+            {
+                inst.FileComment = await reader.ReadZipStringAsync(fileNameLength, inst.Flags);
+            }
+
+
+            return inst;
+        }
+
+        public async Task WriteAsync(ZipMemory writer)
+        {
+            await writer.WriteAsync(Header);
+            await writer.WriteAsync(VersionMadeBy);
+            await VersionNeededToExtract.WriteAsync(writer);
+            await writer.WriteAsync((short) Flags);
+            await writer.WriteAsync((short) CompressionMethod);
+            await LastModified.WriteAsync(writer);
+            await writer.WriteAsync(Crc32);
+            await writer.WriteAsync(CompressedSize);
+            await writer.WriteAsync(UncompressedSize);
+
+            byte[]? fileNameBytes = null;
+            if (FileName != null)
+            {
+                fileNameBytes = Flags.GetStringEncoding().GetBytes(FileName);
+
+                if (fileNameBytes.Length > ushort.MaxValue)
+                {
+                    throw new ZipDataException($"File name too long ({fileNameBytes.Length}). Max length {ushort.MaxValue}.");
+                }
+
+                await writer.WriteAsync((ushort) FileName.Length);
+            }
+            else
+            {
+                await writer.WriteAsync((ushort) 0);
+            }
+
+            if (ExtraField != null)
+            {
+                if (ExtraField.Length > ushort.MaxValue)
+                {
+                    throw new ZipDataException($"Extra field too long ({ExtraField.Length}). Max length {ushort.MaxValue}");
+                }
+
+                await writer.WriteAsync((ushort) ExtraField.Length);
+            }
+            else
+            {
+                await writer.WriteAsync((ushort) 0);
+            }
+
+            byte[]? fileCommentBytes = null;
+            if (FileComment != null)
+            {
+                fileCommentBytes = Flags.GetStringEncoding().GetBytes(FileComment);
+
+                if (fileCommentBytes.Length > ushort.MaxValue)
+                {
+                    throw new ZipDataException($"File comment too long ({fileCommentBytes.Length}). Max length {ushort.MaxValue}");
+                }
+
+                await writer.WriteAsync((ushort) fileCommentBytes.Length);
+            }
+            else
+            {
+                await writer.WriteAsync((ushort) 0);
+            }
+
+            await writer.WriteAsync(DiskNumberStart);
+            await writer.WriteAsync(InternalFileAttributes);
+            await writer.WriteAsync(ExternalFileAttributes);
+            await writer.WriteAsync(LocalHeaderOffset);
+
+
+            if (fileNameBytes != null)
+            {
+                await writer.WriteAsync(fileNameBytes);
+            }
+
+            if (ExtraField != null)
+            {
+                await writer.WriteAsync(ExtraField);
+            }
+
+            if (fileCommentBytes != null)
+            {
+                await writer.WriteAsync(fileCommentBytes);
             }
         }
     }

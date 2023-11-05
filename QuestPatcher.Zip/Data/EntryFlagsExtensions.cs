@@ -4,6 +4,23 @@ namespace QuestPatcher.Zip.Data
 {
     internal static class EntryFlagsExtensions
     {
+        private static readonly Encoding _codePage437; // IBM code page 437
+
+        static EntryFlagsExtensions()
+        {
+            try
+            {
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                _codePage437 = Encoding.GetEncoding(437);
+            }
+            catch
+            {
+                // Fallback to ASCII if loading code page 437 fails
+                // This sometimes happens on Xamarin targets if the user has not added the correct internationalisation assemblies.
+                _codePage437 = Encoding.ASCII;
+            }
+        }
+
         /// <summary>
         /// Gets the string encoding for a ZIP record with the given flags.
         /// </summary>
@@ -17,10 +34,7 @@ namespace QuestPatcher.Zip.Data
             }
             else
             {
-                // TODO: Apparently not supported on .NET core. Using UTF8 as a temporary workaround.
-                /*return Encoding.GetEncoding(437); // IBM Code Page 437*/
-
-                return Encoding.UTF8;
+                return _codePage437;
             }
         }
     }

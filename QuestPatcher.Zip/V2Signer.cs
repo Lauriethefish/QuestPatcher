@@ -34,10 +34,10 @@ namespace QuestPatcher.Zip
             long sigBlockPosition = apkStream.Position;
 
             using var cdStream = new MemoryStream();
-            using var cdWriter = new BinaryWriter(cdStream);
+            var cdMemory = new ZipMemory(cdStream);
             foreach (var record in centralDirectoryRecords)
             {
-                record.Write(cdWriter);
+                record.Write(cdMemory);
             }
 
             if (centralDirectoryRecords.Count > ushort.MaxValue)
@@ -60,8 +60,8 @@ namespace QuestPatcher.Zip
             };
 
             using var eocdStream = new MemoryStream();
-            using var eocdWriter = new BinaryWriter(eocdStream);
-            eocd.Write(eocdWriter);
+            var eocdMemory = new ZipMemory(eocdStream);
+            eocd.Write(eocdMemory);
 
             // Write the signature block
             byte[] apkDigest = CalculateApkDigest(eocdStream, cdStream, apkStream, apkStream.Position);
@@ -74,7 +74,7 @@ namespace QuestPatcher.Zip
             }
             eocd.CentralDirectoryOffset = (uint) apkStream.Position;
 
-            var apkWriter = new BinaryWriter(apkStream);
+            var apkWriter = new ZipMemory(apkStream);
             foreach (var record in centralDirectoryRecords)
             {
                 record.Write(apkWriter);

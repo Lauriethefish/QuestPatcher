@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Threading.Tasks;
 
 namespace QuestPatcher.Zip.Data
 {
@@ -48,7 +48,7 @@ namespace QuestPatcher.Zip.Data
         /// </summary>
         public byte[]? Comment { get; set; }
 
-        public static EndOfCentralDirectory Read(BinaryReader reader)
+        public static EndOfCentralDirectory Read(ZipMemory reader)
         {
             if (reader.ReadUInt32() != Header)
             {
@@ -82,7 +82,7 @@ namespace QuestPatcher.Zip.Data
             return inst;
         }
 
-        public void Write(BinaryWriter writer)
+        public void Write(ZipMemory writer)
         {
             writer.Write(Header);
             writer.Write(NumberOfThisDisk);
@@ -104,6 +104,65 @@ namespace QuestPatcher.Zip.Data
             else
             {
                 writer.Write((ushort) 0);
+            }
+        }
+
+        public static async Task<EndOfCentralDirectory> ReadAsync(ZipMemory reader)
+        {
+            if (await reader.ReadUInt32Async() != Header)
+            {
+                throw new FormatException("Invalid EndOfCentralDirectory signature");
+            }
+
+            var inst = new EndOfCentralDirectory()
+            {
+                NumberOfThisDisk = await reader.ReadUInt16Async(),
+                StartOfCentralDirectoryDisk = await reader.ReadUInt16Async(),
+                CentralDirectoryRecordsOnDisk = await reader.ReadUInt16Async(),
+                CentralDirectoryRecords = await reader.ReadUInt16Async(),
+                CentralDirectorySize = await reader.ReadUInt32Async(),
+                CentralDirectoryOffset = await reader.ReadUInt32Async(),
+            };
+
+            if (inst.CentralDirectoryRecords != inst.CentralDirectoryRecordsOnDisk || inst.NumberOfThisDisk != 0 || inst.StartOfCentralDirectoryDisk != 0)
+            {
+                throw new ZipFormatException("ZIP files split across multiple disks are not supported");
+            }
+
+            ushort commentLength = reader.ReadUInt16();
+
+            // NB: At this point we have no general flags short, so we don't know what the encoding is for the comment.
+            // For this reason, we will keep it as a byte array.
+            if (commentLength != 0)
+            {
+                inst.Comment = reader.ReadBytes(commentLength);
+            }
+
+            return inst;
+        }
+
+        public async Task WriteAsync(ZipMemory writer)
+        {
+            await writer.WriteAsync(Header);
+            await writer.WriteAsync(NumberOfThisDisk);
+            await writer.WriteAsync(StartOfCentralDirectoryDisk);
+            await writer.WriteAsync(CentralDirectoryRecordsOnDisk);
+            await writer.WriteAsync(CentralDirectoryRecords);
+            await writer.WriteAsync(CentralDirectorySize);
+            await writer.WriteAsync(CentralDirectoryOffset);
+
+            if (Comment != null)
+            {
+                if (Comment.Length > ushort.MaxValue)
+                {
+                    throw new ZipDataException($"End of central directory comment too long: max length: {ushort.MaxValue}, got {Comment.Length}");
+                }
+                await writer.WriteAsync((ushort) Comment.Length);
+                await writer.WriteAsync(Comment);
+            }
+            else
+            {
+                await writer.WriteAsync((ushort) 0);
             }
         }
     }

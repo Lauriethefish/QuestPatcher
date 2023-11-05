@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using System.Threading.Tasks;
 
 namespace QuestPatcher.Zip.Data
 {
@@ -62,7 +62,7 @@ namespace QuestPatcher.Zip.Data
         public byte[]? ExtraField { get; set; }
 
 
-        public static LocalFileHeader Read(BinaryReader reader)
+        public static LocalFileHeader Read(ZipMemory reader)
         {
             if (reader.ReadUInt32() != Header)
             {
@@ -96,7 +96,7 @@ namespace QuestPatcher.Zip.Data
             return inst;
         }
 
-        public void Write(BinaryWriter writer)
+        public void Write(ZipMemory writer)
         {
             writer.Write(Header);
             VersionNeededToExtract.Write(writer);
@@ -146,6 +146,93 @@ namespace QuestPatcher.Zip.Data
             if (ExtraField != null)
             {
                 writer.Write(ExtraField);
+            }
+        }
+
+        public static async Task<LocalFileHeader> ReadAsync(ZipMemory reader)
+        {
+            if (await reader.ReadUInt32Async() != Header)
+            {
+                throw new ZipFormatException("Invalid LocalFileHeader signature");
+            }
+
+            var inst = new LocalFileHeader()
+            {
+                VersionNeededToExtract = ApkZip.CheckVersionSupported(await ZipVersion.ReadAsync(reader)),
+                Flags = (EntryFlags) await reader.ReadInt16Async(),
+                CompressionMethod = (CompressionMethod) await reader.ReadInt16Async(),
+                LastModified = await Timestamp.ReadAsync(reader),
+                Crc32 = await reader.ReadUInt32Async(),
+                CompressedSize = await reader.ReadUInt32Async(),
+                UncompressedSize = await reader.ReadUInt32Async(),
+            };
+
+            ushort fileNameLength = await reader.ReadUInt16Async();
+            ushort extraFieldLength = await reader.ReadUInt16Async();
+
+            if (fileNameLength != 0)
+            {
+                inst.FileName = await reader.ReadZipStringAsync(fileNameLength, inst.Flags);
+            }
+
+            if (extraFieldLength != 0)
+            {
+                inst.ExtraField = await reader.ReadBytesAsync(extraFieldLength);
+            }
+
+            return inst;
+        }
+
+        public async Task WriteAsync(ZipMemory writer)
+        {
+            await writer.WriteAsync(Header);
+            await VersionNeededToExtract.WriteAsync(writer);
+            await writer.WriteAsync((short) Flags);
+            await writer.WriteAsync((short) CompressionMethod);
+            await LastModified.WriteAsync(writer);
+            await writer.WriteAsync(Crc32);
+            await writer.WriteAsync(CompressedSize);
+            await writer.WriteAsync(UncompressedSize);
+
+            byte[]? fileNameBytes = null;
+            if (FileName != null)
+            {
+                fileNameBytes = Flags.GetStringEncoding().GetBytes(FileName);
+
+                if (fileNameBytes.Length > ushort.MaxValue)
+                {
+                    throw new ZipDataException($"File name too long ({fileNameBytes.Length}). Max length {ushort.MaxValue}.");
+                }
+
+                await writer.WriteAsync((ushort) FileName.Length);
+            }
+            else
+            {
+                await writer.WriteAsync((ushort) 0);
+            }
+
+            if (ExtraField != null)
+            {
+                if (ExtraField.Length > ushort.MaxValue)
+                {
+                    throw new ZipDataException($"Extra field too long ({ExtraField.Length}). Max length {ushort.MaxValue}");
+                }
+
+                await writer.WriteAsync((ushort) ExtraField.Length);
+            }
+            else
+            {
+                await writer.WriteAsync((ushort) 0);
+            }
+
+            if (fileNameBytes != null)
+            {
+                await writer.WriteAsync(fileNameBytes);
+            }
+
+            if (ExtraField != null)
+            {
+                await writer.WriteAsync(ExtraField);
             }
         }
     }
