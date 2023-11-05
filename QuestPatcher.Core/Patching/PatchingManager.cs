@@ -441,7 +441,7 @@ namespace QuestPatcher.Core.Patching
                 if (File.Exists(_config.PatchingOptions.CustomSplash))
                 {
                     apk.RemoveFile("assets/vr_splash.png");
-                    AddFileToApkSync(_config.PatchingOptions.CustomSplash, "assets/vr_splash.png", apk);
+                    await AddFileToApk(_config.PatchingOptions.CustomSplash, "assets/vr_splash.png", apk);
                     Log.Information("Replaced Splash with custom Image");
                 }
                 else
