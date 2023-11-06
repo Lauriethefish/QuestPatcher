@@ -36,6 +36,12 @@ namespace QuestPatcher.Core.Patching
         private const int LegacyStorageAttributeResourceId = 16844291;
         private const int ValueAttributeResourceId = 16842788;
 
+        /// <summary>
+        /// Compression level to use when adding files to the APK during patching.
+        /// * Most asset files added should use no compression, as most already use a compressed format.
+        /// </summary>
+        private const CompressionLevel PatchingCompression = CompressionLevel.Optimal;
+
         public PatchingStage PatchingStage { get => _patchingStage; private set { if (_patchingStage != value) { _patchingStage = value; NotifyPropertyChanged(); } } }
         private PatchingStage _patchingStage = PatchingStage.NotStarted;
 
@@ -265,7 +271,7 @@ namespace QuestPatcher.Core.Patching
                 AxmlSaver.SaveDocument(ms, manifest);
                 ms.Position = 0;
 
-                await apk.AddFileAsync(InstallManager.ManifestPath, ms, CompressionLevel.Optimal);
+                await apk.AddFileAsync(InstallManager.ManifestPath, ms, PatchingCompression);
             }
             else
             {
@@ -341,7 +347,7 @@ namespace QuestPatcher.Core.Patching
                 newBootCfgWriter.Flush();
 
                 newBootCfg.Position = 0;
-                await apk.AddFileAsync(bootCfgPath, newBootCfg, CompressionLevel.Optimal);
+                await apk.AddFileAsync(bootCfgPath, newBootCfg, PatchingCompression);
 
             }
 
@@ -386,14 +392,14 @@ namespace QuestPatcher.Core.Patching
             }
             writer.Flush();
             replacementContents.Position = 0;
-            await apk.AddFileAsync(globalGameManagersPath, replacementContents, CompressionLevel.Optimal);
+            await apk.AddFileAsync(globalGameManagersPath, replacementContents, PatchingCompression);
 
             using var sdkArchive = ZipFile.Open(ovrPlatformSdkPath, ZipArchiveMode.Update);
             var downgradedLoaderEntry = sdkArchive.GetEntry("Android/libs/arm64-v8a/libovrplatformloader.so")
                                         ?? throw new PatchingException("No libovrplatformloader.so found in downloaded OvrPlatformSdk");
             using var downloadedLoaderStream = downgradedLoaderEntry.Open();
 
-            await apk.AddFileAsync(ovrPlatformLoaderPath, downloadedLoaderStream, CompressionLevel.Optimal);
+            await apk.AddFileAsync(ovrPlatformLoaderPath, downloadedLoaderStream, PatchingCompression);
         }
 
         /// <summary>
@@ -444,7 +450,7 @@ namespace QuestPatcher.Core.Patching
             JsonSerializer.Serialize(tagStream, tag, InstallManager.TagSerializerOptions);
             tagStream.Position = 0;
 
-            await apk.AddFileAsync(InstallManager.JsonTagName, tagStream, CompressionLevel.Optimal);
+            await apk.AddFileAsync(InstallManager.JsonTagName, tagStream, PatchingCompression);
         }
 
         /// <summary>
@@ -469,7 +475,7 @@ namespace QuestPatcher.Core.Patching
                 fileStream.Position = 0;
             }
 
-            await apk.AddFileAsync(apkFilePath, fileStream, CompressionLevel.Optimal);
+            await apk.AddFileAsync(apkFilePath, fileStream, PatchingCompression);
         }
 
         /// <summary>
