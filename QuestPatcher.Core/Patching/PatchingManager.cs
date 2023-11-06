@@ -45,7 +45,6 @@ namespace QuestPatcher.Core.Patching
 
         private readonly Config _config;
         private readonly AndroidDebugBridge _debugBridge;
-        private readonly SpecialFolders _specialFolders;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly IUserPrompter _prompter;
         private readonly ModManager _modManager;
@@ -58,7 +57,6 @@ namespace QuestPatcher.Core.Patching
         {
             _config = config;
             _debugBridge = debugBridge;
-            _specialFolders = specialFolders;
             _filesDownloader = filesDownloader;
             _prompter = prompter;
             _modManager = modManager;
