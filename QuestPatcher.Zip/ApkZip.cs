@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -25,6 +26,16 @@ namespace QuestPatcher.Zip
             Major = 2,
             Minor = 0
         };
+
+        /// <summary>
+        /// The alignment of entries using the STORE compression method.
+        /// </summary>
+        private const int StoreAlign = 4;
+
+        /// <summary>
+        /// Header for aligning the zip entries using the "extra data" fields.
+        /// </summary>
+        private const ushort AlignmentExtraDataHeader = 0xD935;
 
         /// <summary>
         /// The PEM data of the certificate to sign the APK with.
@@ -344,6 +355,11 @@ namespace QuestPatcher.Zip
 
             // Move past where the local file header for this entry will go.
             _stream.Position += 30 + fileNameBytes.Length;
+
+            // If using the STORE compression method, then the file should be aligned using an extra field.
+            byte[]? extraField = compressionLevel == null ? CreateAlignmentField(_stream.Position) : null;
+            _stream.Position += extraField?.Length ?? 0;
+
             long dataOffset = _stream.Position;
 
             // Copy the data into the entry, calculating the Crc32 at the same time.
@@ -376,6 +392,7 @@ namespace QuestPatcher.Zip
                 crc32,
                 localHeaderOffset
             );
+            localHeader.ExtraField = extraField;
 
             // Write the entry's local header
             _stream.Position = localHeaderOffset;
@@ -406,6 +423,9 @@ namespace QuestPatcher.Zip
 
             byte[] fileNameBytes = ((EntryFlags) 0).GetStringEncoding().GetBytes(fileName);
             _stream.Position += 30 + fileNameBytes.Length;
+
+            byte[]? extraField = compressionLevel == null ? CreateAlignmentField(_stream.Position) : null;
+            _stream.Position += extraField?.Length ?? 0;
             long dataOffset = _stream.Position;
 
             Stream? compressor = null;
@@ -449,6 +469,7 @@ namespace QuestPatcher.Zip
                 crc32,
                 localHeaderOffset
             );
+            localHeader.ExtraField = extraField;
 
             _stream.Position = localHeaderOffset;
             await localHeader.WriteAsync(_memory);
@@ -468,6 +489,43 @@ namespace QuestPatcher.Zip
             }
 
             return version;
+        }
+
+        /// <summary>
+        /// Creates a local file header extra field suitable for aligning to APK to <see cref="StoreAlign"/>.
+        /// </summary>
+        /// <param name="postLocalHeader">The offset of the first byte after the local header</param>
+        /// <returns>An extra field that will align the entry, or null if <paramref name="postLocalHeader"/> is already correctly aligned.</returns>
+        public byte[]? CreateAlignmentField(long postLocalHeader)
+        {
+            int offset = (int) postLocalHeader % StoreAlign;
+            if (offset == 0)
+            {
+                // Alignment already correct
+                return null;
+            }
+
+            // 4 bytes will be needed for the extra data ID/length,
+            // .. and at least 2 for the short which stores the level of alignment
+            long afterMinLength = postLocalHeader + 6;
+            // Calculate how many more bytes we need after the minimum length of the extra field.
+            int bytesToAdd = (int) (StoreAlign - (afterMinLength % StoreAlign)) % StoreAlign;
+
+            using var fieldMs = new MemoryStream();
+            var memory = new ZipMemory(fieldMs);
+
+            memory.Write(AlignmentExtraDataHeader);
+            memory.Write((ushort) (bytesToAdd + 2)); // 2 more bytes needed to store alignment level
+            memory.Write((ushort) StoreAlign);
+            for (int i = 0; i < bytesToAdd; i++)
+            {
+                memory.Write((byte) 0);
+            }
+
+            byte[] field = fieldMs.ToArray();
+            Debug.Assert((postLocalHeader + field.Length) % StoreAlign != 0);
+
+            return fieldMs.ToArray();
         }
 
         /// <summary>
