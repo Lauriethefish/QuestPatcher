@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.5" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.1" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
 </Project>

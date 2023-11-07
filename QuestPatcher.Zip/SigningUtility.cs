@@ -8,8 +8,8 @@ using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Store;
 
 namespace QuestPatcher.Zip
 {
@@ -68,7 +68,7 @@ namespace QuestPatcher.Zip
         /// <returns>The signature in PKCS7 format</returns>
         internal static byte[] SignPKCS7(byte[] data, X509Certificate cert, AsymmetricKeyParameter privateKey)
         {
-            var certStore = X509StoreFactory.Create("Certificate/Collection", new X509CollectionStoreParameters(new List<X509Certificate> { cert }));
+            var certStore = CollectionUtilities.CreateStore(new List<X509Certificate> { cert });
             var dataGen = new CmsSignedDataGenerator();
             dataGen.AddCertificates(certStore);
             dataGen.AddSigner(privateKey, cert, CmsSignedGenerator.EncryptionRsa, CmsSignedGenerator.DigestSha256);
