@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Serilog;
+using Version = SemanticVersioning.Version;
 
 namespace QuestPatcher.Core
 {
@@ -60,6 +61,11 @@ namespace QuestPatcher.Core
         /// </summary>
         private const int CommandLengthLimit = 1024;
 
+        /// <summary>
+        /// The minimum ADB version required by QuestPatcher.
+        /// </summary>
+        private static readonly Version MinAdbVersion = new Version(1, 0, 41);
+
         public event EventHandler? StoppedLogging;
 
         private readonly ExternalFilesDownloader _filesDownloader;
@@ -76,22 +82,138 @@ namespace QuestPatcher.Core
         }
 
         /// <summary>
-        /// Checks if ADB is on PATH, and downloads it if not
+        /// Checks if a valid ADB installation is found on PATH or in an installation of SideQuest.
+        /// Using an ADB installation from SideQuest helps avoid the issue where QuestPatcher and SideQuest
+        /// keep trying to kill each other's ADB server, resulting in neither working properly.
+        /// ADB executables for daemons already running will also be prioritised.
         /// </summary>
         public async Task PrepareAdbPath()
         {
+            // Use existing ADB daemon if there is one of the correct version
+            if (await FindExistingAdbServer())
+            {
+                return;
+            }
+
+            // Next check PATH
+            Log.Debug("Checking installation on PATH");
+            if (await SetAdbPathIfValid(_adbExecutableName))
+            {
+                Log.Information("Using ADB installation on PATH");
+                return;
+            }
+
+            // Otherwise, download ADB
+            string downloadedAdb = await _filesDownloader.GetFileLocation(ExternalFileType.PlatformTools);
+            if (!await SetAdbPathIfValid(downloadedAdb))
+            {
+                // Redownloading ADB - existing installation was not valid
+                Log.Information("Existing downloaded ADB was out of date or corrupted - fetching again");
+                await ProcessUtil.InvokeAndCaptureOutput(downloadedAdb, "kill-server"); // Kill server first, otherwise directory will be in use, so can't be deleted.
+                _adbPath = await _filesDownloader.GetFileLocation(ExternalFileType.PlatformTools, true);
+            }
+            else
+            {
+                Log.Information("Using downloaded ADB");
+            }
+        }
+
+        /// <summary>
+        /// Checks if the ADB executable at the given path exists and is up-to-date.
+        /// If it is, then it will be set as the ADB path for the instance.
+        /// </summary>
+        /// <param name="adbExecutablePath">The relative or absolute path of the ADB executable.</param>
+        /// <returns>True if and only if the ADB installation is present and up-to-date</returns>
+        private async Task<bool> SetAdbPathIfValid(string adbExecutablePath)
+        {
+            const string VersionPrefix = "Android Debug Bridge version";
+
             try
             {
-                await ProcessUtil.InvokeAndCaptureOutput(_adbExecutableName, "-version");
-                // If the ADB EXE is already on PATH, we can just use that
-                _adbPath = _adbExecutableName;
-                Log.Information("Located ADB install on PATH");
+                Log.Verbose("Checking if ADB at {AdbPath} is present and up-to-date", adbExecutablePath);
+                string output = (await ProcessUtil.InvokeAndCaptureOutput(adbExecutablePath, "version")).AllOutput;
+                Log.Debug("Output from checking ADB version: {VerisonOutput}", output);
+
+                int prefixPos = output.IndexOf(VersionPrefix);
+                if (prefixPos == -1)
+                {
+                    Log.Verbose("No version code could be found in the output. ADB executable is NOT valid");
+                    return false;
+                }
+
+                int versionPos = prefixPos + VersionPrefix.Length;
+                int nextNewline = output.IndexOf('\n', versionPos);
+
+                string version;
+                if (nextNewline == -1)
+                {
+                    version = output.Substring(versionPos).Trim();
+                }
+                else
+                {
+                    int versionLen = nextNewline - versionPos;
+                    version = output.Substring(versionPos, versionLen).Trim();
+                }
+
+                Log.Debug($"Parsed ADB version as {version}");
+                if (Version.TryParse(version, out var semver))
+                {
+                    if (semver >= MinAdbVersion)
+                    {
+                        _adbPath = adbExecutablePath;
+                        return true;
+                    }
+                }
+                else
+                {
+                    Log.Debug("ADB version was not valid semver, assuming out of date");
+                }
+
+                return false;
             }
-            catch (Win32Exception) // Thrown if the file we attempted to execute does not exist (on mac & linux as well, despite saying Win32)
+            catch (Win32Exception)
             {
-                // Otherwise, we download the tool and make it executable (only necessary on mac & linux)
-                _adbPath = await _filesDownloader.GetFileLocation(ExternalFileType.PlatformTools); // Download ADB if it hasn't been already
+                return false; // Executable not present
             }
+        }
+
+        private async Task<bool> FindExistingAdbServer()
+        {
+            Log.Debug("Checking for existing daemon");
+            foreach (string adbPath in FindRunningAdbPath())
+            {
+                Log.Debug("Found existing ADB daemon. Checking if it's valid for us to use");
+                if (await SetAdbPathIfValid(adbPath))
+                {
+                    Log.Information("Using ADB from existing daemon at path {AdbPath}", adbPath);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Finds the full path to any ADB server currently running.
+        /// </summary>
+        /// <returns>A list of the full paths to all running ADB servers.</returns>
+        private IEnumerable<string> FindRunningAdbPath()
+        {
+            return Process.GetProcessesByName("adb") // No .exe, process name is without the extension
+                .Select(process =>
+                {
+                    try
+                    {
+                        return process.MainModule?.FileName;
+                    }
+                    catch (Win32Exception ex)
+                    {
+                        Log.Warning(ex, "Could not check process filename");
+                        return null;
+                    }
+                })
+                .Where(fullPath => fullPath != null && fullPath != _adbPath &&
+                    Path.GetFileName(fullPath).Equals(_adbExecutableName, StringComparison.OrdinalIgnoreCase))! /* fullPath definitely not null */;
         }
 
         /// <summary>
