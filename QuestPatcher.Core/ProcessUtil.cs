@@ -28,6 +28,13 @@ namespace QuestPatcher.Core
         /// The exit code of the process
         /// </summary>
         public int ExitCode { get; set; }
+
+        /// <summary>
+        /// The full path to the executable that was invoked.
+        /// Useful if running an executable on the PATH environnment variable.
+        /// May be null if this information was unavailable.
+        /// </summary>
+        public string? FullPath { get; set; }
     }
 
     public static class ProcessUtil
@@ -69,6 +76,7 @@ namespace QuestPatcher.Core
             };
 
             process.Start();
+            string? fullPath = process.MainModule?.FileName;
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
@@ -78,7 +86,8 @@ namespace QuestPatcher.Core
             {
                 StandardOutput = standardOutputBuilder.ToString(),
                 ErrorOutput = errorOutputBuilder.ToString(),
-                ExitCode = process.ExitCode
+                ExitCode = process.ExitCode,
+                FullPath = fullPath
             };
         }
     }

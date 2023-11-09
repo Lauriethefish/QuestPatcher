@@ -139,7 +139,9 @@ namespace QuestPatcher.Core
             try
             {
                 Log.Verbose("Checking if ADB at {AdbPath} is present and up-to-date", adbExecutablePath);
-                string output = (await ProcessUtil.InvokeAndCaptureOutput(adbExecutablePath, "version")).AllOutput;
+                var outputInfo = await ProcessUtil.InvokeAndCaptureOutput(adbExecutablePath, "version");
+                string output = outputInfo.AllOutput;
+
                 Log.Debug("Output from checking ADB version: {VerisonOutput}", output);
 
                 int prefixPos = output.IndexOf(VersionPrefix);
@@ -168,7 +170,7 @@ namespace QuestPatcher.Core
                 {
                     if (semver >= MinAdbVersion)
                     {
-                        _adbPath = adbExecutablePath;
+                        _adbPath = outputInfo.FullPath ?? adbExecutablePath;
                         return true;
                     }
                 }
