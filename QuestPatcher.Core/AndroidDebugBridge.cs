@@ -64,7 +64,7 @@ namespace QuestPatcher.Core
         /// <summary>
         /// The minimum ADB version required by QuestPatcher.
         /// </summary>
-        private static readonly Version MinAdbVersion = new Version(1, 0, 41);
+        private static readonly Version MinAdbVersion = new Version(1, 0, 39);
 
         public event EventHandler? StoppedLogging;
 
@@ -380,7 +380,11 @@ namespace QuestPatcher.Core
 
         public async Task InstallApp(string apkPath)
         {
-            await RunCommand($"install {apkPath.EscapeProc()} --no-streaming");
+            string pushPath = $"/data/local/tmp/{Guid.NewGuid()}.apk";
+
+            await RunCommand($"push {apkPath.EscapeProc()} {pushPath}");
+            await RunShellCommand($"pm install {pushPath}");
+            await RunShellCommand($"rm {pushPath}");
         }
 
         public async Task CreateDirectory(string path)
