@@ -1,8 +1,11 @@
 ﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using QuestPatcher.Core;
 using QuestPatcher.Models;
 using QuestPatcher.Services;
 using QuestPatcher.Views;
@@ -17,6 +20,33 @@ namespace QuestPatcher
             AvaloniaXamlLoader.Load(this);
         }
 
+        private void LogCriticalError(Exception ex)
+        {
+            try
+            {
+                // Save the exception to a file on your desktop.
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string guid = Guid.NewGuid().ToString();
+
+                string crashPath = Path.Combine(desktopPath, $"QuestPatcher-CRASH-{guid}.txt");
+                using var stream = File.Create(crashPath);
+                using var writer = new StreamWriter(stream);
+
+                var specialFolders = new SpecialFolders();
+
+                writer.WriteLine($"QuestPatcher Unhandled Exception (version {VersionUtil.QuestPatcherVersion})");
+                writer.WriteLine($"Full log here: {specialFolders.LogsFolder}");
+                writer.WriteLine();
+                writer.WriteLine(ex.ToString());
+            }
+            catch (Exception crashSaveEx)
+            {
+                Log.Fatal(crashSaveEx, "Failed to save crash log");
+            }
+
+            Log.Fatal(ex, "Unhandled exception!");
+        }
+
         private void OnAppDomainUnhandledException(object? sender, UnhandledExceptionEventArgs args)
         {
             if (!args.IsTerminating)
@@ -24,8 +54,16 @@ namespace QuestPatcher
                 return;
             }
 
-            Log.Error((Exception) args.ExceptionObject, "Unhandled exception, QuestPatcher quitting!");
-            Log.CloseAndFlush();
+            LogCriticalError((Exception) args.ExceptionObject);
+            if (args.IsTerminating)
+            {
+                Log.CloseAndFlush();
+            }
+        }
+
+        private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs args)
+        {
+            LogCriticalError(args.Exception);
         }
 
         public override void OnFrameworkInitializationCompleted()
@@ -33,6 +71,7 @@ namespace QuestPatcher
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 AppDomain.CurrentDomain.UnhandledException += OnAppDomainUnhandledException;
+                TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
                 try
                 {

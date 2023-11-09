@@ -14,7 +14,14 @@ namespace QuestPatcher.Core
         /// </summary>
         public string DataFolder { get; }
 
+        /// <summary>
+        /// QuestPatcher and ADB logs
+        /// </summary>
         public string LogsFolder { get; }
+
+        /// <summary>
+        /// Tools needed for QP to work, e.g. ADB, QuestLoader.
+        /// </summary>
 
         public string ToolsFolder { get; }
 
@@ -30,7 +37,7 @@ namespace QuestPatcher.Core
         public string PatchingFolder { get; }
 
         /// <summary>
-        /// Creates and sets all special folders
+        /// Sets all the special folder paths.
         /// </summary>
         public SpecialFolders()
         {
@@ -38,20 +45,26 @@ namespace QuestPatcher.Core
             string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create);
 
             DataFolder = Path.Combine(appDataPath, "QuestPatcher");
-            Directory.CreateDirectory(DataFolder);
-
             LogsFolder = Path.Combine(DataFolder, "logs");
-            Directory.CreateDirectory(LogsFolder);
-
             ToolsFolder = Path.Combine(DataFolder, "tools");
-            Directory.CreateDirectory(ToolsFolder);
 
             TempFolder = Path.Combine(Path.GetTempPath(), "QuestPatcher");
             PatchingFolder = Path.Combine(TempFolder, "patching");
-
             PatchingFolder = Path.Combine(TempFolder, "patching");
+        }
 
-            if (Directory.Exists(TempFolder)) // Sometimes windows fails to delete this upon closing, and we have to do it ourselves
+        /// <summary>
+        /// Creates all special folders.
+        /// Deletes the temporary directory and recreates if it already exists.
+        /// </summary>
+        public void CreateAndDeleteTemp()
+        {
+            Directory.CreateDirectory(DataFolder);
+            Directory.CreateDirectory(LogsFolder);
+            Directory.CreateDirectory(ToolsFolder);
+
+            // This may not be deleted if QP crashed, so we do it just to make sure.
+            if (Directory.Exists(TempFolder))
             {
                 Directory.Delete(TempFolder, true);
             }
