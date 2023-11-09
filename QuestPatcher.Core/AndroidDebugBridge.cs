@@ -72,7 +72,15 @@ namespace QuestPatcher.Core
         private readonly Func<DisconnectionType, Task> _onDisconnect;
         private readonly string _adbExecutableName = OperatingSystem.IsWindows() ? "adb.exe" : "adb";
 
+        /// <summary>
+        /// The minimum time between checks for the currently open ADB daemon.
+        /// QP will automatically switch to a different ADB install if a daemon is started with that install. (and the install is new enough to work with QP.)
+        /// This allows QP to avoid killing an ADB daemon another app is using. (which would happen if it tried to use its own install and the versions were different.)
+        /// </summary>
+        private static readonly TimeSpan DaemonCheckInterval = TimeSpan.FromSeconds(5.0);
+
         private string? _adbPath;
+        private DateTime _lastDaemonCheck; // The last time at which QP checked for existing ADB daemons
         private Process? _logcatProcess;
 
         public AndroidDebugBridge(ExternalFilesDownloader filesDownloader, Func<DisconnectionType, Task> onDisconnect)
@@ -179,6 +187,8 @@ namespace QuestPatcher.Core
 
         private async Task<bool> FindExistingAdbServer()
         {
+            _lastDaemonCheck = DateTime.Now;
+
             Log.Debug("Checking for existing daemon");
             foreach (string adbPath in FindRunningAdbPath())
             {
@@ -229,6 +239,14 @@ namespace QuestPatcher.Core
             if (_adbPath == null)
             {
                 await PrepareAdbPath();
+            }
+            else
+            {
+                var now = DateTime.UtcNow;
+                if ((now - _lastDaemonCheck) > DaemonCheckInterval)
+                {
+                    await FindExistingAdbServer();
+                }
             }
             Debug.Assert(_adbPath != null);
 
