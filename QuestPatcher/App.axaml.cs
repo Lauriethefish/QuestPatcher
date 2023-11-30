@@ -76,6 +76,12 @@ namespace QuestPatcher
                 try
                 {
                     var questPatcherService = new QuestPatcherUiService(desktop);
+                    Avalonia.Logging.Logger.Sink = new SerilogSink
+                    {
+                        Logger = Log.Logger,
+                        LogLevel = Serilog.Events.LogEventLevel.Warning
+                    };
+
                     desktop.Exit += (_, _) =>
                     {
                         questPatcherService.CleanUp();
