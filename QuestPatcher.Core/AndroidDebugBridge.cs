@@ -273,7 +273,7 @@ namespace QuestPatcher.Core
                 // -1073740940 is always allowed as some ADB installations return it randomly, even when commands are successful.
                 if (output.ExitCode == 0 || allowedExitCodes.Contains(output.ExitCode) || output.ExitCode == -1073740940) { return output; }
 
-                string allOutput = output.StandardOutput + output.ErrorOutput;
+                string allOutput = (output.StandardOutput + output.ErrorOutput).Trim();
 
                 // We repeatedly prompt the user to plug in their quest if it is not plugged in, or the device is offline, or if there are multiple devices
                 if (allOutput.Contains("no devices/emulators found"))
@@ -295,7 +295,8 @@ namespace QuestPatcher.Core
                 else
                 {
                     // Throw an exception as ADB gave a non-zero exit code so the command must've failed
-                    throw new AdbException(allOutput);
+                    // Add the exit code to the error message for debugging purposes.
+                    throw new AdbException($"Code {output.ExitCode}: {allOutput}");
                 }
             }
         }
