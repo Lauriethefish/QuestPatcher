@@ -83,6 +83,8 @@ namespace QuestPatcher.Core
         private DateTime _lastDaemonCheck; // The last time at which QP checked for existing ADB daemons
         private Process? _logcatProcess;
 
+        private string? _chosenDeviceId;
+
         public AndroidDebugBridge(ExternalFilesDownloader filesDownloader, Func<DisconnectionType, Task> onDisconnect)
         {
             _filesDownloader = filesDownloader;
@@ -187,6 +189,74 @@ namespace QuestPatcher.Core
             }
         }
 
+        /// <summary>
+        /// Lists the devices connected to ADB.
+        /// </summary>
+        /// <returns>A list of the ADB devices.</returns>
+        private async Task<List<(string id, string model)>> ListDevicesInternal()
+        {
+            var output = await ProcessUtil.InvokeAndCaptureOutput(_adbExecutableName, "devices -l");
+            Log.Debug("Listing devices output {Output}", output.AllOutput);
+
+            string[] lines = output.StandardOutput.Trim().Split('\n');
+
+            var devices = new List<(string id, string model)>();
+            for (int i = 1; i < lines.Length; i++)
+            {
+                string line = lines[i];
+
+                var endIdIdx = line.IndexOf(' ');
+                if (endIdIdx == -1)
+                {
+                    continue;
+                }
+
+                string id = line.Substring(0, endIdIdx);
+                int modelIdx = line.IndexOf("model:");
+                if (modelIdx == -1)
+                {
+                    continue;
+                }
+
+                int endModelIdx = line.IndexOf(' ', modelIdx);
+                if (endModelIdx == -1)
+                {
+                    continue;
+                }
+
+                string model = line.Substring(modelIdx + 6, endModelIdx - modelIdx - 6);
+
+                devices.Add((id, model));
+            }
+
+            return devices;
+        }
+
+        /// <returns>The device ID of one of the Quest devices connected, or a non-quest device if no quest is present.</returns>
+        private async Task<(string id, string model)> GetDeviceToUse()
+        {
+            var devices = await ListDevicesInternal();
+
+            var questDevices = devices
+                .Where(device => device.id.Contains("quest", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (questDevices.Any())
+            {
+                if (questDevices.Count > 1)
+                {
+                    Log.Warning("Multiple quest devices connected - using the first device");
+                }
+
+                return questDevices.First();
+            }
+            else
+            {
+                return devices.First();
+            }
+
+        }
+
         private async Task<bool> FindExistingAdbServer()
         {
             _lastDaemonCheck = DateTime.Now;
@@ -255,7 +325,7 @@ namespace QuestPatcher.Core
             Log.Debug("Executing ADB command: {Command}", $"adb {command}");
             while (true)
             {
-                var output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, command);
+                var output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, _chosenDeviceId == null ? command : $"-s {_chosenDeviceId} " + command);
                 if (output.StandardOutput.Length > 0)
                 {
                     Log.Verbose("Standard output: {StandardOutput}", output.StandardOutput);
@@ -286,7 +356,11 @@ namespace QuestPatcher.Core
                 }
                 else if (allOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
                 {
-                    await _onDisconnect(DisconnectionType.MultipleDevices);
+                    Log.Information("Multiple devices detected, choosing the Quest device if present");
+                    var device = await GetDeviceToUse();
+                    _chosenDeviceId = device.id;
+
+                    Log.Information("Using id: {DeviceId} model: {Model}", device.id, device.model);
                 }
                 else if (allOutput.Contains("unauthorized"))
                 {
