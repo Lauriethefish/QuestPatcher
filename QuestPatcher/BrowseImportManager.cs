@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -152,7 +153,7 @@ namespace QuestPatcher
         public async Task AttemptImportUri(Uri uri)
         {
             // Download the data to a temporary file. This is necessary as we need a seekable stream.
-            using var tempFile = new TempFile();
+            var tempFile = new TempFile();
             HttpContentHeaders headers;
             try
             {
@@ -174,6 +175,7 @@ namespace QuestPatcher
                     HideCancelButton = true
                 };
                 await builder.OpenDialogue(_mainWindow);
+                tempFile.Dispose();
                 return;
             }
             finally
@@ -192,6 +194,7 @@ namespace QuestPatcher
                     HideCancelButton = true
                 };
                 await builder.OpenDialogue(_mainWindow);
+                tempFile.Dispose();
                 return;
             }
 
@@ -199,7 +202,8 @@ namespace QuestPatcher
             await AttemptImportFiles(new List<FileImportInfo> {
                 new FileImportInfo(tempFile.Path)
                 {
-                    OverrideExtension = extension
+                    OverrideExtension = extension,
+                    IsTemporaryFile = true
                 }
             });
         }
@@ -230,6 +234,19 @@ namespace QuestPatcher
                 catch (Exception ex)
                 {
                     failedFiles[path] = ex;
+                }
+
+                if (importInfo.IsTemporaryFile)
+                {
+                    Log.Debug("Deleting temporary file {Path}", importInfo.Path);
+                    try
+                    {
+                        File.Delete(importInfo.Path);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning("Failed to delete temporary file", ex);
+                    }
                 }
             }
             _currentImportQueue = null; // New files added should go to a new queue
@@ -280,6 +297,55 @@ namespace QuestPatcher
         }
 
         /// <summary>
+        /// Attempts to import a ZIP file by extracting the contents to temporary files.
+        /// </summary>
+        /// <param name="importInfo">The ZIP file to import</param>
+        private async Task ImportZip(FileImportInfo importInfo)
+        {
+            using var zip = ZipFile.OpenRead(importInfo.Path);
+
+            var toEnqueue = new List<FileImportInfo>();
+
+            // Somebody tried dragging in a Beat Saber song, which QP doesn't support copying.
+            // Inform the user as such.
+            if (zip.Entries.Any(entry => entry.FullName.Equals("info.dat", StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InstallationException($"This file appears to be a beat saber song." +
+                    " QuestPatcher does not support importing Beat Saber songs.");
+            }
+
+
+            foreach (var entry in zip.Entries)
+            {
+                // Extract each entry to a temporary file and enqueue it
+                var temp = new TempFile();
+
+                Log.Information("Extracting {EntryName}", entry.Name);
+                try
+                {
+                    using var tempStream = File.OpenWrite(temp.Path);
+                    using var entryStream = entry.Open();
+
+                    await entryStream.CopyToAsync(tempStream);
+
+                    toEnqueue.Add(new FileImportInfo(temp.Path)
+                    {
+                        IsTemporaryFile = true,
+                        OverrideExtension = Path.GetExtension(entry.FullName),
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // Make sure the temporary file is deleted if it couldn't be queued.
+                    temp.Dispose();
+                    Log.Error(ex, "Failed to extract file in ZIP");
+                }
+            }
+
+            await AttemptImportFiles(toEnqueue);
+        }
+
+        /// <summary>
         /// Figures out what the given file is, and installs it accordingly.
         /// Throws an exception if the file cannot be installed by QuestPatcher.
         /// </summary>
@@ -287,6 +353,13 @@ namespace QuestPatcher
         private async Task ImportUnknownFile(FileImportInfo importInfo)
         {
             string extension = importInfo.OverrideExtension ?? Path.GetExtension(importInfo.Path).ToLower();
+
+            if (extension == ".zip")
+            {
+                Log.Information("Extracting ZIP contents to import");
+                await ImportZip(importInfo);
+                return;
+            }
 
             // Attempt to install as a mod first
             if (await TryImportMod(importInfo))
