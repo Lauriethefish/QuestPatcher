@@ -35,6 +35,13 @@ namespace QuestPatcher.Core.Patching
         private const int DebuggableAttributeResourceId = 16842767;
         private const int LegacyStorageAttributeResourceId = 16844291;
         private const int ValueAttributeResourceId = 16842788;
+        private const int AuthoritiesAttributeResourceId = 16842776;
+
+        /// <summary>
+        /// Compression level to use when adding files to the APK during patching.
+        /// * Most asset files added should use no compression, as most already use a compressed format.
+        /// </summary>
+        private const CompressionLevel PatchingCompression = CompressionLevel.Optimal;
 
         public PatchingStage PatchingStage { get => _patchingStage; private set { if (_patchingStage != value) { _patchingStage = value; NotifyPropertyChanged(); } } }
         private PatchingStage _patchingStage = PatchingStage.NotStarted;
@@ -45,7 +52,6 @@ namespace QuestPatcher.Core.Patching
 
         private readonly Config _config;
         private readonly AndroidDebugBridge _debugBridge;
-        private readonly SpecialFolders _specialFolders;
         private readonly ExternalFilesDownloader _filesDownloader;
         private readonly IUserPrompter _prompter;
         private readonly ModManager _modManager;
@@ -58,7 +64,6 @@ namespace QuestPatcher.Core.Patching
         {
             _config = config;
             _debugBridge = debugBridge;
-            _specialFolders = specialFolders;
             _filesDownloader = filesDownloader;
             _prompter = prompter;
             _modManager = modManager;
@@ -187,6 +192,41 @@ namespace QuestPatcher.Core.Patching
                 addingFeatures.Add("oculus.software.handtracking");
             }
 
+            if (permissions.OpenXR)
+            {
+                Log.Information("Adding OpenXR permission . . .");
+
+                addingPermissions.AddRange(new[] {
+                    "org.khronos.openxr.permission.OPENXR",
+                    "org.khronos.openxr.permission.OPENXR_SYSTEM",
+                });
+
+                AxmlElement providerElement = new("provider") {
+                    Attributes = {new("authorities", AndroidNamespaceUri, AuthoritiesAttributeResourceId, "org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker")},
+                };
+                AxmlElement runtimeIntent = new("intent") {
+                    Children = {
+                        new("action") {
+                            Attributes = {new("name", AndroidNamespaceUri, NameAttributeResourceId, "org.khronos.openxr.OpenXRRuntimeService")},
+                        },
+                    },
+                };
+                AxmlElement layerIntent = new("intent") {
+                    Children = {
+                        new("action") {
+                            Attributes = {new("name", AndroidNamespaceUri, NameAttributeResourceId, "org.khronos.openxr.OpenXRApiLayerService")},
+                        },
+                    },
+                };
+                manifest.Children.Add(new("queries") {
+                    Children = {
+                        providerElement,
+                        runtimeIntent,
+                        layerIntent,
+                    },
+                });
+            }
+
             // Find which features and permissions already exist to avoid adding existing ones
             var existingPermissions = GetExistingChildren(manifest, "uses-permission");
             var existingFeatures = GetExistingChildren(manifest, "uses-feature");
@@ -267,7 +307,7 @@ namespace QuestPatcher.Core.Patching
                 AxmlSaver.SaveDocument(ms, manifest);
                 ms.Position = 0;
 
-                await apk.AddFileAsync(InstallManager.ManifestPath, ms, CompressionLevel.Optimal);
+                await apk.AddFileAsync(InstallManager.ManifestPath, ms, PatchingCompression);
             }
             else
             {
@@ -343,7 +383,7 @@ namespace QuestPatcher.Core.Patching
                 newBootCfgWriter.Flush();
 
                 newBootCfg.Position = 0;
-                await apk.AddFileAsync(bootCfgPath, newBootCfg, CompressionLevel.Optimal);
+                await apk.AddFileAsync(bootCfgPath, newBootCfg, PatchingCompression);
 
             }
 
@@ -388,14 +428,14 @@ namespace QuestPatcher.Core.Patching
             }
             writer.Flush();
             replacementContents.Position = 0;
-            await apk.AddFileAsync(globalGameManagersPath, replacementContents, CompressionLevel.Optimal);
+            await apk.AddFileAsync(globalGameManagersPath, replacementContents, PatchingCompression);
 
             using var sdkArchive = ZipFile.Open(ovrPlatformSdkPath, ZipArchiveMode.Update);
             var downgradedLoaderEntry = sdkArchive.GetEntry("Android/libs/arm64-v8a/libovrplatformloader.so")
                                         ?? throw new PatchingException("No libovrplatformloader.so found in downloaded OvrPlatformSdk");
             using var downloadedLoaderStream = downgradedLoaderEntry.Open();
 
-            await apk.AddFileAsync(ovrPlatformLoaderPath, downloadedLoaderStream, CompressionLevel.Optimal);
+            await apk.AddFileAsync(ovrPlatformLoaderPath, downloadedLoaderStream, PatchingCompression);
         }
 
         /// <summary>
@@ -461,7 +501,7 @@ namespace QuestPatcher.Core.Patching
             JsonSerializer.Serialize(tagStream, tag, InstallManager.TagSerializerOptions);
             tagStream.Position = 0;
 
-            await apk.AddFileAsync(InstallManager.JsonTagName, tagStream, CompressionLevel.Optimal);
+            await apk.AddFileAsync(InstallManager.JsonTagName, tagStream, PatchingCompression);
         }
 
         /// <summary>
@@ -486,7 +526,7 @@ namespace QuestPatcher.Core.Patching
                 fileStream.Position = 0;
             }
 
-            await apk.AddFileAsync(apkFilePath, fileStream, CompressionLevel.Optimal);
+            await apk.AddFileAsync(apkFilePath, fileStream, PatchingCompression);
         }
 
         /// <summary>

@@ -41,6 +41,7 @@ namespace QuestPatcher.Core
         protected QuestPatcherService(IUserPrompter prompter)
         {
             SpecialFolders = new SpecialFolders(); // Load QuestPatcher application folders
+            SpecialFolders.CreateAndDeleteTemp();
 
             Log.Logger = SetupLogging();
 

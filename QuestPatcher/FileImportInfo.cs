@@ -19,6 +19,12 @@ namespace QuestPatcher
         public string? OverrideExtension { get; set; }
 
         /// <summary>
+        /// Whether or not the file being imported is temporary.
+        /// If true, the file will be deleted after it is imported.
+        /// </summary>
+        public bool IsTemporaryFile { get; set; }
+
+        /// <summary>
         /// The file copy type that will be assumed if this file could be imported as multiple file copy types.
         /// If null, a dialog will be shown allowing the user to choose which to use.
         /// </summary>

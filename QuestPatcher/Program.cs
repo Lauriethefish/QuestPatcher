@@ -12,7 +12,15 @@ namespace QuestPatcher
         [STAThread]
         public static void Main(string[] args)
         {
-            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            try
+            {
+                BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.Write("Unhandled exception: " + ex);
+                Console.ReadKey();
+            }
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.

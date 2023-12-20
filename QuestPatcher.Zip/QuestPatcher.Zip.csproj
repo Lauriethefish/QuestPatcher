@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <Title>QuestPatcher.Zip</Title>
-    <PackageVersion>1.1.1</PackageVersion>
+    <PackageVersion>1.1.2</PackageVersion>
     <Authors>Lauriethefish</Authors>
     <Description>A simple library for the loading/saving of APK files, which use the ZIP file format. Supports editing and signing an APK file in-place.</Description>
     <Copyright>Copyright 2021 Laurie ?</Copyright>
@@ -17,7 +17,7 @@
     <RepositoryUrl>https://github.com/Lauriethefish/QuestPatcher.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>apk, android, zip</PackageTags>
-    <PackageReleaseNotes>Added fallback in-case loading code page 437 fails. Fixed bug where main stream is disposed when using STORE compression method.</PackageReleaseNotes>
+    <PackageReleaseNotes>Use better maintained crypto library for signing. (also works with native AOT)</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.5" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.1" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
   </ItemGroup>
 </Project>

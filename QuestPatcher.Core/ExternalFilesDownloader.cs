@@ -509,21 +509,40 @@ namespace QuestPatcher.Core
         /// Finds the location of the specified file, and downloads/extracts it if it does not exist.
         /// </summary>
         /// <param name="fileType">The type of file to download</param>
+        /// <param name="clearExisting">Whether to delete the file if it already existed.</param>
         /// <returns>The location of the file</returns>
         /// <exception cref="FileDownloadFailedException">If downloading the file failed with every known URL</exception>
-        public async Task<string> GetFileLocation(ExternalFileType fileType)
+        public async Task<string> GetFileLocation(ExternalFileType fileType, bool clearExisting = false)
         {
             var fileInfo = _fileTypes[fileType];
+
+            // Store that the existing file has been cleared.
+            if (clearExisting)
+            {
+                if (_fullyDownloaded.Remove(fileType))
+                {
+                    await SaveFullyDownloaded();
+                }
+            }
 
             // The save location is relative to the extract folder if requires extraction, otherwise it's just relative to the tools folder
             string saveLocation;
             if (fileInfo.ExtractionFolder == null)
             {
                 saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.SaveName.Value);
+                if (clearExisting && File.Exists(saveLocation))
+                {
+                    File.Delete(saveLocation);
+                }
             }
             else
             {
-                saveLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder, fileInfo.SaveName.Value);
+                string extractLocation = Path.Combine(_specialFolders.ToolsFolder, fileInfo.ExtractionFolder);
+                if (clearExisting && Directory.Exists(extractLocation))
+                {
+                    Directory.Delete(extractLocation, true);
+                }
+                saveLocation = Path.Combine(extractLocation, fileInfo.SaveName.Value);
             }
 
             if (!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation))

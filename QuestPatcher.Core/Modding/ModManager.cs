@@ -158,6 +158,7 @@ namespace QuestPatcher.Core.Modding
 
         /// <summary>
         /// Creates the directories where mod files are copied to.
+        /// + grants external storage permissions (useful on quest 3).
         /// </summary>
         public async Task CreateModDirectories()
         {
@@ -166,6 +167,16 @@ namespace QuestPatcher.Core.Modding
             var modDirectories = new List<string> { ModsPath, LibsPath, Sl2LibsPath, Sl2EarlyModsPath, Sl2LateModsPath, ModsExtractPath };
 
             await _debugBridge.CreateDirectories(modDirectories);
+
+            try
+            {
+                await _debugBridge.RunShellCommand($"appops set --uid {_config.AppId} MANAGE_EXTERNAL_STORAGE allow");
+            }
+            catch (AdbException ex)
+            {
+                Log.Error(ex, "Failed to grant external storage permission: mods may not load!");
+            }
+
             try
             {
                 await _debugBridge.Chmod(modDirectories, Permissions);

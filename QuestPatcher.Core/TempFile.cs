@@ -30,8 +30,6 @@ namespace QuestPatcher.Core
             _path = System.IO.Path.GetTempFileName();
         }
 
-        ~TempFile() { Dispose(); }
-
         public void Dispose()
         {
             GC.SuppressFinalize(this);

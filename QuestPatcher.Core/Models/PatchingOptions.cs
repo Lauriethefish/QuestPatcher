@@ -23,6 +23,8 @@ namespace QuestPatcher.Core.Models
 
         public bool Microphone { get; set; }
 
+        public bool OpenXR { get; set; }
+        
         public bool FlatScreenSupport { get; set; }
 
         public HandTrackingVersion HandTrackingType { get; set; }

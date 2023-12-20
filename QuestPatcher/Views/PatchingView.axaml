@@ -19,6 +19,7 @@
                   <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Debuggable}">Allow Debugging</ToggleSwitch>
                   <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.FlatScreenSupport}">Disable VR Requirement</ToggleSwitch>
                   <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Microphone}">Enable Microphone</ToggleSwitch>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.OpenXR}">Enable OpenXR</ToggleSwitch>
 
                   <StackPanel Orientation="Vertical" Spacing="10">
                       <TextBlock>Hand Tracking Type</TextBlock>
