@@ -201,24 +201,28 @@ namespace QuestPatcher.Core.Patching
                     "org.khronos.openxr.permission.OPENXR_SYSTEM",
                 });
 
-                AxmlElement providerElement = new("provider") {
-                    Attributes = {new("authorities", AndroidNamespaceUri, AuthoritiesAttributeResourceId, "org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker")},
+                AxmlElement providerElement = new("provider")
+                {
+                    Attributes = { new("authorities", AndroidNamespaceUri, AuthoritiesAttributeResourceId, "org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker") },
                 };
-                AxmlElement runtimeIntent = new("intent") {
+                AxmlElement runtimeIntent = new("intent")
+                {
                     Children = {
                         new("action") {
                             Attributes = {new("name", AndroidNamespaceUri, NameAttributeResourceId, "org.khronos.openxr.OpenXRRuntimeService")},
                         },
                     },
                 };
-                AxmlElement layerIntent = new("intent") {
+                AxmlElement layerIntent = new("intent")
+                {
                     Children = {
                         new("action") {
                             Attributes = {new("name", AndroidNamespaceUri, NameAttributeResourceId, "org.khronos.openxr.OpenXRApiLayerService")},
                         },
                     },
                 };
-                manifest.Children.Add(new("queries") {
+                manifest.Children.Add(new("queries")
+                {
                     Children = {
                         providerElement,
                         runtimeIntent,
@@ -475,6 +479,21 @@ namespace QuestPatcher.Core.Patching
                 await AddFlatscreenSupport(apk, ovrPlatformSdkPath!);
             }
 
+            if (_config.PatchingOptions.CustomSplashPath != null)
+            {
+                Log.Information("Checking if Splash screen file exists");
+                if (File.Exists(_config.PatchingOptions.CustomSplashPath))
+                {
+                    apk.RemoveFile("assets/vr_splash.png");
+                    await AddFileToApk(_config.PatchingOptions.CustomSplashPath, "assets/vr_splash.png", apk, true);
+                    Log.Information("Replaced Splash with custom Image");
+                }
+                else
+                {
+                    Log.Warning("Could not add custom splash screen: file did not exist.");
+                }
+            }
+
             Log.Information("Patching manifest . . .");
             await PatchManifest(apk);
 
@@ -495,8 +514,9 @@ namespace QuestPatcher.Core.Patching
         /// <param name="filePath">The path to the file to copy into the APK</param>
         /// <param name="apkFilePath">The name of the file in the APK to create</param>
         /// <param name="apk">The apk to copy the file into</param>
+        /// <param name="useStore">If enabled, compression is disabled and the STORE compression method is used.</param>
         /// <exception cref="PatchingException">If the file already exists in the APK, if configured to throw.</exception>
-        private async Task AddFileToApk(string filePath, string apkFilePath, ApkZip apk)
+        private async Task AddFileToApk(string filePath, string apkFilePath, ApkZip apk, bool useStore = false)
         {
             using var fileStream = File.OpenRead(filePath);
             if (apk.ContainsFile(apkFilePath))
@@ -511,7 +531,7 @@ namespace QuestPatcher.Core.Patching
                 fileStream.Position = 0;
             }
 
-            await apk.AddFileAsync(apkFilePath, fileStream, PatchingCompression);
+            await apk.AddFileAsync(apkFilePath, fileStream, useStore ? null : PatchingCompression);
         }
 
         /// <summary>

@@ -24,12 +24,16 @@ namespace QuestPatcher.Core.Models
         public bool Microphone { get; set; }
 
         public bool OpenXR { get; set; }
-        
+
         public bool FlatScreenSupport { get; set; }
 
         public HandTrackingVersion HandTrackingType { get; set; }
 
         public ModLoader ModLoader { get; set; } = ModLoader.QuestLoader;
 
+        /// <summary>
+        /// Path to a PNG file containing a custom splash screen.
+        /// </summary>
+        public string? CustomSplashPath { get; set; } = null;
     }
 }

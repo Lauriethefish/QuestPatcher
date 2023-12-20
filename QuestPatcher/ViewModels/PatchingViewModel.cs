@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
@@ -16,6 +18,8 @@ namespace QuestPatcher.ViewModels
         private bool _isPatchingInProgress;
 
         public string PatchingStageText { get; private set; } = "";
+
+        public string? CustomSplashPath => Config.PatchingOptions.CustomSplashPath;
 
         public Config Config { get; }
 
@@ -101,6 +105,26 @@ namespace QuestPatcher.ViewModels
                     HideCancelButton = true
                 };
                 await builder.OpenDialogue(_mainWindow);
+            }
+        }
+
+        public async void SelectSplashPath()
+        {
+            try
+            {
+                var files = await _mainWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    FileTypeFilter = new[]
+                    {
+                        FilePickerFileTypes.ImagePng
+                    }
+                });
+                Config.PatchingOptions.CustomSplashPath = files.FirstOrDefault()?.Path.LocalPath;
+                this.RaisePropertyChanged(nameof(CustomSplashPath));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to select splash screen path");
             }
         }
 
