@@ -35,6 +35,7 @@ namespace QuestPatcher.Core.Patching
         private const int DebuggableAttributeResourceId = 16842767;
         private const int LegacyStorageAttributeResourceId = 16844291;
         private const int ValueAttributeResourceId = 16842788;
+        private const int AuthoritiesAttributeResourceId = 16842776;
 
         /// <summary>
         /// Compression level to use when adding files to the APK during patching.
@@ -189,6 +190,41 @@ namespace QuestPatcher.Core.Patching
                 });
                 // Tell Android (and thus Oculus home) that this app supports hand tracking and we can launch the app with it
                 addingFeatures.Add("oculus.software.handtracking");
+            }
+
+            if (permissions.OpenXR)
+            {
+                Log.Information("Adding OpenXR permission . . .");
+
+                addingPermissions.AddRange(new[] {
+                    "org.khronos.openxr.permission.OPENXR",
+                    "org.khronos.openxr.permission.OPENXR_SYSTEM",
+                });
+
+                AxmlElement providerElement = new("provider") {
+                    Attributes = {new("authorities", AndroidNamespaceUri, AuthoritiesAttributeResourceId, "org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker")},
+                };
+                AxmlElement runtimeIntent = new("intent") {
+                    Children = {
+                        new("action") {
+                            Attributes = {new("name", AndroidNamespaceUri, NameAttributeResourceId, "org.khronos.openxr.OpenXRRuntimeService")},
+                        },
+                    },
+                };
+                AxmlElement layerIntent = new("intent") {
+                    Children = {
+                        new("action") {
+                            Attributes = {new("name", AndroidNamespaceUri, NameAttributeResourceId, "org.khronos.openxr.OpenXRApiLayerService")},
+                        },
+                    },
+                };
+                manifest.Children.Add(new("queries") {
+                    Children = {
+                        providerElement,
+                        runtimeIntent,
+                        layerIntent,
+                    },
+                });
             }
 
             // Find which features and permissions already exist to avoid adding existing ones
