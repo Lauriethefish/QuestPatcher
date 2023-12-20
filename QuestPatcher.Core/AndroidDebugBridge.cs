@@ -233,7 +233,7 @@ namespace QuestPatcher.Core
         }
 
         /// <returns>The device ID of one of the Quest devices connected, or a non-quest device if no quest is present.</returns>
-        private async Task<string> GetDeviceIdToUse()
+        private async Task<(string id, string model)> GetDeviceToUse()
         {
             var devices = await ListDevicesInternal();
 
@@ -243,18 +243,16 @@ namespace QuestPatcher.Core
 
             if (questDevices.Any())
             {
-                Log.Debug("Using quest device");
                 if (questDevices.Count > 1)
                 {
                     Log.Warning("Multiple quest devices connected - using the first device");
                 }
 
-                return questDevices.First().id;
+                return questDevices.First();
             }
             else
             {
-                Log.Debug("Using non-quest device");
-                return devices.First().id;
+                return devices.First();
             }
 
         }
@@ -359,9 +357,10 @@ namespace QuestPatcher.Core
                 else if (allOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
                 {
                     Log.Information("Multiple devices detected, choosing the Quest device if present");
-                    _chosenDeviceId = await GetDeviceIdToUse();
+                    var device = await GetDeviceToUse();
+                    _chosenDeviceId = device.id;
 
-                    Log.Information("Using {DeviceId}", _chosenDeviceId);
+                    Log.Information("Using id: {DeviceId} model: {Model}", device.id, device.model);
                 }
                 else if (allOutput.Contains("unauthorized"))
                 {
