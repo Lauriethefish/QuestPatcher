@@ -1,6 +1,7 @@
 ﻿using System;
-using System.IO;
+using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
@@ -17,8 +18,8 @@ namespace QuestPatcher.ViewModels
         private bool _isPatchingInProgress;
 
         public string PatchingStageText { get; private set; } = "";
-        
-        public string SplashPathText { get; private set; } = "None";
+
+        public string? CustomSplashPath => Config.PatchingOptions.CustomSplashPath;
 
         public Config Config { get; }
 
@@ -107,18 +108,23 @@ namespace QuestPatcher.ViewModels
             }
         }
 
-        public async void SetSplash()
+        public async void SelectSplashPath()
         {
-            var dialog = new OpenFileDialog();
-            dialog.Filters.Add(new FileDialogFilter() { Name = "Image", Extensions = { "png" } });
-            dialog.AllowMultiple = false;
-            dialog.Title = "Select a splash image";
-            var result = await dialog.ShowAsync(_mainWindow);
-            if (result != null && result.Length > 0)
+            try
             {
-                Config.PatchingOptions.CustomSplash = result[0];
-                SplashPathText = result[0];
-                this.RaisePropertyChanged(nameof(SplashPathText));
+                var files = await _mainWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                {
+                    FileTypeFilter = new[]
+                    {
+                        FilePickerFileTypes.ImagePng
+                    }
+                });
+                Config.PatchingOptions.CustomSplashPath = files.FirstOrDefault()?.Path.LocalPath;
+                this.RaisePropertyChanged(nameof(CustomSplashPath));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to select splash screen path");
             }
         }
 
