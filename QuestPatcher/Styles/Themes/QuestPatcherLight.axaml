@@ -2,4 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StyleInclude Source="avares://QuestPatcher/Styles/Themes/Accents/Light.axaml"/>
     <FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+
 </Styles>

@@ -48,21 +48,26 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Include="Styles\**" />
-    <None Include="iconfile.icns" CopyToOutputDirectory="Always" Condition="$(RuntimeIdentifier.StartsWith('osx'))"/>
+    <None Include="iconfile.icns" CopyToOutputDirectory="Always" Condition="$(RuntimeIdentifier.StartsWith('osx'))" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.5" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.5" />
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.5" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.5" />
-    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="11.0.5" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.5" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.5" />
+    <PackageReference Include="Avalonia" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.6" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="11.0.6" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.6" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.6" />
     <PackageReference Include="Dotnet.Bundle" Version="0.9.13" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\QuestPatcher.Core\QuestPatcher.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="views\SelectDeviceWindow.axaml" />
   </ItemGroup>
 </Project>

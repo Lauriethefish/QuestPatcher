@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace QuestPatcher.Core
 {
@@ -7,6 +8,8 @@ namespace QuestPatcher.Core
         Task<bool> PromptAppNotInstalled();
 
         Task<bool> PromptAdbDisconnect(DisconnectionType type);
+
+        Task<AdbDevice?> PromptSelectDevice(List<AdbDevice> devices);
 
         Task<bool> PromptUnstrippedUnityUnavailable();
 

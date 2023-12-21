@@ -23,7 +23,6 @@ namespace QuestPatcher.Core
     public enum DisconnectionType
     {
         NoDevice,
-        MultipleDevices,
         DeviceOffline,
         Unauthorized
     }
@@ -33,6 +32,28 @@ namespace QuestPatcher.Core
         public static bool ContainsIgnoreCase(this string str, string other)
         {
             return str.IndexOf(other, 0, StringComparison.CurrentCultureIgnoreCase) != -1;
+        }
+    }
+
+    /// <summary>
+    /// A particular android debug bridge device.
+    /// </summary>
+    public class AdbDevice
+    {
+        /// <summary>
+        /// The device ID.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// The device model.
+        /// </summary>
+        public string Model { get; set; }
+
+        public AdbDevice(string id, string model)
+        {
+            Id = id;
+            Model = model;
         }
     }
 
@@ -69,8 +90,9 @@ namespace QuestPatcher.Core
         public event EventHandler? StoppedLogging;
 
         private readonly ExternalFilesDownloader _filesDownloader;
-        private readonly Func<DisconnectionType, Task> _onDisconnect;
+        private readonly IUserPrompter _prompter;
         private readonly string _adbExecutableName = OperatingSystem.IsWindows() ? "adb.exe" : "adb";
+        private readonly Action _quit;
 
         /// <summary>
         /// The minimum time between checks for the currently open ADB daemon.
@@ -83,12 +105,13 @@ namespace QuestPatcher.Core
         private DateTime _lastDaemonCheck; // The last time at which QP checked for existing ADB daemons
         private Process? _logcatProcess;
 
-        private string? _chosenDeviceId;
+        private string? _selectedDevice;
 
-        public AndroidDebugBridge(ExternalFilesDownloader filesDownloader, Func<DisconnectionType, Task> onDisconnect)
+        public AndroidDebugBridge(ExternalFilesDownloader filesDownloader, IUserPrompter prompter, Action quit)
         {
             _filesDownloader = filesDownloader;
-            _onDisconnect = onDisconnect;
+            _prompter = prompter;
+            _quit = quit;
         }
 
         /// <summary>
@@ -193,14 +216,14 @@ namespace QuestPatcher.Core
         /// Lists the devices connected to ADB.
         /// </summary>
         /// <returns>A list of the ADB devices.</returns>
-        private async Task<List<(string id, string model)>> ListDevicesInternal()
+        private async Task<List<AdbDevice>> ListDevices()
         {
             var output = await ProcessUtil.InvokeAndCaptureOutput(_adbExecutableName, "devices -l");
             Log.Debug("Listing devices output {Output}", output.AllOutput);
 
             string[] lines = output.StandardOutput.Trim().Split('\n');
 
-            var devices = new List<(string id, string model)>();
+            var devices = new List<AdbDevice>();
             for (int i = 1; i < lines.Length; i++)
             {
                 string line = lines[i];
@@ -226,35 +249,18 @@ namespace QuestPatcher.Core
 
                 string model = line.Substring(modelIdx + 6, endModelIdx - modelIdx - 6);
 
-                devices.Add((id, model));
+                devices.Add(new AdbDevice(id, model));
             }
 
             return devices;
         }
 
         /// <returns>The device ID of one of the Quest devices connected, or a non-quest device if no quest is present.</returns>
-        private async Task<(string id, string model)> GetDeviceToUse()
+        private async Task<List<AdbDevice>> GetDevicesInPreferredOrder()
         {
-            var devices = await ListDevicesInternal();
-
-            var questDevices = devices
-                .Where(device => device.id.Contains("quest", StringComparison.OrdinalIgnoreCase))
+            return (await ListDevices()).OrderBy(device =>
+                device.Id.Contains("quest", StringComparison.OrdinalIgnoreCase) ? 1 : 0)
                 .ToList();
-
-            if (questDevices.Any())
-            {
-                if (questDevices.Count > 1)
-                {
-                    Log.Warning("Multiple quest devices connected - using the first device");
-                }
-
-                return questDevices.First();
-            }
-            else
-            {
-                return devices.First();
-            }
-
         }
 
         private async Task<bool> FindExistingAdbServer()
@@ -299,6 +305,56 @@ namespace QuestPatcher.Core
         }
 
         /// <summary>
+        /// Determines the device to use. Allows the user to choose a device if multiple are connected.
+        /// </summary>
+        /// <returns></returns>
+        private async Task<string> GetAdbDeviceId()
+        {
+            if (_selectedDevice != null)
+            {
+                return _selectedDevice;
+            }
+
+            // List devices until at least one is found, or the user gives up
+            List<AdbDevice>? devices = null;
+            do
+            {
+                // Wait until the user is ready if this is an attempt after the first.
+                if (devices != null && !await _prompter.PromptAdbDisconnect(DisconnectionType.NoDevice))
+                {
+                    _quit();
+                    return "quitting";
+                }
+
+                devices = await GetDevicesInPreferredOrder();
+            } while (devices.Count == 0);
+
+
+            if (devices.Count == 1)
+            {
+                // Only one device, just use that one
+                _selectedDevice = devices[0].Id;
+                return devices[0].Id;
+            }
+            else
+            {
+                // Allow the user to select a device if multiple are connected.
+                var device = await _prompter.PromptSelectDevice(devices);
+                if (device == null)
+                {
+                    _quit();
+                    return "<no device selected, quitting>";
+                }
+                else
+                {
+                    Log.Verbose("Using device {DeviceId}", device.Id);
+                    _selectedDevice = device.Id;
+                    return device.Id;
+                }
+            }
+        }
+
+        /// <summary>
         /// Runs <code>adb (command)</code> and returns the result.
         /// AdbException is thrown if the return code is non-zero, unless the return code is in allowedExitCodes.
         /// </summary>
@@ -322,10 +378,12 @@ namespace QuestPatcher.Core
             }
             Debug.Assert(_adbPath != null);
 
+            // Allow the user to select a device if multiple are present.
+            var chosenDeviceId = await GetAdbDeviceId();
             Log.Debug("Executing ADB command: {Command}", $"adb {command}");
             while (true)
             {
-                var output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, _chosenDeviceId == null ? command : $"-s {_chosenDeviceId} " + command);
+                var output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath, $"-s {chosenDeviceId} " + command);
                 if (output.StandardOutput.Length > 0)
                 {
                     Log.Verbose("Standard output: {StandardOutput}", output.StandardOutput);
@@ -345,26 +403,21 @@ namespace QuestPatcher.Core
 
                 string allOutput = (output.StandardOutput + output.ErrorOutput).Trim();
 
-                // We repeatedly prompt the user to plug in their quest if it is not plugged in, or the device is offline, or if there are multiple devices
-                if (allOutput.Contains("no devices/emulators found"))
+                // We repeatedly prompt the user to plug in their quest if it is not plugged in, or the device is offline
+                if (allOutput.Contains("device offline"))
                 {
-                    await _onDisconnect(DisconnectionType.NoDevice);
-                }
-                else if (allOutput.Contains("device offline"))
-                {
-                    await _onDisconnect(DisconnectionType.DeviceOffline);
-                }
-                else if (allOutput.Contains("multiple devices") || output.ErrorOutput.Contains("more than one device/emulator"))
-                {
-                    Log.Information("Multiple devices detected, choosing the Quest device if present");
-                    var device = await GetDeviceToUse();
-                    _chosenDeviceId = device.id;
-
-                    Log.Information("Using id: {DeviceId} model: {Model}", device.id, device.model);
+                    if (!await _prompter.PromptAdbDisconnect(DisconnectionType.DeviceOffline)) _quit();
                 }
                 else if (allOutput.Contains("unauthorized"))
                 {
-                    await _onDisconnect(DisconnectionType.Unauthorized);
+                    if (!await _prompter.PromptAdbDisconnect(DisconnectionType.Unauthorized)) _quit();
+                }
+                else if (allOutput.Contains("not found") && allOutput.Contains(chosenDeviceId))
+                {
+                    // Device with selected ID no longer exists.
+                    Log.Warning("Selected device no longer found. Choosing a new device");
+                    _selectedDevice = null;
+                    chosenDeviceId = await GetAdbDeviceId(); // Find a new device to use.
                 }
                 else
                 {
@@ -675,12 +728,14 @@ namespace QuestPatcher.Core
 
             TextWriter outputWriter = new StreamWriter(File.OpenWrite(logFile));
 
+            var chosenDevice = await GetAdbDeviceId();
+
             // We can't just use RunCommand, that would be very inefficient as we'd store the whole log in memory before saving
             // Instead, we redirect the standard output to the file as it is written
             _logcatProcess = new Process();
             var startInfo = _logcatProcess.StartInfo;
             startInfo.FileName = _adbPath;
-            startInfo.Arguments = "logcat";
+            startInfo.Arguments = $"-s {chosenDevice} logcat";
             startInfo.RedirectStandardOutput = true;
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;

@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220" SizeToContent="Height" MinWidth="450" Width="450"
+        x:Class="QuestPatcher.Views.SelectDeviceWindow"
+        Icon="/Assets/questpatcher-logo.ico"
+        Title="Change Selected Device"
+        Background="{x:Null}"
+        ExtendClientAreaToDecorationsHint="true"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        RequestedThemeVariant="{DynamicResource ThemeVariant}">
+  <Design.DataContext>
+    <viewModels:SelectDeviceWindowViewModel />
+  </Design.DataContext>
+
+  <DockPanel HorizontalAlignment="Stretch">
+    <ExperimentalAcrylicBorder IsHitTestVisible="False" DockPanel.Dock="Top" MinHeight="30" Material="{DynamicResource MainBackgroundMaterial}"/>
+    <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10" IsHitTestVisible="True" Material="{DynamicResource MainBackgroundMaterial}">
+
+      <StackPanel Spacing="10" HorizontalAlignment="Center">
+        <TextBlock HorizontalAlignment="Center" TextDecorations="Underline">Select Device</TextBlock>
+        <TextBlock TextAlignment="Center" TextWrapping="Wrap">Multiple Android devices are connected to your computer. Please select the device to use by clicking a row in the grid shown below.</TextBlock>
+
+        <DataGrid Margin="20" ItemsSource="{Binding Devices}"
+                    IsReadOnly="True"
+                    SelectedItem="{Binding SelectedDevice}"
+                    GridLinesVisibility="All"
+                    Background="{DynamicResource ModListBackground}>">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Model"  Binding="{Binding Model}"/>
+            <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>        
+        <Button Command="{Binding OnSelectDevice}" HorizontalAlignment="Center" HorizontalContentAlignment="Center">Select Device</Button>
+      </StackPanel>
+    </ExperimentalAcrylicBorder>
+  </DockPanel>
+</Window>

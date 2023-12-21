@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Services;
+using QuestPatcher.ViewModels;
 using QuestPatcher.Views;
 
 namespace QuestPatcher
@@ -86,10 +88,6 @@ namespace QuestPatcher
                     builder.Title = "Device Offline";
                     builder.Text = "Your Quest has been detected as offline.\nTry restarting your Quest and your PC";
                     break;
-                case DisconnectionType.MultipleDevices:
-                    builder.Title = "Multiple Devices Plugged In";
-                    builder.Text = "Multiple Android devices are connected to your PC.\nPlease unplug all devices other than your Quest. (and turn off emulators such as BlueStacks)";
-                    break;
                 case DisconnectionType.Unauthorized:
                     builder.Title = "Device Unauthorized";
                     builder.Text = "Please press allow from this PC within the headset, even if you have done it before for SideQuest.";
@@ -153,6 +151,21 @@ namespace QuestPatcher
             };
 
             return builder.OpenDialogue(_mainWindow);
+        }
+
+        public async Task<AdbDevice?> PromptSelectDevice(List<AdbDevice> devices)
+        {
+            var viewModel = new SelectDeviceWindowViewModel(devices);
+            var window = new SelectDeviceWindow
+            {
+                DataContext = viewModel,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            viewModel.DeviceSelected += (_, device) => window.Close();
+            await window.ShowDialog(_mainWindow!);
+
+            return viewModel.SelectedDevice;
         }
     }
 }

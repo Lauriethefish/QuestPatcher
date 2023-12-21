@@ -49,7 +49,7 @@ namespace QuestPatcher.Core
             _configManager = new ConfigManager(SpecialFolders);
             _configManager.GetOrLoadConfig(); // Load the config file
             FilesDownloader = new ExternalFilesDownloader(SpecialFolders);
-            DebugBridge = new AndroidDebugBridge(FilesDownloader, OnAdbDisconnect);
+            DebugBridge = new AndroidDebugBridge(FilesDownloader, prompter, ExitApplication);
             OtherFilesManager = new OtherFilesManager(Config, DebugBridge);
             ModManager = new ModManager(Config, DebugBridge, OtherFilesManager);
             InstallManager = new InstallManager(SpecialFolders, DebugBridge, Config, ExitApplication);
