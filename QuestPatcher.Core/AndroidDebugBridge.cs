@@ -218,7 +218,12 @@ namespace QuestPatcher.Core
         /// <returns>A list of the ADB devices.</returns>
         private async Task<List<AdbDevice>> ListDevices()
         {
-            var output = await ProcessUtil.InvokeAndCaptureOutput(_adbExecutableName, "devices -l");
+            if (_adbPath == null)
+            {
+                await PrepareAdbPath();
+            }
+
+            var output = await ProcessUtil.InvokeAndCaptureOutput(_adbPath!, "devices -l");
             Log.Debug("Listing devices output {Output}", output.AllOutput);
 
             string[] lines = output.StandardOutput.Trim().Split('\n');
