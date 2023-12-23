@@ -83,6 +83,14 @@ namespace QuestPatcher.ViewModels
             };
         }
 
+        private FileImportInfo GetImportInfoForUri(Uri fileUri)
+        {
+            return new FileImportInfo(fileUri.LocalPath) // No need to escape: using local path
+            {
+                PreferredCopyType = OtherItemsView.SelectedFileCopy,
+            };
+        }
+
         public async void OnDragAndDrop(object? sender, DragEventArgs args)
         {
             Log.Debug("Handling drag and drop on LoadedViewModel");
@@ -103,7 +111,7 @@ namespace QuestPatcher.ViewModels
 
                         if (scheme == "file")
                         {
-                            filesToImport.Add(uri.AbsolutePath);
+                            await _browseManager.AttemptImportFiles(new FileImportInfo[] { GetImportInfoForUri(uri) });
                         }
                         else if (uri.Scheme == "http" || uri.Scheme == "https")
                         {
@@ -116,19 +124,10 @@ namespace QuestPatcher.ViewModels
                     var files = args.Data.GetFiles();
                     if (files != null)
                     {
-                        filesToImport.AddRange(files.Select(file => file.Path.LocalPath));
+                        Log.Debug("Files found in drag and drop. Processing . . .");
+                        await _browseManager.AttemptImportFiles(files.Select(file => GetImportInfoForUri(file.Path)).ToList());
                     }
                 }
-
-                if (filesToImport.Count != 0)
-                {
-                    Log.Debug("Files found in drag and drop. Processing . . .");
-                    await _browseManager.AttemptImportFiles(filesToImport.Select(file => new FileImportInfo(file)
-                    {
-                        PreferredCopyType = OtherItemsView.SelectedFileCopy
-                    }).ToList());
-                }
-
             }
             catch (Exception ex)
             {
