@@ -85,7 +85,7 @@ namespace QuestPatcher.Core
         /// <summary>
         /// The minimum ADB version required by QuestPatcher.
         /// </summary>
-        private static readonly Version MinAdbVersion = new Version(1, 0, 39);
+        private static readonly Version MinAdbVersion = new(1, 0, 39);
 
         public event EventHandler? StoppedLogging;
 
@@ -233,7 +233,7 @@ namespace QuestPatcher.Core
             {
                 string line = lines[i];
 
-                var endIdIdx = line.IndexOf(' ');
+                int endIdIdx = line.IndexOf(' ');
                 if (endIdIdx == -1)
                 {
                     continue;
@@ -384,7 +384,7 @@ namespace QuestPatcher.Core
             Debug.Assert(_adbPath != null);
 
             // Allow the user to select a device if multiple are present.
-            var chosenDeviceId = await GetAdbDeviceId();
+            string chosenDeviceId = await GetAdbDeviceId();
             Log.Debug("Executing ADB command: {Command}", $"adb {command}");
             while (true)
             {
@@ -733,7 +733,7 @@ namespace QuestPatcher.Core
 
             TextWriter outputWriter = new StreamWriter(File.OpenWrite(logFile));
 
-            var chosenDevice = await GetAdbDeviceId();
+            string chosenDevice = await GetAdbDeviceId();
 
             // We can't just use RunCommand, that would be very inefficient as we'd store the whole log in memory before saving
             // Instead, we redirect the standard output to the file as it is written
