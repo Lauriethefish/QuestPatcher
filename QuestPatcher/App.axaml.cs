@@ -8,7 +8,6 @@ using Avalonia.Markup.Xaml;
 using QuestPatcher.Core;
 using QuestPatcher.Models;
 using QuestPatcher.Services;
-using QuestPatcher.Views;
 using Serilog;
 
 namespace QuestPatcher

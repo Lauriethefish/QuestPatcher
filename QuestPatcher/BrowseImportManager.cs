@@ -12,7 +12,6 @@ using QuestPatcher.Core;
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Models;
 using QuestPatcher.Services;
-using QuestPatcher.Views;
 using Serilog;
 
 namespace QuestPatcher

@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Media;
+using QuestPatcher.Views;
 
-namespace QuestPatcher.Views
+namespace QuestPatcher
 {
     public class ButtonInfo
     {
@@ -117,15 +118,15 @@ namespace QuestPatcher.Views
         public Task<bool> OpenDialogue(Window? parentWindow = null, WindowStartupLocation showLocation = WindowStartupLocation.CenterOwner)
         {
             MessageDialog dialogue = new();
-            var messageText = dialogue.FindControl<TextBlock>("MessageText");
+            var messageText = dialogue.FindControl<TextBlock>("MessageText")!;
             messageText.Text = Text ?? "Placeholder Text";
 
-            var titleText = dialogue.FindControl<TextBlock>("TitleText");
+            var titleText = dialogue.FindControl<TextBlock>("TitleText")!;
             titleText.Text = Title ?? "Placeholder Text";
 
             dialogue.Title = Title ?? "Placeholder Text";
 
-            var stackTraceText = dialogue.FindControl<TextBox>("StackTraceText");
+            var stackTraceText = dialogue.FindControl<TextBox>("StackTraceText")!;
             if (_stackTrace == null)
             {
                 stackTraceText.IsVisible = false;
@@ -135,7 +136,7 @@ namespace QuestPatcher.Views
                 stackTraceText.Text = _stackTrace;
             }
 
-            var buttonsPanel = dialogue.FindControl<StackPanel>("ButtonsPanel");
+            var buttonsPanel = dialogue.FindControl<StackPanel>("ButtonsPanel")!;
             // Add the extra buttons if they have been set
             List<ButtonInfo> allButtons = _extraButtons != null ? new(_extraButtons) : new();
 
@@ -173,7 +174,7 @@ namespace QuestPatcher.Views
             }
 
             // Make sure to only show the normal button pretty rarely
-            var normalButton = dialogue.FindControl<Button>("NormalButton");
+            var normalButton = dialogue.FindControl<Button>("NormalButton")!;
             if (Random.Next(20) == 0)
             {
                 normalButton.IsVisible = true;

@@ -6,7 +6,6 @@ using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
 using QuestPatcher.Models;
-using QuestPatcher.Views;
 using ReactiveUI;
 using Serilog;
 

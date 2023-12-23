@@ -6,7 +6,6 @@ using Avalonia.Media.Imaging;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Models;
-using QuestPatcher.Views;
 using ReactiveUI;
 
 namespace QuestPatcher.ViewModels.Modding

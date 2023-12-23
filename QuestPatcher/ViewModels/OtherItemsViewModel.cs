@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Models;
-using QuestPatcher.Views;
 using ReactiveUI;
 using Serilog;
 
