@@ -146,7 +146,7 @@ namespace QuestPatcher
         }
 
         /// <summary>
-        /// Attempts to download and import a file.
+        /// Attempts to download and import a file from a HTTP(S) server.
         /// </summary>
         /// <param name="uri">The URI to download the file from.</param>
         public async Task AttemptImportUri(Uri uri)

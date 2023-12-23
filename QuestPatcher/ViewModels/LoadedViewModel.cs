@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Avalonia.Input;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
@@ -91,31 +91,48 @@ namespace QuestPatcher.ViewModels
             // We need to handle this to avoid crashing QuestPatcher.
             try
             {
+                var filesToImport = new List<string>();
+
                 string? text = args.Data.GetText();
                 if (text != null)
                 {
                     var creationOptions = new UriCreationOptions();
                     if (Uri.TryCreate(text, in creationOptions, out var uri))
                     {
-                        await _browseManager.AttemptImportUri(uri);
+                        string scheme = uri.Scheme.ToLower();
+
+                        if (scheme == "file")
+                        {
+                            filesToImport.Add(uri.AbsolutePath);
+                        }
+                        else if (uri.Scheme == "http" || uri.Scheme == "https")
+                        {
+                            await _browseManager.AttemptImportUri(uri);
+                        }
                     }
-                    return; // Getting the URI text disposes the DragEventArgs.Data, so avoid accessing this disposed object.
+                }
+                else
+                {
+                    var files = args.Data.GetFiles();
+                    if (files != null)
+                    {
+                        filesToImport.AddRange(files.Select(file => file.Path.LocalPath));
+                    }
                 }
 
-                var files = args.Data.GetFiles();
-                if (files != null)
+                if (filesToImport.Count != 0)
                 {
                     Log.Debug("Files found in drag and drop. Processing . . .");
-                    await _browseManager.AttemptImportFiles(files.Select(file => new FileImportInfo(file.Path.LocalPath)
+                    await _browseManager.AttemptImportFiles(filesToImport.Select(file => new FileImportInfo(file)
                     {
                         PreferredCopyType = OtherItemsView.SelectedFileCopy
                     }).ToList());
                 }
 
             }
-            catch (COMException)
+            catch (Exception ex)
             {
-                Log.Error("Failed to parse dragged items");
+                Log.Error(ex, "Failed to parse dragged items");
             }
         }
     }
