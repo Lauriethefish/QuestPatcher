@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using QuestPatcher.ViewModels;
@@ -34,8 +34,6 @@ namespace QuestPatcher.Views
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
-
-
         }
     }
 }
