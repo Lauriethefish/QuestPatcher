@@ -72,8 +72,12 @@ namespace QuestPatcher.ViewModels.Modding
         {
             try
             {
-                CoverImage = new Bitmap(await Mod.OpenCover());
-                this.RaisePropertyChanged(nameof(CoverImage));
+                using var coverStream = await Mod.OpenCover();
+                if (coverStream != null)
+                {
+                    CoverImage = new Bitmap(coverStream);
+                    this.RaisePropertyChanged(nameof(CoverImage));
+                }
             }
             catch (Exception)
             {

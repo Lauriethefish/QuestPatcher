@@ -90,8 +90,14 @@ namespace QuestPatcher.Services
         /// Updates the current theme in the styles of the open Avalonia application
         /// </summary>
         /// <param name="init">Whether or not this is the theme being used during startup</param>
+        /// <exception cref="InvalidOperationException">If attempting to update the current theme when no application is open.</exception>
         private void UpdateThemeStyling(bool init = false)
         {
+            if (Application.Current == null)
+            {
+                throw new InvalidOperationException("Cannot update theme styling when no app is open");
+            }
+
             if (init)
             {
                 Application.Current.Styles.Insert(0, _selectedTheme.ThemeStying);
