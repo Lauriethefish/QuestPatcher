@@ -363,8 +363,6 @@ namespace QuestPatcher.Zip
             long dataOffset = _stream.Position;
 
             // Copy the data into the entry, calculating the Crc32 at the same time.
-            // TODO: Could align files using STORE to 4 bytes like zipalign does
-            // However, this is likely unnecessary, as this is only important for large (e.g. media) files to allow them to be read with mmap.
             Stream? compressor = null;
             uint crc32;
             CompressionMethod compressionMethod;
