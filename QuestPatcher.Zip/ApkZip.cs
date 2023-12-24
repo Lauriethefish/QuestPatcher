@@ -496,7 +496,7 @@ namespace QuestPatcher.Zip
         /// </summary>
         /// <param name="postLocalHeader">The offset of the first byte after the local header</param>
         /// <returns>An extra field that will align the entry, or null if <paramref name="postLocalHeader"/> is already correctly aligned.</returns>
-        public byte[]? CreateAlignmentField(long postLocalHeader)
+        private byte[]? CreateAlignmentField(long postLocalHeader)
         {
             int offset = (int) postLocalHeader % StoreAlign;
             if (offset == 0)
@@ -523,7 +523,7 @@ namespace QuestPatcher.Zip
             }
 
             byte[] field = fieldMs.ToArray();
-            Debug.Assert((postLocalHeader + field.Length) % StoreAlign != 0);
+            Debug.Assert((postLocalHeader + field.Length) % StoreAlign == 0);
 
             return fieldMs.ToArray();
         }
