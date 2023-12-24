@@ -73,7 +73,9 @@ namespace QuestPatcher.Core
             "com.qualcomm",
             "com.facebook",
             "oculus",
-            "com.weloveoculus.BMBF"
+            "com.weloveoculus.BMBF",
+            "com.meta",
+            "com.whatsapp"
         };
 
         /// <summary>
