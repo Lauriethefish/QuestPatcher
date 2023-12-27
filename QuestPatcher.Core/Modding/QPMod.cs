@@ -74,7 +74,7 @@ namespace QuestPatcher.Core.Modding
                 $"{manifest.Name} .{copyExt.Extension} file",
                 $"{manifest.Name} .{copyExt.Extension} files",
                 copyExt.Destination,
-                new List<string> { copyExt.Destination }
+                new List<string> { copyExt.Extension }
             ))).ToList();
         }
 
