@@ -47,6 +47,8 @@
         <TextBlock Text="APK is 32 bit" IsVisible="{Binding !AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
         <TextBlock Text="APK is modded" IsVisible="{Binding AppInfo.IsModded}" FontWeight="Light" FontSize="12" />
         <TextBlock Text="APK is not modded" IsVisible="{Binding !AppInfo.IsModded}" FontWeight="Light" FontSize="12" />
+
+        <TextBlock Text="{Binding Version, StringFormat=QP Version: {0}}" FontWeight="Light" FontSize="12" />
       </StackPanel>
     </StackPanel>
   </Panel>

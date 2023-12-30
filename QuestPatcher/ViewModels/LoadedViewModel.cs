@@ -37,6 +37,8 @@ namespace QuestPatcher.ViewModels
 
         public string WelcomeText => $"Welcome to {AppName} 2";
 
+        public string Version => VersionUtil.QuestPatcherVersion.ToString();
+
         public Config Config { get; }
         public ApkInfo AppInfo
         {
