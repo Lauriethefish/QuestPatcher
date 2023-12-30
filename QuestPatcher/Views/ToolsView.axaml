@@ -31,7 +31,6 @@
           <Button IsEnabled="{Binding Locker.IsAdbAvailable}" Command="{Binding ToggleAdbLog}" Content="{Binding AdbButtonText}"/>
           <TextBlock VerticalAlignment="Center" FontSize="12">
             Starts an ADB log - you must keep your quest plugged in while you use this.
-  Useful for debugging mods not loading or other crashes.
           </TextBlock>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10">
