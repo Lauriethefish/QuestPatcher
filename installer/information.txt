@@ -1,2 +1,2 @@
-QuestPatcher is a tool for modding il2cpp Unity Oculus Quest 1 and 2 applications.
+QuestPatcher is a tool for modding il2cpp Unity Oculus Quest 1, 2 and 3 applications.
 To use, just open it and patch your app. It is set to patch Beat Saber by default.
