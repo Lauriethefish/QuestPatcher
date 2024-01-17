@@ -15,3 +15,6 @@ macos-dmg/QuestPatcher.dmg
 # IDE Directories
 .vs/
 .idea/
+
+# Bug fixing info/crash reports kept locally
+diagnosis/
