@@ -28,7 +28,7 @@ namespace QuestPatcher.Axml
 
         /// <summary>
         /// The value of the attribute.
-        /// May be <see cref="string" /> or <see cref="WrappedValue" />.
+        /// May be <see cref="string"/>, <see cref="bool"/>, <see cref="int"/>, or <see cref="WrappedValue"/>.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
         public object Value
@@ -55,7 +55,7 @@ namespace QuestPatcher.Axml
                 else
                 {
                     throw new InvalidOperationException(
-                        $"Cannot set value of axml attribute to type of {value.GetType().Name}: must be {nameof(WrappedValue)} or string");
+                        $"Cannot set value of axml attribute to type of {value.GetType().Name}: must be {nameof(WrappedValue)}, string, int or bool");
                 }
 
                 _value = value;
@@ -70,6 +70,7 @@ namespace QuestPatcher.Axml
             Name = name;
             Namespace = ns;
             ResourceId = resourceId;
+
             Value = value;
             _valueType = valueType;
             Debug.Assert(_value != null);
