@@ -542,6 +542,13 @@ namespace QuestPatcher.Core
             await RunShellCommand($"rm {pushPath}");
         }
 
+        public async Task<bool> Exists(string path)
+        {
+            var output = await RunShellCommand($"stat {path.WithForwardSlashes().EscapeBash()}");
+
+            return output.ExitCode == 0;
+        }
+
         public async Task CreateDirectory(string path)
         {
             await RunShellCommand($"mkdir -p {path.WithForwardSlashes().EscapeBash()}");
