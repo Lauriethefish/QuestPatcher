@@ -664,17 +664,32 @@ namespace QuestPatcher.Core.Patching
                 await apk.DisposeAsync();
             }
 
+            // Close any running instance of the app.
+            await _debugBridge.ForceStop(_config.AppId);
+
             Log.Information("Uninstalling the default APK . . .");
             Log.Information("Backing up data directory");
-            string? backupPath;
+            string? dataBackupPath;
             try
             {
-                backupPath = await _installManager.CreateDataBackup();
+                dataBackupPath = await _installManager.CreateDataBackup();
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to create data backup");
-                backupPath = null; // Indicate that the backup failed
+                dataBackupPath = null; // Indicate that the backup failed
+            }
+
+            Log.Information("Backing up obb directory");
+            string? obbBackupPath;
+            try
+            {
+                obbBackupPath = await _installManager.CreateObbBackup();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to create obb backup");
+                obbBackupPath = null; // Indicate that the backup failed
             }
 
             PatchingStage = PatchingStage.UninstallingOriginal;
@@ -692,12 +707,12 @@ namespace QuestPatcher.Core.Patching
             PatchingStage = PatchingStage.InstallingModded;
             await _debugBridge.InstallApp(_patchedApkPath);
 
-            if (backupPath != null)
+            if (dataBackupPath != null)
             {
                 Log.Information("Restoring data backup");
                 try
                 {
-                    await _installManager.RestoreDataBackup(backupPath);
+                    await _installManager.RestoreDataBackup(dataBackupPath);
                 }
                 catch (Exception ex)
                 {
@@ -705,6 +720,18 @@ namespace QuestPatcher.Core.Patching
                 }
             }
 
+            if (obbBackupPath != null)
+            {
+                Log.Information("Restoring obb backup");
+                try
+                {
+                    await _installManager.RestoreObbBackup(obbBackupPath);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to restore obb backup");
+                }
+            }
 
             // Recreate the mod directories as they will not be present after the uninstall/backup restore
             await _modManager.CreateModDirectories();

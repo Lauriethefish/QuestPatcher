@@ -36,7 +36,9 @@ namespace QuestPatcher.Core
         };
 
         private const string DataDirectoryTemplate = "/sdcard/Android/data/{0}/files";
+        private const string ObbDirectoryTemplate = "/sdcard/Android/obb/{0}";
         private const string DataBackupTemplate = "/sdcard/QuestPatcher/{0}/backup";
+        private const string ObbBackupTemplate = "/sdcard/QuestPatcher/{0}/obb";
 
         /// <summary>
         /// The APK currently installed on the quest
@@ -51,6 +53,10 @@ namespace QuestPatcher.Core
         /// </summary>
         private string DataPath => string.Format(DataDirectoryTemplate, _config.AppId);
 
+        /// <summary>
+        /// The /sdcard/Android/obb/... directory for the installed app
+        /// </summary>
+        private string ObbPath => string.Format(ObbDirectoryTemplate, _config.AppId);
 
         private readonly string _currentlyInstalledPath;
         private readonly AndroidDebugBridge _debugBridge;
@@ -195,18 +201,43 @@ namespace QuestPatcher.Core
         /// Creates a backup of the /sdcard/Android/data/... directory for the current app.
         /// </summary>
         /// <returns>The path to the backup on the quest</returns>
-        public async Task<string> CreateDataBackup()
+        public async Task<string?> CreateDataBackup()
         {
             string backupPath = string.Format(DataBackupTemplate, _config.AppId);
 
-            // Avoid failing if no files are present in the data directory
-            // TODO: Perhaps check if it exists first and then skip backup if missing? This is more complex.
-            await _debugBridge.CreateDirectory(DataPath);
+            // Check if the data directory exists and skip if it doesn't.
+            if (!await _debugBridge.Exists(DataPath))
+            {
+                return null;
+            }
+
             // Remove the backup path if it already exists and then recreate it
             await _debugBridge.RemoveDirectory(backupPath);
             await _debugBridge.CreateDirectory(backupPath);
             // Copy all the files to the data backup
             await _debugBridge.Move(DataPath, backupPath);
+
+            return backupPath;
+        }
+
+        /// <summary>
+        /// Creates a backup of the /sdcard/Android/obb/... directory for the current app.
+        /// </summary>
+        /// <returns>The path to the backup on the quest</returns>
+        public async Task<string?> CreateObbBackup()
+        {
+            string backupPath = string.Format(ObbBackupTemplate, _config.AppId);
+
+            // Check if the data directory exists and skip if it doesn't.
+            if (!await _debugBridge.Exists(ObbPath))
+            {
+                return null;
+            }
+
+            // Remove the backup path if it already exists
+            await _debugBridge.RemoveDirectory(backupPath);
+            // Copy all the files to the data backup
+            await _debugBridge.Move(ObbPath, backupPath);
 
             return backupPath;
         }
@@ -226,6 +257,18 @@ namespace QuestPatcher.Core
             // Delete mod/library files to avoid old mods causing crashes
             await _debugBridge.RemoveDirectory(Path.Combine(DataPath, "libs"));
             await _debugBridge.RemoveDirectory(Path.Combine(DataPath, "mods"));
+        }
+
+        /// <summary>
+        /// Restores a obb backup created with CreateObbBackup.
+        /// </summary>
+        /// <param name="backupPath">The path to the backup on the quest</param>
+        public async Task RestoreObbBackup(string backupPath)
+        {
+            // Remove the backup obb path if it already exists
+            await _debugBridge.RemoveDirectory(ObbPath);
+            // Move the obb backup to the original path.
+            await _debugBridge.Move(backupPath, ObbPath);
         }
 
         /// <summary>
