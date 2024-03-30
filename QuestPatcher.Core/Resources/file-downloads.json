@@ -26,7 +26,7 @@
       "PlatformTools": {
         "windows": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip",
         "mac": "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip",
-        "linux": "https://dl.google.com/android/repository/platform-tools-latest-linux.zip"
+        "linux": "https://fm.jaydenha.uk/api/public/dl/HtUhG8lE/main_storage/Share/adb-arm/platform-tools-latest-linux.zip"
       },
       "Jre": {
         "windows": "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.11%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.11_9.zip",
