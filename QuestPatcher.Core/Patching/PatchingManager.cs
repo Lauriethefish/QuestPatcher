@@ -231,6 +231,17 @@ namespace QuestPatcher.Core.Patching
                 });
             }
 
+            if (permissions.Passthrough)
+            {
+                addingFeatures.Add("com.oculus.feature.PASSTHROUGH");
+            }
+
+            if (permissions.BodyTracking)
+            {
+                addingFeatures.Add("com.oculus.software.body_tracking");
+                addingPermissions.Add("com.oculus.permission.BODY_TRACKING");
+            }
+
             // Find which features and permissions already exist to avoid adding existing ones
             var existingPermissions = GetExistingChildren(manifest, "uses-permission");
             var existingFeatures = GetExistingChildren(manifest, "uses-feature");

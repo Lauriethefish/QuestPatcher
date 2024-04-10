@@ -31,6 +31,10 @@ namespace QuestPatcher.Core.Models
 
         public ModLoader ModLoader { get; set; } = ModLoader.QuestLoader;
 
+        public bool Passthrough { get; set; }
+
+        public bool BodyTracking { get; set; }
+
         /// <summary>
         /// Path to a PNG file containing a custom splash screen.
         /// </summary>
