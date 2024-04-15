@@ -43,7 +43,7 @@
     <StackPanel Margin="25" VerticalAlignment="Bottom" HorizontalAlignment="Left" Spacing="30">
       <ToggleSwitch 
           IsChecked="{Binding Config.DisplayLogs}" 
-          Content="{x:Static res:Strings.DisplayLogs}"
+          Content="{x:Static res:Strings.Global_DisplayLogs}"
           OnContent="{x:Static res:Strings.Generic_On}" 
           OffContent="{x:Static res:Strings.Generic_Off}"/>
       <StackPanel>

@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using QuestPatcher.Core;
 using QuestPatcher.Models;
+using QuestPatcher.Resources;
 using QuestPatcher.Services;
 using Serilog;
 
@@ -95,10 +96,25 @@ namespace QuestPatcher
                             Theme.LoadEmbeddedTheme("Styles/Themes/QuestPatcherDark.axaml", "Dark").ThemeStying);
                     }
 
-                    DialogBuilder dialog = new()
+                    string title;
+                    string text;
+                    try
                     {
-                        Title = "Critical Error",
-                        Text = "QuestPatcher encountered a critical error during early startup, which was unrecoverable.",
+                        title = Strings.Loading_CriticalError_Title;
+                        text = Strings.Loading_CriticalError_Text;
+                    }
+                    catch (Exception e)
+                    {
+                        // In case the resources failed to load
+                        title = "Critical Error";
+                        text = "QuestPatcher encountered a critical error during early startup, which was unrecoverable.";
+                        Log.Error(e, "Failed to load critical error message from resource, using default");
+                    }
+
+                    var dialog = new DialogBuilder
+                    {
+                        Title = title,
+                        Text = text,
                         HideCancelButton = true
                     };
                     dialog.WithException(ex);

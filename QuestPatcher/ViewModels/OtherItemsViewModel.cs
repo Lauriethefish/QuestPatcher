@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Models;
+using QuestPatcher.Resources;
 using ReactiveUI;
 using Serilog;
 
@@ -103,10 +104,10 @@ namespace QuestPatcher.ViewModels
             }
             catch (Exception ex)
             {
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Failed to load files",
-                    Text = $"Failed to load the list of files in the folder {SelectedFileCopy.Path}",
+                    Title = Strings.OtherItems_LoadFailed_Title,
+                    Text = string.Format(Strings.OtherItems_LoadFailed_Text, SelectedFileCopy.Path),
                     HideCancelButton = true
                 };
                 builder.WithException(ex);
@@ -144,21 +145,22 @@ namespace QuestPatcher.ViewModels
 
                 if (failed == 0) { return; }
 
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
                     HideCancelButton = true
                 };
-                // If multiple files failed, we can display a dialog saying how many succeeded and how many failed
+                
                 if (failed > 1)
                 {
-                    builder.Title = "Files Failed to Delete";
-                    builder.Text = $"{failed} out of {filePaths.Length} files failed to delete. Check the log for details about each";
+                    // If multiple files failed, we can display a dialog saying how many succeeded and how many failed
+                    builder.Title = Strings.OtherItems_DeleteFailed_Title_Multiple;
+                    builder.Text = string.Format(Strings.OtherItems_DeleteFailed_Text_Multiple, failed, filePaths.Length);
                 }
                 else
                 {
                     // Otherwise, it'd be more useful to display a dialog with just the one exception
-                    builder.Title = "File Failed to Delete";
-                    builder.Text = $"The file {Path.GetFileName(lastFailed)} failed to delete";
+                    builder.Title = Strings.OtherItems_DeleteFailed_Title;
+                    builder.Text = string.Format(Strings.OtherItems_DeleteFailed_Text, Path.GetFileName(lastFailed)); 
                     Debug.Assert(lastException != null);
                     builder.WithException(lastException);
                 }
@@ -189,13 +191,13 @@ namespace QuestPatcher.ViewModels
             // Make sure that people don't delete all their hats accidentally!
             if (SelectedFileCopy.ExistingFiles.Count > 1)
             {
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Deleting all files",
-                    Text = $"Are you sure that you want to delete all ({SelectedFileCopy.ExistingFiles.Count}) {SelectedFileCopy.NamePlural}?"
+                    Title = Strings.OtherItems_DeleteAll_Title,
+                    Text = string.Format(Strings.OtherItems_DeleteAll_Text, SelectedFileCopy.ExistingFiles.Count, SelectedFileCopy.NamePlural)
                 };
-                builder.OkButton.Text = "Yes";
-                builder.CancelButton.Text = "No";
+                builder.OkButton.Text = Strings.Generic_Yes;
+                builder.CancelButton.Text = Strings.Generic_No;
 
                 if (!await builder.OpenDialogue(_mainWindow))
                 {

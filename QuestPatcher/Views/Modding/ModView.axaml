@@ -30,7 +30,11 @@
       </StackPanel>
       <TextBlock Text="{Binding Author}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Top"/>
       <Button VerticalAlignment="Bottom" Margin="0 0 0 5" HorizontalAlignment="Left" FontSize="13" IsEnabled="{Binding Locker.IsFree}" Command="{Binding OnDelete}" Content="{x:Static res:Strings.Generic_Delete}"/>
-      <ToggleSwitch VerticalAlignment="Bottom" HorizontalAlignment="Right" OffContent="Disabled" OnContent="Enabled" IsChecked="{Binding IsInstalled}" IsEnabled="{Binding Locker.IsFree}" />
+      <ToggleSwitch VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                    OffContent="{x:Static res:Strings.Generic_Disabled}"
+                    OnContent="{x:Static res:Strings.Generic_Enabled}" 
+                    IsChecked="{Binding IsInstalled}"
+                    IsEnabled="{Binding Locker.IsFree}" />
     </Panel>
   </DockPanel>
 </UserControl>

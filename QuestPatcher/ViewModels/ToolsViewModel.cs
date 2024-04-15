@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Models;
+using QuestPatcher.Resources;
 using QuestPatcher.Services;
 using ReactiveUI;
 using Serilog;
@@ -22,7 +23,7 @@ namespace QuestPatcher.ViewModels
 
         public ThemeManager ThemeManager { get; }
 
-        public string AdbButtonText => _isAdbLogging ? "Stop ADB Log" : "Start ADB Log";
+        public string AdbButtonText => _isAdbLogging ? Strings.Tools_Tool_ToggleADB_Stop : Strings.Tools_Tool_ToggleADB_Start;
 
         private bool _isAdbLogging;
 
@@ -59,12 +60,12 @@ namespace QuestPatcher.ViewModels
         {
             try
             {
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Are you sure?",
-                    Text = "Uninstalling your app will exit QuestPatcher, as it requires your app to be installed. If you ever reinstall your app, reopen QuestPatcher and you can repatch"
+                    Title = Strings.Tools_Tool_UninstallApp_Title,
+                    Text = Strings.Tools_Tool_UninstallApp_Text,
                 };
-                builder.OkButton.Text = "Uninstall App";
+                builder.OkButton.Text = Strings.Tools_Tool_UninstallApp_Confirm;
                 if (await builder.OpenDialogue(_mainWindow))
                 {
                     Locker.StartOperation();
@@ -106,10 +107,10 @@ namespace QuestPatcher.ViewModels
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to clear cache");
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Failed to clear cache",
-                    Text = "Running the quick fix failed due to an unhandled error",
+                    Title = Strings.Tools_Tool_QuickFix_Failed_Title,
+                    Text = Strings.Tools_Tool_QuickFix_Failed_Text,
                     HideCancelButton = true
                 };
                 builder.WithException(ex);
@@ -162,10 +163,10 @@ namespace QuestPatcher.ViewModels
             {
                 // Show a dialog with any errors
                 Log.Error(ex, "Failed to create dump");
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Failed to create dump",
-                    Text = "Creating the dump failed due to an unhandled error",
+                    Title = Strings.Tools_Tool_CreateDump_Failed_Title,
+                    Text = Strings.Tools_Tool_CreateDump_Failed_Text,
                     HideCancelButton = true
                 };
                 builder.WithException(ex);
@@ -205,10 +206,10 @@ namespace QuestPatcher.ViewModels
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to restart app");
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Failed to restart app",
-                    Text = "Restarting the app failed due to an unhandled error",
+                    Title = Strings.Tools_Tool_RestartApp_Failed_Title,
+                    Text = Strings.Tools_Tool_RestartApp_Failed_Text,
                     HideCancelButton = true
                 };
                 builder.WithException(ex);

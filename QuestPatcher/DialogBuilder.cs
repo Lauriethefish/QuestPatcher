@@ -59,7 +59,7 @@ namespace QuestPatcher
         /// </summary>
         public ButtonInfo OkButton { get; set; } = new()
         {
-            Text = "OK",
+            Text = Resources.Strings.Generic_OK,
             ReturnValue = true,
             CloseDialogue = true
         };
@@ -71,7 +71,7 @@ namespace QuestPatcher
         /// </summary>
         public ButtonInfo CancelButton { get; set; } = new()
         {
-            Text = "Cancel",
+            Text = Resources.Strings.Generic_Cancel,
             ReturnValue = false,
             CloseDialogue = true
         };

@@ -60,11 +60,92 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Display Logs.
+        ///   Looks up a localized string similar to The server at {0} did not provide a valid file extension, and so QuestPatcher doesn&apos;t know how the import the file..
         /// </summary>
-        public static string DisplayLogs {
+        public static string BrowseImport_BadUrl_Text {
             get {
-                return ResourceManager.GetString("DisplayLogs", resourceCulture);
+                return ResourceManager.GetString("BrowseImport_BadUrl_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to import file from URL.
+        /// </summary>
+        public static string BrowseImport_BadUrl_Title {
+            get {
+                return ResourceManager.GetString("BrowseImport_BadUrl_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading the file from {0} failed, and thus the file could not be imported..
+        /// </summary>
+        public static string BrowseImport_DownloadFailed_Text {
+            get {
+                return ResourceManager.GetString("BrowseImport_DownloadFailed_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to download file.
+        /// </summary>
+        public static string BrowseImport_DownloadFailed_Title {
+            get {
+                return ResourceManager.GetString("BrowseImport_DownloadFailed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple files failed to install. Check logs for details about each.
+        /// </summary>
+        public static string BrowseImport_ImportFailed_Multiple_Text {
+            get {
+                return ResourceManager.GetString("BrowseImport_ImportFailed_Multiple_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} failed to install: {1}.
+        /// </summary>
+        public static string BrowseImport_ImportFailed_Single_Exception_Text {
+            get {
+                return ResourceManager.GetString("BrowseImport_ImportFailed_Single_Exception_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file {0} failed to install.
+        /// </summary>
+        public static string BrowseImport_ImportFailed_Single_Text {
+            get {
+                return ResourceManager.GetString("BrowseImport_ImportFailed_Single_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import Failed.
+        /// </summary>
+        public static string BrowseImport_ImportFailed_Title {
+            get {
+                return ResourceManager.GetString("BrowseImport_ImportFailed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} can be imported as multiple types of file. Please select what you would like it to be installed as..
+        /// </summary>
+        public static string BrowseImport_MultipleImport_Text {
+            get {
+                return ResourceManager.GetString("BrowseImport_MultipleImport_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple Import Options.
+        /// </summary>
+        public static string BrowseImport_MultipleImport_Title {
+            get {
+                return ResourceManager.GetString("BrowseImport_MultipleImport_Title", resourceCulture);
             }
         }
         
@@ -87,11 +168,101 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        public static string Generic_Close {
+            get {
+                return ResourceManager.GetString("Generic_Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Close Anyway.
+        /// </summary>
+        public static string Generic_CloseAnyway {
+            get {
+                return ResourceManager.GetString("Generic_CloseAnyway", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Continue.
+        /// </summary>
+        public static string Generic_Continue {
+            get {
+                return ResourceManager.GetString("Generic_Continue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Continue Anyway.
+        /// </summary>
+        public static string Generic_ContinueAnyway {
+            get {
+                return ResourceManager.GetString("Generic_ContinueAnyway", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         public static string Generic_Delete {
             get {
                 return ResourceManager.GetString("Generic_Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disable.
+        /// </summary>
+        public static string Generic_Disable {
+            get {
+                return ResourceManager.GetString("Generic_Disable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disabled.
+        /// </summary>
+        public static string Generic_Disabled {
+            get {
+                return ResourceManager.GetString("Generic_Disabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable.
+        /// </summary>
+        public static string Generic_Enable {
+            get {
+                return ResourceManager.GetString("Generic_Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enabled.
+        /// </summary>
+        public static string Generic_Enabled {
+            get {
+                return ResourceManager.GetString("Generic_Enabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No.
+        /// </summary>
+        public static string Generic_No {
+            get {
+                return ResourceManager.GetString("Generic_No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not now.
+        /// </summary>
+        public static string Generic_NotNow {
+            get {
+                return ResourceManager.GetString("Generic_NotNow", resourceCulture);
             }
         }
         
@@ -123,11 +294,56 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Try Again.
+        /// </summary>
+        public static string Generic_Retry {
+            get {
+                return ResourceManager.GetString("Generic_Retry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select.
         /// </summary>
         public static string Generic_Select {
             get {
                 return ResourceManager.GetString("Generic_Select", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yes.
+        /// </summary>
+        public static string Generic_Yes {
+            get {
+                return ResourceManager.GetString("Generic_Yes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modding {0}.
+        /// </summary>
+        public static string Global_CurrentModding {
+            get {
+                return ResourceManager.GetString("Global_CurrentModding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display Logs.
+        /// </summary>
+        public static string Global_DisplayLogs {
+            get {
+                return ResourceManager.GetString("Global_DisplayLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Welcome to {0} 2.
+        /// </summary>
+        public static string Global_WelcomeMessage {
+            get {
+                return ResourceManager.GetString("Global_WelcomeMessage", resourceCulture);
             }
         }
         
@@ -186,11 +402,56 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to QuestPatcher encountered a critical error during early startup, which was unrecoverable..
+        /// </summary>
+        public static string Loading_CriticalError_Text {
+            get {
+                return ResourceManager.GetString("Loading_CriticalError_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Critical Error.
+        /// </summary>
+        public static string Loading_CriticalError_Title {
+            get {
+                return ResourceManager.GetString("Loading_CriticalError_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to QuestPatcher loading . . ..
         /// </summary>
-        public static string LoadingView_QPLoading {
+        public static string Loading_QPLoading {
             get {
-                return ResourceManager.GetString("LoadingView_QPLoading", resourceCulture);
+                return ResourceManager.GetString("Loading_QPLoading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change App.
+        /// </summary>
+        public static string Loading_UnhandledError_ChangeApp {
+            get {
+                return ResourceManager.GetString("Loading_UnhandledError_ChangeApp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occured while loading.
+        /// </summary>
+        public static string Loading_UnhandledError_Text {
+            get {
+                return ResourceManager.GetString("Loading_UnhandledError_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unhandled Load Error.
+        /// </summary>
+        public static string Loading_UnhandledError_Title {
+            get {
+                return ResourceManager.GetString("Loading_UnhandledError_Title", resourceCulture);
             }
         }
         
@@ -200,6 +461,124 @@ namespace QuestPatcher.Resources {
         public static string LoggingDock_Title {
             get {
                 return ResourceManager.GetString("LoggingDock_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (By {0}).
+        /// </summary>
+        public static string Mod_Author {
+            get {
+                return ResourceManager.GetString("Mod_Author", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (By {0} - ported by {1}).
+        /// </summary>
+        public static string Mod_AuthorWithPorter {
+            get {
+                return ResourceManager.GetString("Mod_AuthorWithPorter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to delete mod.
+        /// </summary>
+        public static string Mod_DeleteFailed {
+            get {
+                return ResourceManager.GetString("Mod_DeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to install mod.
+        /// </summary>
+        public static string Mod_InstallFailed {
+            get {
+                return ResourceManager.GetString("Mod_InstallFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable Now.
+        /// </summary>
+        public static string Mod_OutdatedMod_EnableNow {
+            get {
+                return ResourceManager.GetString("Mod_OutdatedMod_EnableNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The mod just installed is for version {0} of your app. However, you have {1}. Enabling the mod may crash the game, or not work..
+        /// </summary>
+        public static string Mod_OutdatedMod_Text {
+            get {
+                return ResourceManager.GetString("Mod_OutdatedMod_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outdated Mod.
+        /// </summary>
+        public static string Mod_OutdatedMod_Title {
+            get {
+                return ResourceManager.GetString("Mod_OutdatedMod_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Libraries.
+        /// </summary>
+        public static string Mod_Section_Libraries {
+            get {
+                return ResourceManager.GetString("Mod_Section_Libraries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mods.
+        /// </summary>
+        public static string Mod_Section_Mods {
+            get {
+                return ResourceManager.GetString("Mod_Section_Mods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to uninstall mod.
+        /// </summary>
+        public static string Mod_UninstallFailed {
+            get {
+                return ResourceManager.GetString("Mod_UninstallFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Repatch.
+        /// </summary>
+        public static string Mod_WrongModLoader_Repatch {
+            get {
+                return ResourceManager.GetString("Mod_WrongModLoader_Repatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The mod you are trying to install needs the mod loader {0}. However, your app has the mod loader {1} installed.
+        ///Would you like to repatch your app with the required modloader?.
+        /// </summary>
+        public static string Mod_WrongModLoader_Text {
+            get {
+                return ResourceManager.GetString("Mod_WrongModLoader_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong Mod Loader.
+        /// </summary>
+        public static string Mod_WrongModLoader_Title {
+            get {
+                return ResourceManager.GetString("Mod_WrongModLoader_Title", resourceCulture);
             }
         }
         
@@ -231,11 +610,83 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Are you sure that you want to delete all ({0}) {1}?.
+        /// </summary>
+        public static string OtherItems_DeleteAll_Text {
+            get {
+                return ResourceManager.GetString("OtherItems_DeleteAll_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting all files.
+        /// </summary>
+        public static string OtherItems_DeleteAll_Title {
+            get {
+                return ResourceManager.GetString("OtherItems_DeleteAll_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file {0} failed to delete.
+        /// </summary>
+        public static string OtherItems_DeleteFailed_Text {
+            get {
+                return ResourceManager.GetString("OtherItems_DeleteFailed_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} out of {1} files failed to delete. Check the log for details about each.
+        /// </summary>
+        public static string OtherItems_DeleteFailed_Text_Multiple {
+            get {
+                return ResourceManager.GetString("OtherItems_DeleteFailed_Text_Multiple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File Failed to Delete.
+        /// </summary>
+        public static string OtherItems_DeleteFailed_Title {
+            get {
+                return ResourceManager.GetString("OtherItems_DeleteFailed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Files Failed to Delete.
+        /// </summary>
+        public static string OtherItems_DeleteFailed_Title_Multiple {
+            get {
+                return ResourceManager.GetString("OtherItems_DeleteFailed_Title_Multiple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to load files.
         /// </summary>
         public static string OtherItems_FailToLoad {
             get {
                 return ResourceManager.GetString("OtherItems_FailToLoad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load the list of files in the folder {0}.
+        /// </summary>
+        public static string OtherItems_LoadFailed_Text {
+            get {
+                return ResourceManager.GetString("OtherItems_LoadFailed_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load files.
+        /// </summary>
+        public static string OtherItems_LoadFailed_Title {
+            get {
+                return ResourceManager.GetString("OtherItems_LoadFailed_Title", resourceCulture);
             }
         }
         
@@ -287,6 +738,24 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to QuestPatcher could not download files that it needs to patch the APK. Please check your internet connection, then try again..
+        /// </summary>
+        public static string Patching_FileDownloadFailed_Text {
+            get {
+                return ResourceManager.GetString("Patching_FileDownloadFailed_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not download files.
+        /// </summary>
+        public static string Patching_FileDownloadFailed_Title {
+            get {
+                return ResourceManager.GetString("Patching_FileDownloadFailed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please wait while patching completes . . ..
         /// </summary>
         public static string Patching_InProgress {
@@ -296,11 +765,50 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An unhandled error occured while attempting to patch the game.
+        /// </summary>
+        public static string Patching_PatchingFailed_Text {
+            get {
+                return ResourceManager.GetString("Patching_PatchingFailed_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Patching Failed.
+        /// </summary>
+        public static string Patching_PatchingFailed_Title {
+            get {
+                return ResourceManager.GetString("Patching_PatchingFailed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Patching Options.
         /// </summary>
         public static string Patching_PatchingOptions {
             get {
                 return ResourceManager.GetString("Patching_PatchingOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your installation is now modded! 
+        ///You can now access installed mods, cosmetics, etc. 
+        /// 
+        ///NOTE: If you see a restore app prompt inside your headset, just press close. The chance of getting banned for modding is virtually zero, so it&apos;s nothing to worry about..
+        /// </summary>
+        public static string Patching_PatchingSuccess_Text {
+            get {
+                return ResourceManager.GetString("Patching_PatchingSuccess_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Patching Complete!.
+        /// </summary>
+        public static string Patching_PatchingSuccess_Title {
+            get {
+                return ResourceManager.GetString("Patching_PatchingSuccess_Title", resourceCulture);
             }
         }
         
@@ -431,6 +939,69 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (1/6) Downloading files needed to mod the APK .
+        /// </summary>
+        public static string PatchingStage_FetchFiles {
+            get {
+                return ResourceManager.GetString("PatchingStage_FetchFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (6/6) Installing modded APK.
+        /// </summary>
+        public static string PatchingStage_InstallModded {
+            get {
+                return ResourceManager.GetString("PatchingStage_InstallModded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (2/6) Moving APK to temporary location.
+        /// </summary>
+        public static string PatchingStage_MoveToTemp {
+            get {
+                return ResourceManager.GetString("PatchingStage_MoveToTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not Started.
+        /// </summary>
+        public static string PatchingStage_NotStarted {
+            get {
+                return ResourceManager.GetString("PatchingStage_NotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (3/6) Modifying APK files to support mods.
+        /// </summary>
+        public static string PatchingStage_Patching {
+            get {
+                return ResourceManager.GetString("PatchingStage_Patching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (4/6) Signing APK.
+        /// </summary>
+        public static string PatchingStage_Signing {
+            get {
+                return ResourceManager.GetString("PatchingStage_Signing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (5/6) Uninstalling original APK to install modded APK.
+        /// </summary>
+        public static string PatchingStage_UninstallOriginal {
+            get {
+                return ResourceManager.GetString("PatchingStage_UninstallOriginal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading {0} . . ..
         /// </summary>
         public static string Progress_Downloading {
@@ -445,6 +1016,192 @@ namespace QuestPatcher.Resources {
         public static string Progress_Extracting {
             get {
                 return ResourceManager.GetString("Progress_Extracting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The app you are attempting to patch is 32 bit (armeabi-v7a). QuestPatcher supports a 32 version of QuestLoader, however most libraries like beatsaber-hook don&apos;t, unlesss you use a very old version. This will make modding much more difficult..
+        /// </summary>
+        public static string Prompt_32Bit_Text {
+            get {
+                return ResourceManager.GetString("Prompt_32Bit_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 32 bit APK.
+        /// </summary>
+        public static string Prompt_32Bit_Title {
+            get {
+                return ResourceManager.GetString("Prompt_32Bit_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SideQuest Instructions.
+        /// </summary>
+        public static string Prompt_AdbDisconnect_NoDevice_SideQuest {
+            get {
+                return ResourceManager.GetString("Prompt_AdbDisconnect_NoDevice_SideQuest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QuestPatcher could not detect your Quest.
+        ///Make sure that your Quest is plugged in, and that you have setup developer mode as per the SideQuest installation instructions..
+        /// </summary>
+        public static string Prompt_AdbDisconnect_NoDevice_Text {
+            get {
+                return ResourceManager.GetString("Prompt_AdbDisconnect_NoDevice_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Quest Not Connected.
+        /// </summary>
+        public static string Prompt_AdbDisconnect_NoDevice_Title {
+            get {
+                return ResourceManager.GetString("Prompt_AdbDisconnect_NoDevice_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your Quest has been detected as offline.
+        ///Try restarting your Quest and your PC.
+        /// </summary>
+        public static string Prompt_AdbDisconnect_Offline_Text {
+            get {
+                return ResourceManager.GetString("Prompt_AdbDisconnect_Offline_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Device Offline.
+        /// </summary>
+        public static string Prompt_AdbDisconnect_Offline_Title {
+            get {
+                return ResourceManager.GetString("Prompt_AdbDisconnect_Offline_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please press allow from this PC within the headset, even if you have done it before for SideQuest..
+        /// </summary>
+        public static string Prompt_AdbDisconnect_Unauthorized_Text {
+            get {
+                return ResourceManager.GetString("Prompt_AdbDisconnect_Unauthorized_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Device Unauthorized.
+        /// </summary>
+        public static string Prompt_AdbDisconnect_Unauthorized_Title {
+            get {
+                return ResourceManager.GetString("Prompt_AdbDisconnect_Unauthorized_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change App.
+        /// </summary>
+        public static string Prompt_AppNotInstalled_ChangeApp {
+            get {
+                return ResourceManager.GetString("Prompt_AppNotInstalled_ChangeApp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selected app - {0} - is not installed.
+        /// </summary>
+        public static string Prompt_AppNotInstalled_Text {
+            get {
+                return ResourceManager.GetString("Prompt_AppNotInstalled_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to App Not Installed.
+        /// </summary>
+        public static string Prompt_AppNotInstalled_Title {
+            get {
+                return ResourceManager.GetString("Prompt_AppNotInstalled_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No unstripped libunity.so is available for the app you have selected. This may mean that certain mods will not work correctly until one is added to the index. Proceed with caution - if you&apos;re updating from an older version, it is wise to wait for the latest version of your app to be added..
+        /// </summary>
+        public static string Prompt_NoUnstrippedUnity_Text {
+            get {
+                return ResourceManager.GetString("Prompt_NoUnstrippedUnity_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing libunity.so.
+        /// </summary>
+        public static string Prompt_NoUnstrippedUnity_Title {
+            get {
+                return ResourceManager.GetString("Prompt_NoUnstrippedUnity_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to QuestPatcher still has ongoing operations. Closing QuestPatcher before these finish may lead to corruption of your install!.
+        /// </summary>
+        public static string Prompt_OperationInProgress_Text {
+            get {
+                return ResourceManager.GetString("Prompt_OperationInProgress_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operations still in progress!.
+        /// </summary>
+        public static string Prompt_OperationInProgress_Title {
+            get {
+                return ResourceManager.GetString("Prompt_OperationInProgress_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The app you&apos;re attempting to patch contains a mod loader that QuestPatcher doesn&apos;t recognise. QuestPatcher can attempt to replace this mod loader with the one you have selected, but this may lead to a non-functional APK..
+        /// </summary>
+        public static string Prompt_UnknownModLoader_Text {
+            get {
+                return ResourceManager.GetString("Prompt_UnknownModLoader_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown Mod Loader Detected.
+        /// </summary>
+        public static string Prompt_UnknownModLoader_Title {
+            get {
+                return ResourceManager.GetString("Prompt_UnknownModLoader_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It looks as though you&apos;ve previously used QuestPatcher 1.
+        ///
+        ///Note that your mods from QuestPatcher 1 will be removed - this is deliberate as QuestPatcher 2 reworks mod installing to allow toggling of mods! To get your mods back, just reinstall them.
+        ///
+        ///NOTE: All save data, custom maps and cosmetics will remain safe!.
+        /// </summary>
+        public static string Prompt_UpgradeFromOld_Text {
+            get {
+                return ResourceManager.GetString("Prompt_UpgradeFromOld_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upgrading from QuestPatcher 1.
+        /// </summary>
+        public static string Prompt_UpgradeFromOld_Title {
+            get {
+                return ResourceManager.GetString("Prompt_UpgradeFromOld_Title", resourceCulture);
             }
         }
         
@@ -674,6 +1431,24 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating the dump failed due to an unhandled error.
+        /// </summary>
+        public static string Tools_Tool_CreateDump_Failed_Text {
+            get {
+                return ResourceManager.GetString("Tools_Tool_CreateDump_Failed_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create dump.
+        /// </summary>
+        public static string Tools_Tool_CreateDump_Failed_Title {
+            get {
+                return ResourceManager.GetString("Tools_Tool_CreateDump_Failed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Open Logs Folder.
         /// </summary>
         public static string Tools_Tool_LogFolder {
@@ -706,6 +1481,24 @@ namespace QuestPatcher.Resources {
         public static string Tools_Tool_QuickFix_Description {
             get {
                 return ResourceManager.GetString("Tools_Tool_QuickFix_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running the quick fix failed due to an unhandled error.
+        /// </summary>
+        public static string Tools_Tool_QuickFix_Failed_Text {
+            get {
+                return ResourceManager.GetString("Tools_Tool_QuickFix_Failed_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to clear cache.
+        /// </summary>
+        public static string Tools_Tool_QuickFix_Failed_Title {
+            get {
+                return ResourceManager.GetString("Tools_Tool_QuickFix_Failed_Title", resourceCulture);
             }
         }
         
@@ -746,11 +1539,47 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Restarting the app failed due to an unhandled error.
+        /// </summary>
+        public static string Tools_Tool_RestartApp_Failed_Text {
+            get {
+                return ResourceManager.GetString("Tools_Tool_RestartApp_Failed_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to restart app.
+        /// </summary>
+        public static string Tools_Tool_RestartApp_Failed_Title {
+            get {
+                return ResourceManager.GetString("Tools_Tool_RestartApp_Failed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Starts an ADB log - you must keep your quest plugged in while you use this..
         /// </summary>
         public static string Tools_Tool_ToggleADB_Description {
             get {
                 return ResourceManager.GetString("Tools_Tool_ToggleADB_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start ADB Log.
+        /// </summary>
+        public static string Tools_Tool_ToggleADB_Start {
+            get {
+                return ResourceManager.GetString("Tools_Tool_ToggleADB_Start", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stop ADB Log.
+        /// </summary>
+        public static string Tools_Tool_ToggleADB_Stop {
+            get {
+                return ResourceManager.GetString("Tools_Tool_ToggleADB_Stop", resourceCulture);
             }
         }
         
@@ -764,11 +1593,38 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Uninstall App.
+        /// </summary>
+        public static string Tools_Tool_UninstallApp_Confirm {
+            get {
+                return ResourceManager.GetString("Tools_Tool_UninstallApp_Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Uninstalls your selected app..
         /// </summary>
         public static string Tools_Tool_UninstallApp_Description {
             get {
                 return ResourceManager.GetString("Tools_Tool_UninstallApp_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uninstalling your app will exit QuestPatcher, as it requires your app to be installed. If you ever reinstall your app, reopen QuestPatcher and you can repatch.
+        /// </summary>
+        public static string Tools_Tool_UninstallApp_Text {
+            get {
+                return ResourceManager.GetString("Tools_Tool_UninstallApp_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure?.
+        /// </summary>
+        public static string Tools_Tool_UninstallApp_Title {
+            get {
+                return ResourceManager.GetString("Tools_Tool_UninstallApp_Title", resourceCulture);
             }
         }
     }

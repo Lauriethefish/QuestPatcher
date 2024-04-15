@@ -8,6 +8,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Models;
+using QuestPatcher.Resources;
 using QuestPatcher.ViewModels;
 using QuestPatcher.ViewModels.Modding;
 using QuestPatcher.Views;
@@ -100,18 +101,18 @@ namespace QuestPatcher.Services
             }
             catch (Exception ex)
             {
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Unhandled Load Error",
-                    Text = "An error occured while loading",
-                    HideCancelButton = true
+                    Title = Strings.Loading_UnhandledError_Title,
+                    Text = Strings.Loading_UnhandledError_Text,
+                    HideCancelButton = true,
                 };
                 builder.OkButton.ReturnValue = false;
                 builder.WithException(ex);
                 builder.WithButtons(
                     new ButtonInfo
                     {
-                        Text = "Change App",
+                        Text = Strings.Loading_UnhandledError_ChangeApp,
                         CloseDialogue = true,
                         ReturnValue = true,
                         OnClick = async () =>
@@ -124,7 +125,7 @@ namespace QuestPatcher.Services
                 // If the user did not select to change app, or closed the dialogue, we exit due to the error
                 if (!await builder.OpenDialogue(_mainWindow))
                 {
-                    Log.Error($"Exiting QuestPatcher due to unhandled load error: {ex}");
+                    Log.Error(ex, "Exiting QuestPatcher due to unhandled load error: {Ex}", ex.Message);
                     ExitApplication();
                 }
             }
@@ -145,12 +146,12 @@ namespace QuestPatcher.Services
             // We must set this to true at first, even if the user might press OK later.
             // This is since the caller of the event will not wait for our async handler to finish
             args.Cancel = true;
-            DialogBuilder builder = new()
+            var builder = new DialogBuilder
             {
-                Title = "Operations still in progress!",
-                Text = "QuestPatcher still has ongoing operations. Closing QuestPatcher before these finish may lead to corruption of your install!"
+                Title = Strings.Prompt_OperationInProgress_Title,
+                Text = Strings.Prompt_OperationInProgress_Text
             };
-            builder.OkButton.Text = "Close Anyway";
+            builder.OkButton.Text = Strings.Generic_CloseAnyway;
 
             // Now we can exit the application if the user decides to
             if (await builder.OpenDialogue(_mainWindow))

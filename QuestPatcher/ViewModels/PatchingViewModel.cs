@@ -6,6 +6,7 @@ using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
 using QuestPatcher.Core.Patching;
 using QuestPatcher.Models;
+using QuestPatcher.Resources;
 using ReactiveUI;
 using Serilog;
 
@@ -64,10 +65,10 @@ namespace QuestPatcher.ViewModels
             {
                 Log.Error("Patching failed as essential files could not be downloaded: {Message}", ex.Message);
 
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Could not download files",
-                    Text = "QuestPatcher could not download files that it needs to patch the APK. Please check your internet connection, then try again.",
+                    Title = Strings.Patching_FileDownloadFailed_Title,
+                    Text = Strings.Patching_FileDownloadFailed_Text,
                     HideCancelButton = true
                 };
 
@@ -76,11 +77,11 @@ namespace QuestPatcher.ViewModels
             catch (Exception ex)
             {
                 // Print troubleshooting information for debugging
-                Log.Error(ex, $"Patching failed!");
-                DialogBuilder builder = new()
+                Log.Error(ex, "Patching failed!");
+                var builder = new DialogBuilder
                 {
-                    Title = "Patching Failed",
-                    Text = "An unhandled error occured while attempting to patch the game",
+                    Title = Strings.Patching_PatchingFailed_Title,
+                    Text = Strings.Patching_PatchingFailed_Text,
                     HideCancelButton = true
                 };
                 builder.WithException(ex);
@@ -97,10 +98,10 @@ namespace QuestPatcher.ViewModels
             {
                 // Display a dialogue to give the user some info about what to expect next, and to avoid them pressing restore app by mistake
                 Log.Debug("Patching completed successfully, displaying info dialogue");
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Patching Complete!",
-                    Text = "Your installation is now modded!\nYou can now access installed mods, cosmetics, etc.\n\nNOTE: If you see a restore app prompt inside your headset, just press close. The chance of getting banned for modding is virtually zero, so it's nothing to worry about.",
+                    Title = Strings.Patching_PatchingSuccess_Title,
+                    Text = Strings.Patching_PatchingSuccess_Text,
                     HideCancelButton = true
                 };
                 await builder.OpenDialogue(_mainWindow);
@@ -135,13 +136,13 @@ namespace QuestPatcher.ViewModels
         {
             PatchingStageText = stage switch
             {
-                PatchingStage.NotStarted => "Not Started",
-                PatchingStage.FetchingFiles => "Downloading files needed to mod the APK (patching stage 1/6)",
-                PatchingStage.MovingToTemp => "Moving APK to temporary location (patching stage 2/6)",
-                PatchingStage.Patching => "Modifying APK files to support mods (patching stage 3/6)",
-                PatchingStage.Signing => "Signing APK (patching stage 4/6)",
-                PatchingStage.UninstallingOriginal => "Uninstalling original APK to install modded APK (patching stage 5/6)",
-                PatchingStage.InstallingModded => "Installing modded APK (patching stage 6/6)",
+                PatchingStage.NotStarted => Strings.PatchingStage_NotStarted,
+                PatchingStage.FetchingFiles => Strings.PatchingStage_FetchFiles,
+                PatchingStage.MovingToTemp => Strings.PatchingStage_MoveToTemp,
+                PatchingStage.Patching => Strings.PatchingStage_Patching,
+                PatchingStage.Signing => Strings.PatchingStage_Signing,
+                PatchingStage.UninstallingOriginal => Strings.PatchingStage_UninstallOriginal,
+                PatchingStage.InstallingModded => Strings.PatchingStage_InstallModded,
                 _ => throw new NotImplementedException()
             };
             this.RaisePropertyChanged(nameof(PatchingStageText));
