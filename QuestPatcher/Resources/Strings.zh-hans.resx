@@ -11,10 +11,231 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
-    <data name="LoadingViewQPLoading" xml:space="preserve">
+    <data name="LoadingView_QPLoading" xml:space="preserve">
         <value>QuestPatcher 正在加载 . . .</value>
     </data>
     <data name="DisplayLogs" xml:space="preserve">
         <value>显示日志</value>
+    </data>
+    <data name="SideBarHeader_Patching" xml:space="preserve">
+        <value>打补丁</value>
+    </data>
+    <data name="SideBarHeader_ModManage" xml:space="preserve">
+        <value>管理Mod</value>
+    </data>
+    <data name="SideBarHeader_Other" xml:space="preserve">
+        <value>杂项</value>
+    </data>
+    <data name="SideBarHeader_Options" xml:space="preserve">
+        <value>工具 &amp; 设置</value>
+    </data>
+    <data name="LoadedAPKStatus_64bit" xml:space="preserve">
+        <value>APK为64位</value>
+    </data>
+    <data name="LoadedAPKStatus_32bit" xml:space="preserve">
+        <value>APK为32位</value>
+    </data>
+    <data name="LoadedAPKStatus_Modded" xml:space="preserve">
+        <value>APK已经打过补丁</value>
+    </data>
+    <data name="LoadedAPKStatus_NotModded" xml:space="preserve">
+        <value>APK没有打过补丁</value>
+    </data>
+    <data name="LoadedAPKStatus_Version" xml:space="preserve">
+        <value>APK版本: {0}</value>
+    </data>
+    <data name="LoadedQPVersion" xml:space="preserve">
+        <value>QP版本: {0}</value>
+    </data>
+    <data name="LoggingDock_Title" xml:space="preserve">
+        <value>Mod日志</value>
+    </data>
+    <data name="OtherItems_Loading" xml:space="preserve">
+        <value>请稍候 . . . </value>
+    </data>
+    <data name="OtherItems_FailToLoad" xml:space="preserve">
+        <value>获取文件失败</value>
+    </data>
+    <data name="Generic_Browse" xml:space="preserve">
+        <value>浏览</value>
+    </data>
+    <data name="OtherItems_ChooseType" xml:space="preserve">
+        <value>选择要管理的文件类型:</value>
+    </data>
+    <data name="OtherItems_RemoveSelected" xml:space="preserve">
+        <value>删除选中的文件</value>
+    </data>
+    <data name="OtherItems_RemoveAll" xml:space="preserve">
+        <value>删除所有文件</value>
+    </data>
+    <data name="Generic_Delete" xml:space="preserve">
+        <value>删除</value>
+    </data>
+    <data name="OtherItems_NotAvailable" xml:space="preserve">
+        <value>此应序没有可用的文件类型</value>
+    </data>
+    <data name="Patching_PatchingOptions" xml:space="preserve">
+        <value>补丁选项</value>
+    </data>
+    <data name="PatchingOption_ExternalFiles" xml:space="preserve">
+        <value>允许读写外部存储空间</value>
+    </data>
+    <data name="PatchingOption_Debugging" xml:space="preserve">
+        <value>允许调试</value>
+    </data>
+    <data name="PatchingOption_NoVRRequirement" xml:space="preserve">
+        <value>禁用VR要求</value>
+    </data>
+    <data name="PatchingOption_Microphone" xml:space="preserve">
+        <value>启用麦克风</value>
+    </data>
+    <data name="PatchingOption_OpenXR" xml:space="preserve">
+        <value>启用OpenXR</value>
+    </data>
+    <data name="PatchingOption_HandTracking" xml:space="preserve">
+        <value>手部追踪类型</value>
+    </data>
+    <data name="PatchingOption_HandTracking_None" xml:space="preserve">
+        <value>无</value>
+    </data>
+    <data name="PatchingOption_HandTracking_V1HighFrequency" xml:space="preserve">
+        <value>V1 高频</value>
+    </data>
+    <data name="Patching_SplashScreen" xml:space="preserve">
+        <value>自定义启动画面:</value>
+    </data>
+    <data name="Patching_SplashScreen_None" xml:space="preserve">
+        <value>未选择</value>
+    </data>
+    <data name="Patching_BeforeStartMessage" xml:space="preserve">
+        <value>在你安装mod之前，QuestPatcher必须给你的应用打上补丁
+这可能会花一些时间（具体取决于你的网络连接）
+在打补丁期间，请保证网络连接</value>
+    </data>
+    <data name="Patching_SelectModLoader" xml:space="preserve">
+        <value>选择打补丁用的Mod注入器:</value>
+    </data>
+    <data name="Patching_StartPatching" xml:space="preserve">
+        <value>开始打补丁！</value>
+    </data>
+    <data name="Patching_InProgress" xml:space="preserve">
+        <value>请稍等 正在打补丁 . . .</value>
+    </data>
+    <data name="Progress_Downloading" xml:space="preserve">
+        <value>正在下载 {0} . . .</value>
+    </data>
+    <data name="Progress_Extracting" xml:space="preserve">
+        <value>正在解压 {0} . . .</value>
+    </data>
+    <data name="Repatch_StartRepatching" xml:space="preserve">
+        <value>重新打补丁！</value>
+    </data>
+    <data name="Repatch_Title" xml:space="preserve">
+        <value>重新打补丁</value>
+    </data>
+    <data name="Generic_Select" xml:space="preserve">
+        <value>选择</value>
+    </data>
+    <data name="Generic_OK" xml:space="preserve">
+        <value>好的</value>
+    </data>
+    <data name="Generic_Cancel" xml:space="preserve">
+        <value>取消</value>
+    </data>
+    <data name="SelectDevice_WindowTitle" xml:space="preserve">
+        <value>更换设备</value>
+    </data>
+    <data name="SelectDevice_Title" xml:space="preserve">
+        <value>选择设备</value>
+    </data>
+    <data name="SelectDevice_Message" xml:space="preserve">
+        <value>检测到多个连接的安卓设备，请在下方选择您想使用的设备</value>
+    </data>
+    <data name="SelectApp_Confirm" xml:space="preserve">
+        <value>确认新应用</value>
+    </data>
+    <data name="SelectApp_Loading" xml:space="preserve">
+        <value>正在加载已安装的应用 . . .</value>
+    </data>
+    <data name="SelectApp_Message" xml:space="preserve">
+        <value>更改应用将重启载 QuestPatcher 以提取新的 APK，这可能需要一分钟左右的时间。</value>
+    </data>
+    <data name="SelectApp_Title" xml:space="preserve">
+        <value>更改应用</value>
+    </data>
+    <data name="Tools_Section_Tools" xml:space="preserve">
+        <value>便携操作</value>
+    </data>
+    <data name="Tools_Section_Tools_Description" xml:space="preserve">
+        <value>对于故障排除和管理安装很有用</value>
+    </data>
+    <data name="Tools_Tool_UninstallApp" xml:space="preserve">
+        <value>卸载游戏</value>
+    </data>
+    <data name="Tools_Tool_UninstallApp_Description" xml:space="preserve">
+        <value>卸载你安装的游戏</value>
+    </data>
+    <data name="Tools_Tool_RestartApp" xml:space="preserve">
+        <value>重启游戏</value>
+    </data>
+    <data name="Tools_Tool_RestartApp_Description" xml:space="preserve">
+        <value>强制终止并重启游戏</value>
+    </data>
+    <data name="Tools_Tool_LogFolder" xml:space="preserve">
+        <value>打开日志文件夹</value>
+    </data>
+    <data name="Tools_Tool_LogFolder_Description" xml:space="preserve">
+        <value>打开我们存储日志的文件夹</value>
+    </data>
+    <data name="Tools_Tool_ToggleADB_Description" xml:space="preserve">
+        <value>开启ADB日志：为了使用这个，你必须让你的设备保持连接</value>
+    </data>
+    <data name="Tools_Tool_CreateDump" xml:space="preserve">
+        <value>创建Dump</value>
+    </data>
+    <data name="Tools_Tool_CreateDump_Description" xml:space="preserve">
+        <value>创建一段调试用的信息</value>
+    </data>
+    <data name="Tools_Tool_QuickFix" xml:space="preserve">
+        <value>快速修复</value>
+    </data>
+    <data name="Tools_Tool_QuickFix_Description" xml:space="preserve">
+        <value>清除缓存的数据：如果出现了问题可以试试这个</value>
+    </data>
+    <data name="Tools_Tool_RepatchApp" xml:space="preserve">
+        <value>重新打补丁</value>
+    </data>
+    <data name="Tools_Tool_RepatchApp_Description" xml:space="preserve">
+        <value>通过给应用重新打补丁来更换Mod注入器</value>
+    </data>
+    <data name="Tools_Section_Options" xml:space="preserve">
+        <value>设置</value>
+    </data>
+    <data name="Tools_Section_Options_Description" xml:space="preserve">
+        <value>QuestPatcher设置</value>
+    </data>
+    <data name="Tools_Option_ChangeApp" xml:space="preserve">
+        <value>更换应用</value>
+    </data>
+    <data name="Tools_Option_ChangeApp_Description" xml:space="preserve">
+        <value>选择另一个被打Mod的应用</value>
+    </data>
+    <data name="Tools_Option_Theme" xml:space="preserve">
+        <value>主题</value>
+    </data>
+    <data name="Tools_Option_Theme_Description" xml:space="preserve">
+        <value>自定义UI</value>
+    </data>
+    <data name="Tools_Option_Theme_SelectTheme" xml:space="preserve">
+        <value>选择主题:</value>
+    </data>
+    <data name="Tools_Option_Theme_OpenThemeFolder" xml:space="preserve">
+        <value>打开主题文件夹</value>
+    </data>
+    <data name="Generic_Off" xml:space="preserve">
+        <value>关</value>
+    </data>
+    <data name="Generic_On" xml:space="preserve">
+        <value>开</value>
     </data>
 </root>

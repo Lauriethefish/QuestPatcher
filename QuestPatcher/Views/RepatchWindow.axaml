@@ -3,10 +3,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
+        xmlns:res="clr-namespace:QuestPatcher.Resources"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220" SizeToContent="Height" MinWidth="300" Width="350"
         x:Class="QuestPatcher.Views.RepatchWindow"
         Icon="/Assets/questpatcher-logo.ico"
-        Title="Repatch App"
+        Title="{x:Static res:Strings.Repatch_Title}"
         Background="{x:Null}"
         ExtendClientAreaToDecorationsHint="true"
         ExtendClientAreaTitleBarHeightHint="-1"
@@ -18,14 +19,14 @@
   <DockPanel HorizontalAlignment="Stretch">
     <ExperimentalAcrylicBorder DockPanel.Dock="Bottom" Material="{DynamicResource MainBackgroundMaterial}">
       <DockPanel Margin="0 20 0 0">
-        <TextBlock DockPanel.Dock="Top" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline">Repatch App</TextBlock>
+        <TextBlock DockPanel.Dock="Top" Padding="8" HorizontalAlignment="Center" TextDecorations="Underline" Text="{x:Static res:Strings.Repatch_Title}"/>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Vertical" Spacing="15" Margin="10 0 10 10">
-          <TextBlock TextAlignment="Center" FontSize="14" TextWrapping="Wrap">Please choose the modloader to patch with:</TextBlock>
+          <TextBlock TextAlignment="Center" FontSize="14" TextWrapping="Wrap" Text="{x:Static res:Strings.Patching_SelectModLoader}"/>
           <ComboBox SelectedIndex="{Binding Config.PatchingOptions.ModLoader}" HorizontalAlignment="Center">
-            <ComboBoxItem>QuestLoader</ComboBoxItem>
-            <ComboBoxItem>Scotland2</ComboBoxItem>
+              <ComboBoxItem Content="{x:Static res:Strings.ModLoader_QuestLoader}"/>
+              <ComboBoxItem Content="{x:Static res:Strings.ModLoader_Scotland2}"/>
           </ComboBox>
-          <Button Content="(Re-)Patch my app!" Command="{Binding RepatchApp}" HorizontalAlignment="Center"/>
+          <Button Content="{x:Static res:Strings.Repatch_StartRepatching}" Command="{Binding RepatchApp}" HorizontalAlignment="Center"/>
         </StackPanel>
       </DockPanel>
     </ExperimentalAcrylicBorder>

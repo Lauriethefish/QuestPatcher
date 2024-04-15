@@ -18,10 +18,243 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
-    <data name="LoadingViewQPLoading" xml:space="preserve">
+    <data name="LoadingView_QPLoading" xml:space="preserve">
         <value>QuestPatcher loading . . .</value>
     </data>
     <data name="DisplayLogs" xml:space="preserve">
         <value>Display Logs</value>
+    </data>
+    <data name="SideBarHeader_Patching" xml:space="preserve">
+        <value>Patching</value>
+    </data>
+    <data name="SideBarHeader_ModManage" xml:space="preserve">
+        <value>Mod Management</value>
+    </data>
+    <data name="SideBarHeader_Other" xml:space="preserve">
+        <value>Cosmetics &amp; other items</value>
+    </data>
+    <data name="SideBarHeader_Options" xml:space="preserve">
+        <value>Tools &amp; Options</value>
+    </data>
+    <data name="LoadedAPKStatus_64bit" xml:space="preserve">
+        <value>APK is 64 bit</value>
+    </data>
+    <data name="LoadedAPKStatus_32bit" xml:space="preserve">
+        <value>APK is 32 bit</value>
+    </data>
+    <data name="LoadedAPKStatus_Modded" xml:space="preserve">
+        <value>APK is modded</value>
+    </data>
+    <data name="LoadedAPKStatus_NotModded" xml:space="preserve">
+        <value>APK is not modded</value>
+    </data>
+    <data name="LoadedAPKStatus_Version" xml:space="preserve">
+        <value>APK Version: {0}</value>
+    </data>
+    <data name="LoadedQPVersion" xml:space="preserve">
+        <value>QP Version: {0}</value>
+    </data>
+    <data name="LoggingDock_Title" xml:space="preserve">
+        <value>Modding Log</value>
+    </data>
+    <data name="OtherItems_ChooseType" xml:space="preserve">
+        <value>Choose a file type to manage:</value>
+    </data>
+    <data name="OtherItems_FailToLoad" xml:space="preserve">
+        <value>Failed to load files</value>
+    </data>
+    <data name="Generic_Browse" xml:space="preserve">
+        <value>Browse</value>
+    </data>
+    <data name="OtherItems_RemoveSelected" xml:space="preserve">
+        <value>Remove Selected</value>
+    </data>
+    <data name="OtherItems_RemoveAll" xml:space="preserve">
+        <value>Remove All</value>
+    </data>
+    <data name="Generic_Delete" xml:space="preserve">
+        <value>Delete</value>
+    </data>
+    <data name="OtherItems_Loading" xml:space="preserve">
+        <value>Please wait . . . </value>
+    </data>
+    <data name="OtherItems_NotAvailable" xml:space="preserve">
+        <value>No file types available for this app</value>
+    </data>
+    <data name="Patching_PatchingOptions" xml:space="preserve">
+        <value>Patching Options</value>
+    </data>
+    <data name="PatchingOption_ExternalFiles" xml:space="preserve">
+        <value>Allow External Files</value>
+    </data>
+    <data name="PatchingOption_Debugging" xml:space="preserve">
+        <value>Allow Debugging</value>
+    </data>
+    <data name="PatchingOption_NoVRRequirement" xml:space="preserve">
+        <value>Disable VR Requirement</value>
+    </data>
+    <data name="PatchingOption_Microphone" xml:space="preserve">
+        <value>Enable Microphone</value>
+    </data>
+    <data name="PatchingOption_OpenXR" xml:space="preserve">
+        <value>Enable OpenXR</value>
+    </data>
+    <data name="PatchingOption_HandTracking" xml:space="preserve">
+        <value>Hand Tracking Type</value>
+    </data>
+    <data name="PatchingOption_HandTracking_None" xml:space="preserve">
+        <value>None</value>
+    </data>
+    <data name="PatchingOption_HandTracking_V1" xml:space="preserve">
+        <value>V1</value>
+    </data>
+    <data name="PatchingOption_HandTracking_V1HighFrequency" xml:space="preserve">
+        <value>V1 High Frequency</value>
+    </data>
+    <data name="PatchingOption_HandTracking_V2" xml:space="preserve">
+        <value>V2</value>
+    </data>
+    <data name="Patching_SplashScreen" xml:space="preserve">
+        <value>Custom Splash Screen:</value>
+    </data>
+    <data name="Patching_SplashScreen_None" xml:space="preserve">
+        <value>None Selected</value>
+    </data>
+    <data name="Patching_BeforeStartMessage" xml:space="preserve">
+        <value>Before you install mods, QuestPatcher must patch your app.
+This may take several minutes depending on your internet connection.
+Make sure that your internet does not go offline during patching.</value>
+    </data>
+    <data name="Patching_SelectModLoader" xml:space="preserve">
+        <value>Choose the mod loader to patch with: </value>
+    </data>
+    <data name="Patching_StartPatching" xml:space="preserve">
+        <value>Patch my App!</value>
+    </data>
+    <data name="Patching_InProgress" xml:space="preserve">
+        <value>Please wait while patching completes . . .</value>
+    </data>
+    <data name="ModLoader_QuestLoader" xml:space="preserve">
+        <value>QuestLoader</value>
+    </data>
+    <data name="ModLoader_Scotland2" xml:space="preserve">
+        <value>Scotland2</value>
+    </data>
+    <data name="Progress_Downloading" xml:space="preserve">
+        <value>Downloading {0} . . .</value>
+    </data>
+    <data name="Progress_Extracting" xml:space="preserve">
+        <value>Extracting {0} . . .</value>
+    </data>
+    <data name="Repatch_Title" xml:space="preserve">
+        <value>Repatch App</value>
+    </data>
+    <data name="Repatch_StartRepatching" xml:space="preserve">
+        <value>(Re-)Patch my app!</value>
+    </data>
+    <data name="SelectDevice_Title" xml:space="preserve">
+        <value>Select Device</value>
+    </data>
+    <data name="SelectDevice_Message" xml:space="preserve">
+        <value>Multiple Android devices are connected to your computer. Please select the device to use by clicking a row in the grid shown below.</value>
+    </data>
+    <data name="Generic_Select" xml:space="preserve">
+        <value>Select</value>
+    </data>
+    <data name="Generic_OK" xml:space="preserve">
+        <value>OK</value>
+    </data>
+    <data name="Generic_Cancel" xml:space="preserve">
+        <value>Cancel</value>
+    </data>
+    <data name="SelectDevice_WindowTitle" xml:space="preserve">
+        <value>Change Selected Device</value>
+    </data>
+    <data name="SelectApp_Title" xml:space="preserve">
+        <value>Change Selected App</value>
+    </data>
+    <data name="SelectApp_Message" xml:space="preserve">
+        <value>Changing your app will reload QuestPatcher to pull the new APK, which may take a minute or so.</value>
+    </data>
+    <data name="SelectApp_Loading" xml:space="preserve">
+        <value>Loading installed applications . . .</value>
+    </data>
+    <data name="SelectApp_Confirm" xml:space="preserve">
+        <value>Confirm new App</value>
+    </data>
+    <data name="Tools_Section_Tools" xml:space="preserve">
+        <value>Tools</value>
+    </data>
+    <data name="Tools_Section_Tools_Description" xml:space="preserve">
+        <value>Useful for troubleshooting issues and managing your install.</value>
+    </data>
+    <data name="Tools_Tool_UninstallApp" xml:space="preserve">
+        <value>Uninstall App</value>
+    </data>
+    <data name="Tools_Tool_UninstallApp_Description" xml:space="preserve">
+        <value>Uninstalls your selected app.</value>
+    </data>
+    <data name="Tools_Tool_RestartApp" xml:space="preserve">
+        <value>Restart App</value>
+    </data>
+    <data name="Tools_Tool_RestartApp_Description" xml:space="preserve">
+        <value>Closes then reopens the selected app.</value>
+    </data>
+    <data name="Tools_Tool_LogFolder" xml:space="preserve">
+        <value>Open Logs Folder</value>
+    </data>
+    <data name="Tools_Tool_LogFolder_Description" xml:space="preserve">
+        <value>Opens the folder where QP stores logs.</value>
+    </data>
+    <data name="Tools_Tool_CreateDump" xml:space="preserve">
+        <value>Create Dump</value>
+    </data>
+    <data name="Tools_Tool_CreateDump_Description" xml:space="preserve">
+        <value>Creates a dump containing lots of information about QuestPatcher and mod state.</value>
+    </data>
+    <data name="Tools_Tool_QuickFix" xml:space="preserve">
+        <value>Quick Fix</value>
+    </data>
+    <data name="Tools_Tool_QuickFix_Description" xml:space="preserve">
+        <value>Clears cached QuestPatcher data - try this if something isn't working.</value>
+    </data>
+    <data name="Tools_Tool_RepatchApp" xml:space="preserve">
+        <value>Repatch App</value>
+    </data>
+    <data name="Tools_Tool_RepatchApp_Description" xml:space="preserve">
+        <value>Allows you to change the modloader you have installed by re-patching your app.</value>
+    </data>
+    <data name="Tools_Section_Options" xml:space="preserve">
+        <value>Options</value>
+    </data>
+    <data name="Tools_Section_Options_Description" xml:space="preserve">
+        <value>QuestPatcher Settings.</value>
+    </data>
+    <data name="Tools_Option_ChangeApp" xml:space="preserve">
+        <value>Change App</value>
+    </data>
+    <data name="Tools_Option_ChangeApp_Description" xml:space="preserve">
+        <value>Allows you to select a different application to mod</value>
+    </data>
+    <data name="Tools_Option_Theme" xml:space="preserve">
+        <value>Theming</value>
+    </data>
+    <data name="Tools_Option_Theme_Description" xml:space="preserve">
+        <value>Allows UI Customization</value>
+    </data>
+    <data name="Tools_Option_Theme_SelectTheme" xml:space="preserve">
+        <value>Select Theme:</value>
+    </data>
+    <data name="Tools_Option_Theme_OpenThemeFolder" xml:space="preserve">
+        <value>Open Themes Folder</value>
+    </data>
+    <data name="Tools_Tool_ToggleADB_Description" xml:space="preserve">
+        <value>Starts an ADB log - you must keep your quest plugged in while you use this.</value>
+    </data>
+    <data name="Generic_On" xml:space="preserve">
+        <value>On</value>
+    </data>
+    <data name="Generic_Off" xml:space="preserve">
+        <value>Off</value>
     </data>
 </root>

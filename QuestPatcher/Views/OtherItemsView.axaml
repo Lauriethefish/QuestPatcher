@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:res="clr-namespace:QuestPatcher.Resources"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QuestPatcher.Views.OtherItemsView"
              xmlns:local="clr-namespace:QuestPatcher;assembly=QuestPatcher"
@@ -18,7 +19,7 @@
     <DockPanel Margin="20 0 20 20" IsVisible="{Binding !!FilesManager.CurrentDestinations.Count}">
       <StackPanel DockPanel.Dock="Top" Spacing="10">
         <UserControl Content="{Binding ProgressView}" />
-        <TextBlock>Choose a file type to manage:</TextBlock>
+        <TextBlock Text="{x:Static res:Strings.OtherItems_ChooseType}"/>
         <ComboBox ItemsSource="{Binding FilesManager.CurrentDestinations}" SelectedItem="{Binding SelectedFileCopy}" HorizontalAlignment="Stretch">
           <ComboBox.ItemTemplate>
             <DataTemplate>
@@ -31,15 +32,15 @@
       </StackPanel>
       <Panel DockPanel.Dock="Bottom">
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding !SelectedFileCopy.HasLoaded}" Spacing="10">
-          <TextBlock HorizontalAlignment="Center">Please wait . . . </TextBlock>
+          <TextBlock HorizontalAlignment="Center" Text="{x:Static res:Strings.OtherItems_Loading}"/>
           <ProgressBar IsIndeterminate="True" />
         </StackPanel>
-        <TextBlock IsVisible="{Binding SelectedFileCopy.LoadingFailed}" HorizontalAlignment="Center" VerticalAlignment="Center">Failed to load files</TextBlock>
+        <TextBlock IsVisible="{Binding SelectedFileCopy.LoadingFailed}" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{x:Static res:Strings.OtherItems_FailToLoad}"/>
         <DockPanel IsVisible="{Binding SelectedFileCopy.HasLoaded}" Margin="0 20 0 0" VerticalAlignment="Stretch">
           <StackPanel Orientation="Horizontal" Spacing="20" Height="30" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 10 0 0">
-            <Button Command="{Binding BrowseForSelectedType}" IsEnabled="{Binding CanUseFileCopies}">Browse</Button>
-            <Button Command="{Binding DeleteSelectedFiles}" IsEnabled="{Binding CanDeleteSelectedFiles}">Remove Selected</Button>
-            <Button Command="{Binding DeleteAllFiles}" IsEnabled="{Binding CanUseFileCopies}">Remove All</Button>
+            <Button Command="{Binding BrowseForSelectedType}" IsEnabled="{Binding CanUseFileCopies}" Content="{x:Static res:Strings.Generic_Browse}"/>
+            <Button Command="{Binding DeleteSelectedFiles}" IsEnabled="{Binding CanDeleteSelectedFiles}" Content="{x:Static res:Strings.OtherItems_RemoveSelected}"/>
+            <Button Command="{Binding DeleteAllFiles}" IsEnabled="{Binding CanUseFileCopies}" Content="{x:Static res:Strings.OtherItems_RemoveAll}"/>
           </StackPanel>
           <ListBox ItemsSource="{Binding SelectedFileCopy.ExistingFiles}" SelectedItems="{Binding SelectedFiles}" SelectionMode="Multiple" ScrollViewer.HorizontalScrollBarVisibility="Disabled" DockPanel.Dock="Top">
             <ListBox.Styles>
@@ -51,7 +52,7 @@
               <DataTemplate>
                 <Panel>
                   <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" Text="{Binding ., Converter={StaticResource FileNameConverter}}" />
-                  <Button HorizontalAlignment="Right" VerticalAlignment="Center" Click="FileDeleteBtn_Click">Delete</Button>
+                  <Button HorizontalAlignment="Right" VerticalAlignment="Center" Click="FileDeleteBtn_Click" Content="{x:Static res:Strings.Generic_Delete}"/>
                 </Panel>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -59,6 +60,6 @@
         </DockPanel>
       </Panel>
     </DockPanel>
-    <TextBlock IsVisible="{Binding !!!FilesManager.CurrentDestinations.Count}" HorizontalAlignment="Center" VerticalAlignment="Center">No file types available for this app</TextBlock>
+    <TextBlock IsVisible="{Binding !!!FilesManager.CurrentDestinations.Count}" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{x:Static res:Strings.OtherItems_NotAvailable}"/>
   </Panel>
 </UserControl>
