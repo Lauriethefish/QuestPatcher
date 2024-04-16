@@ -51,6 +51,14 @@
           <TextBlock FontSize="10" VerticalAlignment="Bottom" FontWeight="Light" Text="{x:Static res:Strings.Tools_Section_Options_Description}"/>
         </StackPanel> 
         <StackPanel Orientation="Horizontal" Spacing="10">
+          <TextBlock VerticalAlignment="Center" FontSize="15" Text="{x:Static res:Strings.Tools_Option_Language}"/>
+          <ComboBox SelectedIndex="{Binding SelectedLanguage}" IsEnabled="{Binding Locker.IsFree}">
+            <ComboBoxItem Content="{x:Static res:Strings.Tools_Option_Language_Default}"/>
+            <ComboBoxItem Content="English"/> 
+            <ComboBoxItem Content="简体中文"/>
+          </ComboBox>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10">
           <Button Command="{Binding ChangeApp}" IsEnabled="{Binding Locker.IsFree}" Content="{x:Static res:Strings.Tools_Option_ChangeApp}"/>
           <TextBlock VerticalAlignment="Center" FontSize="12" Text="{x:Static res:Strings.Tools_Option_ChangeApp_Description}"/>
         </StackPanel>

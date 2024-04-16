@@ -1341,6 +1341,42 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Language.
+        /// </summary>
+        public static string Tools_Option_Language {
+            get {
+                return ResourceManager.GetString("Tools_Option_Language", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default.
+        /// </summary>
+        public static string Tools_Option_Language_Default {
+            get {
+                return ResourceManager.GetString("Tools_Option_Language_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The language has been changed. Please restart QuestPatcher for the changes to take effect..
+        /// </summary>
+        public static string Tools_Option_Language_Text {
+            get {
+                return ResourceManager.GetString("Tools_Option_Language_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Language Changed.
+        /// </summary>
+        public static string Tools_Option_Language_Title {
+            get {
+                return ResourceManager.GetString("Tools_Option_Language_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Theming.
         /// </summary>
         public static string Tools_Option_Theme {

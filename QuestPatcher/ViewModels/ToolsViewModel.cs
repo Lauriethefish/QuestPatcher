@@ -22,6 +22,19 @@ namespace QuestPatcher.ViewModels
         public OperationLocker Locker { get; }
 
         public ThemeManager ThemeManager { get; }
+        
+        public Language SelectedLanguage
+        {
+            get => Config.Language;
+            set
+            {
+                if (value != Config.Language)
+                {
+                    Config.Language = value;
+                    ShowLanguageChangeDialog();
+                }
+            }
+        }
 
         public string AdbButtonText => _isAdbLogging ? Strings.Tools_Tool_ToggleADB_Stop : Strings.Tools_Tool_ToggleADB_Start;
 
@@ -230,6 +243,20 @@ namespace QuestPatcher.ViewModels
                 UseShellExecute = true,
                 Verb = "open"
             });
+        }
+        
+        private async void ShowLanguageChangeDialog()
+        {
+            Strings.Culture = Config.Language.ToCultureInfo(); // Update the resource language so the dialog is in the correct language 
+            
+            var builder = new DialogBuilder
+            {
+                Title = Strings.Tools_Option_Language_Title,
+                Text = Strings.Tools_Option_Language_Text,
+                HideCancelButton = true
+            };
+
+            await builder.OpenDialogue(_mainWindow);
         }
     }
 }

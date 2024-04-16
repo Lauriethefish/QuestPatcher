@@ -20,6 +20,10 @@ namespace QuestPatcher.Core.Models
             }
         }
 
+        [DefaultValue(Language.Default)]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Language Language { get; set; } = Language.Default;
+
         private bool _displayLogs;
 
         [DefaultValue(false)]

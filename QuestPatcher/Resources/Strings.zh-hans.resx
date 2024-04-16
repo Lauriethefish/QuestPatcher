@@ -530,4 +530,16 @@
     <data name="Tools_Tool_RestartApp_Failed_Text" xml:space="preserve">
         <value>重启游戏由于意料之外的错误失败了</value>
     </data>
+    <data name="Tools_Option_Language_Default" xml:space="preserve">
+        <value>系统默认</value>
+    </data>
+    <data name="Tools_Option_Language" xml:space="preserve">
+        <value>语言</value>
+    </data>
+    <data name="Tools_Option_Language_Title" xml:space="preserve">
+        <value>语言已更改</value>
+    </data>
+    <data name="Tools_Option_Language_Text" xml:space="preserve">
+        <value>语言已更改。 请重新启 QuestPatcher 以使更改生效。</value>
+    </data>
 </root>
