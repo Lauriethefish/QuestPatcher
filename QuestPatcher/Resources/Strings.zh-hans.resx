@@ -540,6 +540,6 @@
         <value>语言已更改</value>
     </data>
     <data name="Tools_Option_Language_Text" xml:space="preserve">
-        <value>语言已更改。 请重新启 QuestPatcher 以使更改生效。</value>
+        <value>语言已更改。 请重新启动 QuestPatcher 以使更改生效。</value>
     </data>
 </root>
