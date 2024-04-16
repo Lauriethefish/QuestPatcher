@@ -4,6 +4,9 @@
 # All files
 [*]
 indent_style = space
+
+# ReSharper properties
+resharper_xml_indent_size = 2
 # Code files
 [*.{cs,csx,vb,vbx}]
 indent_size = 4
@@ -47,22 +50,22 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 # Naming Conventions          #
 ###############################
 # Style Definitions
-dotnet_naming_style.pascal_case_style.capitalization             = pascal_case
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 # Use PascalCase for constant fields  
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = warning
-dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols = constant_fields
 dotnet_naming_rule.constant_fields_should_be_pascal_case.style = pascal_case_style
-dotnet_naming_symbols.constant_fields.applicable_kinds            = field
-dotnet_naming_symbols.constant_fields.applicable_accessibilities  = *
-dotnet_naming_symbols.constant_fields.required_modifiers          = const
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+dotnet_naming_symbols.constant_fields.required_modifiers = const
 
 # Use PascalCase for static readonly fields
-dotnet_naming_symbols.static_readonly_fields.applicable_kinds           = field
-dotnet_naming_symbols.static_readonly_fields.required_modifiers         = readonly,static
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = readonly,static
 
 dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.severity = warning
-dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.symbols  = constant_fields
-dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.style    = pascal_case_style
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.symbols = constant_fields
+dotnet_naming_rule.static_readonly_fields_should_be_pascal_case.style = pascal_case_style
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 tab_width = 4
 end_of_line = crlf
@@ -139,3 +142,8 @@ csharp_style_expression_bodied_local_functions = false:silent
 [*.vb]
 # Modifier preferences
 visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride,Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly,Dim,Const,WithEvents,Widening,Narrowing,Custom,Async:suggestion
+
+[*.{appxmanifest,axaml,build,dtd,nuspec,paml,uxml,xaml,xamlx,xoml,xsd}]
+indent_style = space
+indent_size = 2
+tab_width = 4
