@@ -1,9 +1,16 @@
-# QuestPatcher
+# ACVPatcher
 
-QuestPatcher is a GUI based mod installer for any il2cpp unity app on the Oculus Quest that runs on Windows, Linux or macOS.
-It was originally created for modding Gorilla Tag.
+ACVPatcher is a CLI tool to patch AndroidManifest and DEX classes inside an APK without reassembling resources. ACVPatcher is a replacement of Apktool for the ACVTool purpuses to improve its repackaging success rate.
 
-It supports modding with the [QuestLoader](https://github.com/sc2ad/QuestLoader/) and [Scotland2](https://github.com/sc2ad/Scotland2) modloaders.
-The QMOD format used by QuestPatcher is specified [here](https://github.com/Lauriethefish/QuestPatcher.QMod/tree/main/SPECIFICATION.md).
+## Usage
 
-[Latest Stable Release](https://github.com/Lauriethefish/QuestPatcher/releases/latest) | [Latest Nightly Build](https://nightly.link/Lauriethefish/QuestPatcher/workflows/standalone/main)
+```shell
+$ acvpatcher --class ./classes.dex --class ./classes2.dex --permission android.permission.WRITE_EXTERNAL_STORAGE --instrumentation tool.acv.AcvInstrumentation --receiver tool.acv.AcvReceiver:tool.acv.calculate --receiver tool.acv.AcvReceiver:tool.acv.calculate --receiver tool.acv.AcvReceiver:tool.acv.snap --receiver tool.acv.AcvReceiver:tool.acv.flush
+```
+
+ACVPatcher updates DEX classes and AndroidManifest inside the APK file. ACVPatcher may insert new permissions, a broadcast receiver, and instrumentation tag through corresponding options.
+
+
+# Acknowledgement
+
+ACVPatcher employes modules from QuestPatcher project developed by @Lauriethefish
