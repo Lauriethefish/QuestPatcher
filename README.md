@@ -2,15 +2,32 @@
 
 ACVPatcher is a CLI tool to patch AndroidManifest and DEX classes inside an APK without reassembling resources. ACVPatcher is a replacement of Apktool for the ACVTool purpuses to improve its repackaging success rate.
 
+
 ## Usage
 
+ACVPatcher updates DEX classes and/or AndroidManifest inside the APK file. ACVPatcher may insert new permissions, a broadcast receiver, and instrumentation tag into AndroidManifest through corresponding options.
+
+### Add permission to AndroidManifest
+
 ```shell
-$ acvpatcher --class ./classes.dex --class ./classes2.dex --permission android.permission.WRITE_EXTERNAL_STORAGE --instrumentation tool.acv.AcvInstrumentation --receiver tool.acv.AcvReceiver:tool.acv.calculate --receiver tool.acv.AcvReceiver:tool.acv.calculate --receiver tool.acv.AcvReceiver:tool.acv.snap --receiver tool.acv.AcvReceiver:tool.acv.flush
+$ acvpatcher --permission android.permission.WRITE_EXTERNAL_STORAGE 
 ```
 
-ACVPatcher updates DEX classes and AndroidManifest inside the APK file. ACVPatcher may insert new permissions, a broadcast receiver, and instrumentation tag through corresponding options.
+### Add receiver to AndroidManifest
+
+This example will add the AcvReceiver receiver tag with two intent filters (`calculate` and `snap`)
+
+```shell
+$ acvpatcher --receiver tool.acv.AcvReceiver:tool.acv.calculate --receiver tool.acv.AcvReceiver:tool.acv.snap
+```
+
+### Rewrite DEX files
+
+```shell
+$ acvpatcher --class ./classes.dex ./classes2.dex
+```
 
 
 # Acknowledgement
 
-ACVPatcher employes modules from QuestPatcher project developed by @Lauriethefish
+ACVPatcher is build on top of QuestPatcher modules developed by @Lauriethefish

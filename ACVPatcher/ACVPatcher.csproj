@@ -7,4 +7,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\QuestPatcher.Axml\QuestPatcher.Axml.csproj" />
+    <ProjectReference Include="..\QuestPatcher.Zip\QuestPatcher.Zip.csproj" />
+  </ItemGroup>
+
 </Project>
