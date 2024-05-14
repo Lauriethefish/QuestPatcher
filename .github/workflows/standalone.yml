@@ -11,39 +11,41 @@ jobs:
   build:
     strategy:
       matrix:
-        target: [{"runtime": 'ubuntu-x64', "artifact": "QuestPatcher-ubuntu.zip"}, {"runtime": 'win-x64', "artifact": "QuestPatcher-windows-standalone.zip"}]
+        target: [{"runtime": 'linux-x64', "artifact": "ACVPatcher-linux.zip"}, {"runtime": 'win-x64', "artifact": "ACVPatcher-windows.zip"}, {"runtime": 'osx-x64', "artifact": "ACVPatcher-mac.zip"}]
 
     runs-on: windows-latest
     name: Build for ${{ matrix.target.runtime }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.402
-    - name: Install dependencies
+        dotnet-version: 8.0.204
+    - name: Restore dependencies
       run: dotnet restore
     - name: Set version
       if: ${{ github.event_name == 'release' }}
       run: '"${{ github.event.release.tag_name }}" | Out-File -NoNewline -FilePath ./VERSION'
     - name: Build ${{ matrix.target.runtime }}
-      run: dotnet publish QuestPatcher/QuestPatcher.csproj -r ${{ matrix.target.runtime }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -c Release --self-contained
+      run: dotnet publish ACVPatcher/ACVPatcher.csproj -r ${{ matrix.target.runtime }} -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -c Release --self-contained
     - name: Copy license
-      run: cp LICENSE QuestPatcher/bin/Release/net6.0/${{ matrix.target.runtime }}/publish/LICENSE.txt
+      run: cp LICENSE ACVPatcher/bin/Release/net8.0/${{ matrix.target.runtime }}/publish/LICENSE.txt
+    - name: Copy notice
+      run: cp NOTICE ACVPatcher/bin/Release/net8.0/${{ matrix.target.runtime }}/publish/NOTICE.txt
     - name: Artifact Upload ${{ matrix.target.runtime }}
       if: ${{ github.event_name != 'release' }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.target.runtime }}
-        path: QuestPatcher/bin/Release/net6.0/${{ matrix.target.runtime }}/publish/
+        path: ACVPatcher/bin/Release/net8.0/${{ matrix.target.runtime }}/publish/
     - name: Compress Release Artifact
       if: ${{ github.event_name == 'release' }}
-      run: 'Compress-Archive QuestPatcher/bin/Release/net6.0/${{ matrix.target.runtime }}/publish/* ./release.zip'
+      run: 'Compress-Archive ACVPatcher/bin/Release/net8.0/${{ matrix.target.runtime }}/publish/* ./release.zip'
     - name: Upload Release Asset
       if: ${{ github.event_name == 'release' }}
       id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
+      uses: actions/upload-release-asset@v4
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:

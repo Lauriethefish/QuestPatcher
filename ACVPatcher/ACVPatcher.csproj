@@ -6,6 +6,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <PropertyGroup>
+    <Title>ACVPatcher</Title>
+    <Authors>Aleksandr Pilgun</Authors>
+    <PackageProjectUrl>https://github.com/pilgun/ACVPatcher/tree/main/ACVPatcher</PackageProjectUrl>
+    <PackageLicenseExpression>Apache</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/pilgun/acvpatcher.git</RepositoryUrl>
+    <Copyright>Copyright 2024 Aleksandr Pilgun</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>axml, android, xml, acvtool</PackageTags>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
