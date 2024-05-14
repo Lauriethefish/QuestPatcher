@@ -1,6 +1,7 @@
 ﻿// // See https://aka.ms/new-console-template for more information
 // Console.WriteLine("Hello, World!");
 using System;
+using System.IO.Compression;
 using ACVPatcher;
 using CommandLine;
 using CommandLine.Text;
@@ -27,33 +28,19 @@ class Options
 
 class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         var patchingManager = new PatchingManager();
+        // args = "-p android.permission.WRITE_EXTERNAL_STORAGE -i tool.acv.AcvInstrumentation -r tool.acv.AcvReceiver:tool.acv.calculate -a /Users/ap/projects/dblt/apks/debloatapp/base.apk".Split(' ');
         Console.WriteLine(string.Join(" ", args));
-        var t = Parser.Default.ParseArguments<Options>(args)
-        .WithParsed<Options>(options =>
+        var options = await Parser.Default.ParseArguments<Options>(args).WithParsedAsync(async options =>
         {
-
-            // Process the arguments
-            Console.WriteLine($"Class Path: {options.ClassPath}");
-            Console.WriteLine($"Permission: {options.Permission}");
+            Console.WriteLine($"Class Path: {(options.ClassPath != null ? string.Join(", ", options.ClassPath) : string.Empty)}");
+            Console.WriteLine($"Permission: {(options.Permission != null ? string.Join(", ", options.Permission) : string.Empty)}");
             Console.WriteLine($"Instrumentation: {options.Instrumentation}");
-            Console.WriteLine("Receivers:");
-            // foreach (string receiver in options.Receivers)
-            // {
-            //     Console.WriteLine(receiver);
-            // }
-
-            // Your code logic goes here...
-
-            Console.WriteLine("Hello, World!");
-            Task.Run(async () => await patchingManager.Run(options));
-        })
-        .WithNotParsed<Options>(errors =>
-        {
-            // Handle parsing errors
-            Console.WriteLine("Failed to parse command line arguments.");
+            Console.WriteLine($"Receivers: {(options.Receivers != null ? string.Join(", ", options.Receivers) : string.Empty)}");
+            Console.WriteLine($"APK Path: {options.ApkPath}");
+            await patchingManager.Run(options);
         });
     }
 }
@@ -86,6 +73,7 @@ internal class PatchingManager
 
     private async Task PatchManifest(ApkZip apk, Options options)
     {
+        bool modified = false;
         using var ms = new MemoryStream();
         using (var stream = await apk.OpenReaderAsync("AndroidManifest.xml"))
         {
@@ -94,6 +82,7 @@ internal class PatchingManager
 
         ms.Position = 0;
         var manifest = AxmlLoader.LoadDocument(ms);
+        string package = AxmlManager.GetPackage(manifest);
         if (options.Permission != null)
         {
             var existingPermissions = AxmlManager.GetExistingChildren(manifest, "uses-permission");
@@ -101,22 +90,159 @@ internal class PatchingManager
             {
                 if (existingPermissions.Contains(permission)) { continue; } // Do not add existing permissions
                 AddPermissionToManifest(manifest, permission);
+                modified = true;
             }
         }
         if (options.Instrumentation != null)
         {
-            AddInstrumentationToManifest(manifest, options.Instrumentation);
+            AddInstrumentationToManifest(manifest, options.Instrumentation, package);
+            modified = true;
         }
         if (options.Receivers != null)
         {
-            var existingReceivers = AxmlManager.GetExistingChildren(manifest, "receiver");
-            foreach (var receiver in options.Receivers)
+            var appElement = manifest.Children.Single(child => child.Name == "application");
+            // var existingReceivers = AxmlManager.GetExistingChildren(appElement, "receiver");
+            var existingReceiverElements = GetExistingReceiverElements(appElement);
+            var receiverActions = ParseReceiverActions(options.Receivers);
+            foreach (var receiverAction in receiverActions)
             {
-                if (existingReceivers.Contains(receiver)) { continue; } // Do not add existing receivers
-                AddReceiverToManifest(manifest, receiver);
+                var receiverName = receiverAction.Key;
+                List<string> actions = receiverAction.Value;
+                var receiverElement = existingReceiverElements.ContainsKey(receiverName) ? existingReceiverElements[receiverName] : null;
+                if (receiverElement == null)
+                {
+                    receiverElement = AddReceiverToManifest(appElement, receiverName);
+                    existingReceiverElements[receiverName] = receiverElement;
+                    modified = true;
+                }
+
+                var receiverIntentFilter = receiverElement.Children.Any(ch => ch.Name == "intent-filter") ? receiverElement.Children.Single(ch => ch.Name == "intent-filter") : null;
+                if (receiverIntentFilter == null)
+                {
+                    receiverIntentFilter = new AxmlElement("intent-filter");
+                    receiverElement.Children.Add(receiverIntentFilter);
+                }
+                List<string?> existingActions = receiverIntentFilter.Children
+                    .Where(ch => ch.Name == "action").Select(ch => ch.Attributes.Single(attr => attr.Name == "name")?.Value as string)
+                    .ToList();
+                var newActions = actions.Where(action => action != null).Except(existingActions).ToList();
+
+                foreach (var action in newActions)
+                {
+                    AddIntentAction(receiverIntentFilter, action!);
+                    modified = true;
+                }
             }
         }
+        if (modified)
+        {
+            ms.SetLength(0);
+            ms.Position = 0;
+            AxmlSaver.SaveDocument(ms, manifest);
+            ms.Position = 0;
+            await apk.AddFileAsync("AndroidManifest.xml", ms, CompressionLevel.Optimal);
+        }
     }
+
+    private Dictionary<string, AxmlElement> GetExistingReceiverElements(AxmlElement appElement)
+    {
+        var receiverElements = new Dictionary<string, AxmlElement>();
+
+        foreach (var receiver in appElement.Children)
+        {
+            if (receiver.Name != "receiver") { continue; }
+
+            var receiverName = receiver.Attributes.Single(attr => attr.Name == "name")?.Value as string;
+            if (receiverName != null)
+            {
+                receiverElements[receiverName] = receiver;
+            }
+        }
+        return receiverElements;
+    }
+
+    private Dictionary<string, List<string>> GetExistingReceiverActions(AxmlElement appElement)
+    {
+        var receiverActions = new Dictionary<string, List<string>>();
+
+        foreach (var receiver in appElement.Children)
+        {
+            if (receiver.Name != "receiver") { continue; }
+
+            var receiverName = receiver.Attributes.Single(attr => attr.Name == "name")?.Value as string;
+            if (receiverName == null) { continue; }
+
+            var intentFilters = receiver.Children.Where(child => child.Name == "intent-filter").ToList();
+            if (intentFilters.Count == 0) { continue; }
+
+            var actions = new List<string>();
+            foreach (var intentFilter in intentFilters)
+            {
+                foreach (var action in intentFilter.Children)
+                {
+                    if (action.Name != "action") { continue; }
+
+                    var actionName = action.Attributes.Single(attr => attr.Name == "name")?.Value as string;
+                    if (actionName != null)
+                    {
+                        actions.Add(actionName);
+                    }
+                }
+            }
+            receiverActions[receiverName] = actions;
+        }
+        return receiverActions;
+    }
+
+    private Dictionary<string, List<string>> ParseReceiverActions(IEnumerable<string> receiverArgs)
+    {
+        var receiverActions = new Dictionary<string, List<string>>();
+
+        foreach (string receiverArg in receiverArgs)
+        {
+            // Split the receiverArg string into two separate variables
+            var receiverParts = receiverArg.Split(':');
+            var receiverClassName = receiverParts[0];
+            var actionName = receiverParts[1];
+
+            if (receiverActions.ContainsKey(receiverClassName))
+            {
+                receiverActions[receiverClassName].Add(actionName);
+            }
+            else
+            {
+                receiverActions[receiverClassName] = new List<string> { actionName };
+            }
+        }
+
+        return receiverActions;
+    }
+
+    private AxmlElement AddReceiverToManifest(AxmlElement appElement, string receiver)
+    {
+        AxmlElement receiverElement = new("receiver");
+        AxmlManager.AddNameAttribute(receiverElement, receiver);
+        AxmlManager.AddExportedAttribute(receiverElement, true);
+        AxmlManager.AddEnabledAttribute(receiverElement, true);
+        appElement.Children.Add(receiverElement);
+        return receiverElement;
+    }
+
+    private void AddIntentAction(AxmlElement intentFilterElement, string actionName)
+    {
+        AxmlElement actionElement = new("action");
+        AxmlManager.AddNameAttribute(actionElement, actionName);
+        intentFilterElement.Children.Add(actionElement);
+    }
+
+    private void AddInstrumentationToManifest(AxmlElement manifest, string instrumentationName, string package)
+    {
+        AxmlElement instrElement = new("instrumentation");
+        AxmlManager.AddNameAttribute(instrElement, instrumentationName);
+        AxmlManager.AddTargetPackageAttribute(instrElement, package);
+        manifest.Children.Add(instrElement);
+    }
+
     private static void AddPermissionToManifest(AxmlElement manifest, string permission)
     {
         AxmlElement permElement = new("uses-permission");
@@ -126,82 +252,9 @@ internal class PatchingManager
 
     private async Task AddClassToApk(ApkZip apk, string classPath)
     {
+        var fileName = Path.GetFileName(classPath);
         using var dexStream = File.OpenRead(classPath);
-        await apk.AddDexAsync(dexStream);
+        await apk.AddFileAsync(fileName, dexStream, CompressionLevel.Optimal);
     }
 
-    private void AddPermissionToManifest(AxmlElement manifest, string permission)
-    {
-        throw new NotImplementedException();
-    }
 }
-
-// }
-// using System;
-
-// class Program
-// {
-//     static void Main(string[] args)
-//     {
-//         // Parse the command line arguments
-//         if (args.Length == 0)
-//         {
-//             Console.WriteLine("No arguments provided.");
-//             return;
-//         }
-
-//         string classPath = null;
-//         string permission = null;
-//         string instrumentation = null;
-//         string[] receivers = null;
-
-//         for (int i = 0; i < args.Length; i++)
-//         {
-//             if (args[i] == "--class" && i + 1 < args.Length)
-//             {
-//                 classPath = args[i + 1];
-//                 i++;
-//             }
-//             else if (args[i] == "--permission" && i + 1 < args.Length)
-//             {
-//                 permission = args[i + 1];
-//                 i++;
-//             }
-//             else if (args[i] == "--instrumentation" && i + 1 < args.Length)
-//             {
-//                 instrumentation = args[i + 1];
-//                 i++;
-//             }
-//             else if (args[i] == "--receiver" && i + 1 < args.Length)
-//             {
-//                 if (receivers == null)
-//                 {
-//                     receivers = new string[] { args[i + 1] };
-//                 }
-//                 else
-//                 {
-//                     Array.Resize(ref receivers, receivers.Length + 1);
-//                     receivers[receivers.Length - 1] = args[i + 1];
-//                 }
-//                 i++;
-//             }
-//         }
-
-//         // Process the arguments
-//         Console.WriteLine($"Class Path: {classPath}");
-//         Console.WriteLine($"Permission: {permission}");
-//         Console.WriteLine($"Instrumentation: {instrumentation}");
-//         Console.WriteLine("Receivers:");
-//         if (receivers != null)
-//         {
-//             foreach (string receiver in receivers)
-//             {
-//                 Console.WriteLine(receiver);
-//             }
-//         }
-
-//         // Your code logic goes here...
-
-//         Console.WriteLine("Hello, World!");
-//     }
-// }

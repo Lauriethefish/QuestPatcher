@@ -10,7 +10,7 @@ ACVPatcher updates DEX classes and/or AndroidManifest inside the APK file. ACVPa
 ### Add permission to AndroidManifest
 
 ```shell
-$ acvpatcher --permission android.permission.WRITE_EXTERNAL_STORAGE 
+$ acvpatcher --permission android.permission.WRITE_EXTERNAL_STORAGE android.permission.READ_EXTERNAL_STORAGE
 ```
 
 ### Add receiver to AndroidManifest
@@ -18,13 +18,40 @@ $ acvpatcher --permission android.permission.WRITE_EXTERNAL_STORAGE
 This example will add the AcvReceiver receiver tag with two intent filters (`calculate` and `snap`)
 
 ```shell
-$ acvpatcher --receiver tool.acv.AcvReceiver:tool.acv.calculate --receiver tool.acv.AcvReceiver:tool.acv.snap
+$ acvpatcher --receiver tool.acv.AcvReceiver:tool.acv.calculate tool.acv.AcvReceiver:tool.acv.snap
 ```
 
 ### Rewrite DEX files
 
 ```shell
 $ acvpatcher --class ./classes.dex ./classes2.dex
+```
+
+### AndroidManifest Patching
+
+Here is an example of XML added to patched AndroidManifest
+
+```xml
+<manifest ...>
+    ...
+<application>
+    ...
+    <receiver
+        android:name="tool.acv.AcvReceiver"
+        android:enabled="true"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="tool.acv.snap" />
+            <action android:name="tool.acv.calculate" />
+        </intent-filter>
+    </receiver>
+</application>
+    <instrumentation
+        android:name="tool.acv.AcvInstrumentation"
+        android:targetPackage="package.name" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+</manifest>
 ```
 
 
