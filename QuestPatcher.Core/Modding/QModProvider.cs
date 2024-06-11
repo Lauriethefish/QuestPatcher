@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DanTheMan827.TempFolders;
+using QuestPatcher.Core.Extensions;
 using QuestPatcher.Core.Models;
 using QuestPatcher.QMod;
 using Serilog;
@@ -108,6 +111,20 @@ namespace QuestPatcher.Core.Modding
             if (!mod.Manifest.IsLibrary)
             {
                 await CleanUnusedLibraries(false);
+            }
+        }
+
+        public override async Task BackupMod(IMod mod, Stream backupStream)
+        {
+            using (var temp = new EasyTempFolder())
+            {
+                var localPath = Path.Combine(temp, mod.Id);
+                await _debugBridge.DownloadFile(GetExtractDirectory(mod.Id), localPath);
+
+                using (var zip = new ZipArchive(backupStream, ZipArchiveMode.Create))
+                {
+                    await Task.Run(() => zip.AddFolder(localPath));
+                }
             }
         }
 

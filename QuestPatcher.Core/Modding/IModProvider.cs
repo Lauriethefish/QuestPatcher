@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
 {
@@ -30,6 +31,15 @@ namespace QuestPatcher.Core.Modding
         /// <exception cref="ArgumentException">If the given mod was not a mod loaded with this provider.</exception>
         /// <exception cref="InstallationException">If uninstalling the mod prior to removal fails.</exception>
         Task DeleteMod(IMod mod);
+
+        /// <summary>
+        /// Backs up the given mod to the stream provided.
+        /// </summary>
+        /// <param name="mod">Mod to backup.</param>
+        /// <param name="backupStream">The stream to write the backup to.</param>
+        /// <exception cref="ArgumentException">If the given mod was not a mod loaded with this provider.</exception>
+        /// <exception cref="InstallationException">If uninstalling the mod prior to removal fails.</exception>
+        Task BackupMod(IMod mod, Stream backupStream);
 
         /// <summary>
         /// Loads the mods from the quest.

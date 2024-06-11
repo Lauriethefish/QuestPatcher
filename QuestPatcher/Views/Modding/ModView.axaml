@@ -28,7 +28,10 @@
         <TextBlock Text="{Binding Description}" FontSize="10"/>
       </StackPanel>
       <TextBlock Text="{Binding Author}" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Top"/>
-      <Button VerticalAlignment="Bottom" Margin="0 0 0 5" HorizontalAlignment="Left" FontSize="13" IsEnabled="{Binding Locker.IsFree}" Command="{Binding OnDelete}">Delete</Button>
+      <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Left" Spacing="5" Margin="0 0 0 5" Orientation="Horizontal">
+        <Button FontSize="13" IsEnabled="{Binding Locker.IsFree}" Command="{Binding OnBackup}">Backup</Button>
+        <Button FontSize="13" IsEnabled="{Binding Locker.IsFree}" Command="{Binding OnDelete}">Delete</Button>
+      </StackPanel>
       <ToggleSwitch VerticalAlignment="Bottom" HorizontalAlignment="Right" OffContent="Disabled" OnContent="Enabled" IsChecked="{Binding IsInstalled}" IsEnabled="{Binding Locker.IsFree}" />
     </Panel>
   </DockPanel>
