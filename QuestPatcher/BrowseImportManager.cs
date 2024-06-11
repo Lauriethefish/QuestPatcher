@@ -30,10 +30,7 @@ namespace QuestPatcher
         private readonly OperationLocker _locker;
         private readonly QuestPatcherUiService _uiService;
 
-        private readonly FilePickerFileType _modsFilter = new("Quest Mods")
-        {
-            Patterns = new List<string>() { "*.qmod" }
-        };
+        private static readonly FilePickerFileType _modsFilter = FilePickerTypes.QMod;
 
         private Queue<FileImportInfo>? _currentImportQueue;
 

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.IO;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core.Modding
@@ -13,6 +14,7 @@ namespace QuestPatcher.Core.Modding
         public abstract string FileExtension { get; }
         public abstract Task<IMod> LoadFromFile(string modPath);
         public abstract Task DeleteMod(IMod mod);
+        public abstract Task BackupMod(IMod mod, Stream backupStream);
         public abstract Task LoadModsStatus();
         public abstract void ClearMods();
         public abstract Task LoadLegacyMods();

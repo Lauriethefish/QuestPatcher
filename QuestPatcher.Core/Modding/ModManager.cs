@@ -32,6 +32,11 @@ namespace QuestPatcher.Core.Modding
         private static readonly List<IMod> EmptyModList = new();
 
         /// <summary>
+        /// The ID for the current app.
+        /// </summary>
+        public string AppId => _config.AppId;
+
+        /// <summary>
         /// Path where QuestLoader mod files reside.
         /// </summary>
         public string ModsPath => $"/sdcard/Android/data/{_config.AppId}/files/mods/";
@@ -137,6 +142,17 @@ namespace QuestPatcher.Core.Modding
         public async Task DeleteMod(IMod mod)
         {
             await mod.Provider.DeleteMod(mod);
+        }
+
+        /// <summary>
+        /// Creates a backup of a mod, removing all mod files and uninstalling it if it was installed.
+        /// </summary>
+        /// <param name="mod">The mod to delete.</param>
+        /// <param name="backupStream">The stream to backup to.</param>
+        /// <exception cref="InstallationException">If uninstalling the mod failed, prior to removal.</exception>
+        public async Task BackupMod(IMod mod, Stream backupStream)
+        {
+            await mod.Provider.BackupMod(mod, backupStream);
         }
 
         /// <summary>

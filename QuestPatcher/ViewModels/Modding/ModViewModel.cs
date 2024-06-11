@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
@@ -213,6 +214,35 @@ namespace QuestPatcher.ViewModels.Modding
             {
                 await ShowFailDialog("Failed to uninstall mod", ex);
                 return false;
+            }
+        }
+
+        public async void OnBackup()
+        {
+            Locker.StartOperation();
+            try
+            {
+                var outFilename = await _mainWindow.StorageProvider.SaveFilePickerAsync(new()
+                {
+                    FileTypeChoices = new[] { FilePickerTypes.QMod },
+                    SuggestedFileName = $"{Mod.Id}.qmod"
+                });
+
+                if (outFilename != null)
+                {
+                    using (var file = File.Create(outFilename.Path.LocalPath))
+                    {
+                        await _modManager.BackupMod(Mod, file);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowFailDialog("Failed to delete mod", ex);
+            }
+            finally
+            {
+                Locker.FinishOperation();
             }
         }
 
