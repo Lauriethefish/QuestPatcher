@@ -445,16 +445,18 @@ namespace QuestPatcher.Core.Patching
         /// <summary>
         /// Makes the modifications to the APK to support mods.
         /// </summary>
-        /// <param name="mainPath">Path of the libmain file to replace</param>
+        /// <param name="mainPath">Path of the libmain file to replace or null if it should not be replaced</param>
         /// <param name="modloaderPath">Path of the libmodloader to replace, or null if no modloader needs to be stored within the APK</param>
         /// <param name="unityPath">Optionally, a path to a replacement libunity.so</param>
         /// <param name="libsDirectory">The directory where the SO files are stored in the APK</param>
         /// <param name="ovrPlatformSdkPath">Path to the OVR platform SDK ZIP, used for patching with flatscreen support. Must be non-null if flatscreen support is enabled.</param>
         /// <param name="apk">The APK to patch</param>
-        private async Task ModifyApk(string mainPath, string? modloaderPath, string? unityPath, string? ovrPlatformSdkPath, string libsDirectory, ApkZip apk)
+        private async Task ModifyApk(string? mainPath, string? modloaderPath, string? unityPath, string? ovrPlatformSdkPath, string libsDirectory, ApkZip apk)
         {
-            Log.Information("Copying libmain.so and libmodloader.so . . .");
-            await AddFileToApk(mainPath, Path.Combine(libsDirectory, "libmain.so"), apk);
+            if (mainPath != null) {
+                Log.Information("Copying libmain.so and libmodloader.so . . .");
+                await AddFileToApk(mainPath, Path.Combine(libsDirectory, "libmain.so"), apk);
+            }
             if (modloaderPath == null)
             {
                 if (apk.RemoveFile(Path.Combine(libsDirectory, "libmodloader.so")))
@@ -500,7 +502,10 @@ namespace QuestPatcher.Core.Patching
             Log.Information("Adding tag");
             using var tagStream = new MemoryStream();
 
-            string modloaderName = _config.PatchingOptions.ModLoader == ModLoader.QuestLoader ? "QuestLoader" : "Scotland2";
+            string modloaderName =
+                _config.PatchingOptions.ModLoader == ModLoader.QuestLoader ? "QuestLoader" :
+                _config.PatchingOptions.ModLoader == ModLoader.Scotland2 ? "Scotland2" :
+                "None";
             var tag = new ModdedTag("QuestPatcher", VersionUtil.QuestPatcherVersion.ToString(), modloaderName, null);
             JsonSerializer.Serialize(tagStream, tag, InstallManager.TagSerializerOptions);
             tagStream.Position = 0;
@@ -564,7 +569,9 @@ namespace QuestPatcher.Core.Patching
                 throw new NullReferenceException("Cannot patch before installed app has been checked");
             }
 
+            bool questLoader = _config.PatchingOptions.ModLoader == ModLoader.QuestLoader;
             bool scotland2 = _config.PatchingOptions.ModLoader == ModLoader.Scotland2;
+            bool noModLoader = _config.PatchingOptions.ModLoader == ModLoader.None;
 
             if (!InstalledApp.Is64Bit)
             {
@@ -573,7 +580,7 @@ namespace QuestPatcher.Core.Patching
                     Log.Error("App is 32 bit, cannot patch with scotland2");
                     throw new PatchingException("32 bit apps are not supported by scotland2");
                 }
-                else
+                else if (questLoader)
                 {
                     Log.Warning("App is 32 bit!");
                     if (!await _prompter.Prompt32Bit()) // Prompt the user to ask if they would like to continue, even though BS-hook doesn't work on 32 bit apps
@@ -583,7 +590,7 @@ namespace QuestPatcher.Core.Patching
                 }
             }
 
-            if (InstalledApp.ModLoader == ModLoader.Unknown)
+            if (InstalledApp.ModLoader == ModLoader.Unknown && !noModLoader)
             {
                 Log.Warning("APK contains unknown modloader");
                 if (!await _prompter.PromptUnknownModLoader())
@@ -597,8 +604,8 @@ namespace QuestPatcher.Core.Patching
 
             // First make sure that we have all necessary files downloaded, including the libmain and libmodloader
             string libsPath = InstalledApp.Is64Bit ? "lib/arm64-v8a" : "lib/armeabi-v7a";
-            string mainPath;
-            string? modloaderPath;
+            string? mainPath = null;
+            string? modloaderPath = null;
             string? ovrPlatformSdkPath = null;
 
             if (scotland2)
@@ -609,7 +616,7 @@ namespace QuestPatcher.Core.Patching
                 // Scotland2 itself lives outside the APK, so save it to the required location
                 await SaveScotland2(true); // As we patch the APK, we should update the sl2 version, in case some old version is breaking things
             }
-            else
+            else if (questLoader)
             {
 
                 if (InstalledApp.Is64Bit)

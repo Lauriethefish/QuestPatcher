@@ -57,6 +57,7 @@
           <ComboBox SelectedIndex="{Binding Config.PatchingOptions.ModLoader}">
             <ComboBoxItem>QuestLoader</ComboBoxItem>
             <ComboBoxItem>Scotland2</ComboBoxItem>
+            <ComboBoxItem>None</ComboBoxItem>
           </ComboBox>
         </StackPanel>
         <Button Command="{Binding StartPatching}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" FontSize="15" Padding="12">Patch my App!</Button>

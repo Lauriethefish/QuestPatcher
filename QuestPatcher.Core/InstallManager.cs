@@ -103,6 +103,11 @@ namespace QuestPatcher.Core
                         Log.Information("APK is modded with Scotland2");
                         return ModLoader.Scotland2;
                     }
+                    else if (tag.ModloaderName.Equals("None", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Information("APK was modded with no mod loader");
+                        return ModLoader.None;
+                    }
                     else
                     {
                         Log.Warning("Unknown modloader found in APK: {ModloaderName}", tag.ModloaderName);
