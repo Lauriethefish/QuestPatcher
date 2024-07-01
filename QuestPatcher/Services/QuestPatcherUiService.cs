@@ -84,7 +84,7 @@ namespace QuestPatcher.Services
                     new ManageModsViewModel(ModManager, InstallManager, window, _operationLocker, progressViewModel, _browseManager),
                     _loggingViewModel,
                     new ToolsViewModel(Config, progressViewModel, _operationLocker, window, SpecialFolders, InstallManager, DebugBridge, this, InfoDumper,
-                        _themeManager),
+                        _themeManager, ExitApplication),
                     _otherItemsView,
                     Config,
                     InstallManager,

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
@@ -46,8 +47,9 @@ namespace QuestPatcher.ViewModels
         private readonly AndroidDebugBridge _debugBridge;
         private readonly QuestPatcherUiService _uiService;
         private readonly InfoDumper _dumper;
+        private readonly Action _quit;
 
-        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, InstallManager installManager, AndroidDebugBridge debugBridge, QuestPatcherUiService uiService, InfoDumper dumper, ThemeManager themeManager)
+        public ToolsViewModel(Config config, ProgressViewModel progressView, OperationLocker locker, Window mainWindow, SpecialFolders specialFolders, InstallManager installManager, AndroidDebugBridge debugBridge, QuestPatcherUiService uiService, InfoDumper dumper, ThemeManager themeManager, Action quit)
         {
             Config = config;
             ProgressView = progressView;
@@ -60,6 +62,7 @@ namespace QuestPatcher.ViewModels
             _debugBridge = debugBridge;
             _uiService = uiService;
             _dumper = dumper;
+            _quit = quit;
 
             _debugBridge.StoppedLogging += (_, _) =>
             {
@@ -253,8 +256,20 @@ namespace QuestPatcher.ViewModels
             {
                 Title = Strings.Tools_Option_Language_Title,
                 Text = Strings.Tools_Option_Language_Text,
-                HideCancelButton = true
             };
+            builder.OkButton.Text = Strings.Generic_OK;
+            builder.CancelButton.Text = Strings.Generic_NotNow;
+            builder.OkButton.OnClick = () =>
+            {
+                string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
+                if(exePath != null)
+                {
+                    Process.Start(exePath);
+                }
+
+                _quit();
+            };
+            
 
             await builder.OpenDialogue(_mainWindow);
         }
