@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
+             xmlns:res="clr-namespace:QuestPatcher.Resources"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QuestPatcher.Views.LoadingView">
   <Design.DataContext>
@@ -14,11 +15,16 @@
     <ExperimentalAcrylicBorder DockPanel.Dock="Left" Material="{DynamicResource MainBackgroundMaterial}" IsHitTestVisible="True">
         <Panel Margin="20" IsHitTestVisible="True">
           <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="5">
-            <TextBlock TextAlignment="Center">QuestPatcher loading . . .</TextBlock>
+            <TextBlock TextAlignment="Center" Text="{x:Static res:Strings.Loading_QPLoading}"/>
             <UserControl Content="{Binding ProgressView}" Padding="20"/>
             <UserControl Content="{Binding LoggingView}" Width="470" Height="200" IsVisible="{Binding Config.DisplayLogs}" />
           </StackPanel>
-          <ToggleSwitch Content="Display Logs" HorizontalAlignment="Left" IsChecked="{Binding Config.DisplayLogs}" VerticalAlignment="Bottom"/>
+          <ToggleSwitch Content="{x:Static res:Strings.Global_DisplayLogs}" 
+                        OnContent="{x:Static res:Strings.Generic_On}" 
+                        OffContent="{x:Static res:Strings.Generic_Off}" 
+                        HorizontalAlignment="Left" 
+                        IsChecked="{Binding Config.DisplayLogs}" 
+                        VerticalAlignment="Bottom"/>
         </Panel>
         </ExperimentalAcrylicBorder>
     </DockPanel>

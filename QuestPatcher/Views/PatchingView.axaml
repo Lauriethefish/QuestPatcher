@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
+             xmlns:res="clr-namespace:QuestPatcher.Resources"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QuestPatcher.Views.PatchingView">
   <Design.DataContext>
@@ -12,22 +13,22 @@
   <Panel>
     <DockPanel IsVisible="{Binding !IsPatchingInProgress}">
         <StackPanel Margin="20" Orientation="Vertical" DockPanel.Dock="Top">
-          <ToggleButton IsChecked="{Binding Config.ShowPatchingOptions}" VerticalAlignment="Top" HorizontalAlignment="Right">Patching Options</ToggleButton>
+          <ToggleButton IsChecked="{Binding Config.ShowPatchingOptions}" VerticalAlignment="Top" HorizontalAlignment="Right" Content="{x:Static res:Strings.Patching_PatchingOptions}"/>
           <ScrollViewer Margin="0 15 0 0" IsVisible="{Binding Config.ShowPatchingOptions}" HorizontalScrollBarVisibility="Auto" VerticalAlignment="Top" Background="{DynamicResource PatchingOptionsBackground}">
               <StackPanel Orientation="Horizontal" Spacing="25" Margin="10">
-                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.ExternalFiles}" IsEnabled="False">Allow External Files</ToggleSwitch>
-                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Debuggable}">Allow Debugging</ToggleSwitch>
-                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.FlatScreenSupport}">Disable VR Requirement</ToggleSwitch>
-                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Microphone}">Enable Microphone</ToggleSwitch>
-                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.OpenXR}">Enable OpenXR</ToggleSwitch>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.ExternalFiles}" IsEnabled="False" Content="{x:Static res:Strings.PatchingOption_ExternalFiles}" />
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Debuggable}" Content="{x:Static res:Strings.PatchingOption_Debugging}"/>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.FlatScreenSupport}" Content="{x:Static res:Strings.PatchingOption_NoVRRequirement}"/>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Microphone}" Content="{x:Static res:Strings.PatchingOption_Microphone}"/>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.OpenXR}" Content="{x:Static res:Strings.PatchingOption_OpenXR}"/>
 
                   <StackPanel Orientation="Vertical" Spacing="10">
-                      <TextBlock>Hand Tracking Type</TextBlock>
+                      <TextBlock Text="{x:Static res:Strings.PatchingOption_HandTracking}"/>
                       <ComboBox SelectedIndex="{Binding Config.PatchingOptions.HandTrackingType}">
-                          <ComboBoxItem>None</ComboBoxItem>
-                          <ComboBoxItem>V1</ComboBoxItem>
-                          <ComboBoxItem>V1 High Frequency</ComboBoxItem>
-                          <ComboBoxItem>V2</ComboBoxItem>
+                          <ComboBoxItem Content="{x:Static res:Strings.PatchingOption_HandTracking_None}"/>
+                          <ComboBoxItem Content="{x:Static res:Strings.PatchingOption_HandTracking_V1}"/>
+                          <ComboBoxItem Content="{x:Static res:Strings.PatchingOption_HandTracking_V1HighFrequency}"/>
+                          <ComboBoxItem Content="{x:Static res:Strings.PatchingOption_HandTracking_V2}"/>
                       </ComboBox>
                   </StackPanel>
               </StackPanel>
@@ -35,12 +36,12 @@
           <Panel Margin="0 10 0 0" Background="{DynamicResource PatchingOptionsBackground}">
             <StackPanel Orientation="Vertical" Spacing="10" IsVisible="{Binding Config.ShowPatchingOptions}" Margin="10">
               <StackPanel Orientation="Horizontal" Spacing="5">
-                <TextBlock>Custom Splash Screen:</TextBlock>
+                <TextBlock Text="{x:Static res:Strings.Patching_SplashScreen}"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="5">
-                <Button Command="{Binding SelectSplashPath}">Browse</Button>
-                <TextBlock Text="{Binding CustomSplashPath}" IsVisible="{Binding CustomSplashPath, Converter={x:Static ObjectConverters.IsNotNull}}>" VerticalAlignment="Center"/>
-                <TextBlock Text="None Selected" IsVisible="{Binding CustomSplashPath, Converter={x:Static ObjectConverters.IsNull}}>" VerticalAlignment="Center" />
+                <Button Command="{Binding SelectSplashPath}" Content="{x:Static res:Strings.Generic_Browse}" />
+                <TextBlock Text="{Binding CustomSplashPath}" IsVisible="{Binding CustomSplashPath, Converter={x:Static ObjectConverters.IsNotNull}}" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static res:Strings.Patching_SplashScreen_None}" IsVisible="{Binding CustomSplashPath, Converter={x:Static ObjectConverters.IsNull}}" VerticalAlignment="Center"/>
               </StackPanel>
             </StackPanel>
           </Panel>
@@ -48,23 +49,21 @@
         
         <StackPanel HorizontalAlignment="Center" Orientation="Vertical" VerticalAlignment="Center" Spacing="20">
         <StackPanel Orientation="Vertical" Spacing="5">
-          <TextBlock TextAlignment="Center">Before you install mods, QuestPatcher must patch your app.</TextBlock>
-          <TextBlock TextAlignment="Center">This may take several minutes depending on your internet connection.</TextBlock>
-          <TextBlock TextAlignment="Center">Make sure that your internet does not go offline during patching.</TextBlock>
+          <TextBlock TextAlignment="Center" Text="{x:Static res:Strings.Patching_BeforeStartMessage}"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-          <TextBlock Margin="0 7 0 0">Choose the modloader to patch with: </TextBlock>
+          <TextBlock Margin="0 7 0 0" Text="{x:Static res:Strings.Patching_SelectModLoader}"/>
           <ComboBox SelectedIndex="{Binding Config.PatchingOptions.ModLoader}">
-            <ComboBoxItem>QuestLoader</ComboBoxItem>
-            <ComboBoxItem>Scotland2</ComboBoxItem>
+            <ComboBoxItem Content="{x:Static res:Strings.ModLoader_QuestLoader}"/>
+            <ComboBoxItem Content="{x:Static res:Strings.ModLoader_Scotland2}"/>
           </ComboBox>
         </StackPanel>
-        <Button Command="{Binding StartPatching}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" FontSize="15" Padding="12">Patch my App!</Button>
+        <Button Command="{Binding StartPatching}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" FontSize="15" Padding="12" Content="{x:Static res:Strings.Patching_StartPatching}"/>
       </StackPanel>
     </DockPanel>
 
     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0 0 0 0" Spacing="10" IsVisible="{Binding IsPatchingInProgress}">
-      <TextBlock HorizontalAlignment="Center" IsVisible="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNull}}">Please wait while patching completes . . .</TextBlock>
+      <TextBlock HorizontalAlignment="Center" IsVisible="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNull}}" Text="{x:Static res:Strings.Patching_InProgress}"/>
       <UserControl Content="{Binding ProgressBarView}"/>
       <TextBlock Text="{Binding PatchingStageText}" HorizontalAlignment="Center"/>
     </StackPanel>

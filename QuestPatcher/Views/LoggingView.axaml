@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
+             xmlns:res="clr-namespace:QuestPatcher.Resources"
              mc:Ignorable="d"
              d:DesignWidth="600"
              x:Class="QuestPatcher.Views.LoggingView">
@@ -11,7 +12,7 @@
     </Design.DataContext>
     
     <DockPanel>
-        <TextBlock DockPanel.Dock="Top" TextDecorations="Underline" HorizontalAlignment="Center">Modding Log</TextBlock>
+        <TextBlock DockPanel.Dock="Top" TextDecorations="Underline" HorizontalAlignment="Center" Text="{x:Static res:Strings.LoggingDock_Title}"/>
         <TextBox ScrollViewer.VerticalScrollBarVisibility="Visible"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  TextWrapping="Wrap"

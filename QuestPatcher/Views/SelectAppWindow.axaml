@@ -2,11 +2,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:res="clr-namespace:QuestPatcher.Resources"
         xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="220" SizeToContent="Height" MinWidth="450" Width="450"
         x:Class="QuestPatcher.Views.SelectAppWindow"
         Icon="/Assets/questpatcher-logo.ico"
-        Title="Change Selected App"
+        Title="{x:Static res:Strings.SelectApp_Title}"
         Background="{x:Null}"
         ExtendClientAreaToDecorationsHint="true"
         ExtendClientAreaTitleBarHeightHint="-1"
@@ -20,17 +21,17 @@
     <ExperimentalAcrylicBorder DockPanel.Dock="Left" Padding="10" IsHitTestVisible="True" Material="{DynamicResource MainBackgroundMaterial}">
 
       <StackPanel Spacing="10" HorizontalAlignment="Center">
-        <TextBlock HorizontalAlignment="Center" TextDecorations="Underline">Change Selected App</TextBlock>
-        <TextBlock TextAlignment="Center" TextWrapping="Wrap">Changing your app will reload QuestPatcher to pull the new APK, which may take a minute or so.</TextBlock>
+        <TextBlock HorizontalAlignment="Center" TextDecorations="Underline" Text="{x:Static res:Strings.SelectApp_Title}"/>
+        <TextBlock TextAlignment="Center" TextWrapping="Wrap" Text="{x:Static res:Strings.SelectApp_Message}"/>
 
         <StackPanel Spacing="20" IsVisible="{Binding IsLoading}" HorizontalAlignment="Center">
-          <TextBlock>Loading installed applications . . .</TextBlock>
+          <TextBlock Text="{x:Static res:Strings.SelectApp_Loading}"/>
           <ProgressBar IsIndeterminate="True" />
         </StackPanel>
 
         <StackPanel Spacing="10" IsVisible="{Binding !IsLoading}">
           <ComboBox ItemsSource="{Binding InstalledApps}" SelectedItem="{Binding SelectedApp}" SelectedIndex="0" Width="350" HorizontalAlignment="Center"/>
-          <Button Command="{Binding ConfirmNewApp}" HorizontalAlignment="Center" HorizontalContentAlignment="Center">Confirm new App</Button>
+          <Button Command="{Binding ConfirmNewApp}" HorizontalAlignment="Center" HorizontalContentAlignment="Center" Content="{x:Static res:Strings.SelectApp_Confirm}"/>
         </StackPanel>
       </StackPanel>
     </ExperimentalAcrylicBorder>

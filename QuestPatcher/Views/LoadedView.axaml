@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
+             xmlns:res="clr-namespace:QuestPatcher.Resources"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="550"
              x:Class="QuestPatcher.Views.LoadedView"
              DragDrop.AllowDrop="True">
@@ -25,30 +26,34 @@
     </DockPanel>
     
     <TabControl Classes="sidebar">
-      <TabItem Header="Patching" IsVisible="{Binding NeedsPatchingView}" IsSelected="{Binding !AppInfo.IsModded}">
+      <TabItem Header="{x:Static res:Strings.SideBarHeader_Patching}" IsVisible="{Binding NeedsPatchingView}" IsSelected="{Binding !AppInfo.IsModded}">
         <UserControl Content="{Binding PatchingView}" />
       </TabItem>
-      <TabItem Header="Mod Management" IsVisible="{Binding AppInfo.IsModded}" IsSelected="{Binding AppInfo.IsModded}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+      <TabItem Header="{x:Static res:Strings.SideBarHeader_ModManage}" IsVisible="{Binding AppInfo.IsModded}" IsSelected="{Binding AppInfo.IsModded}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <UserControl Content="{Binding ManageModsView}" />
       </TabItem>
-      <TabItem Header="Cosmetics &amp; other items" IsVisible="{Binding AppInfo.IsModded}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+      <TabItem Header="{x:Static res:Strings.SideBarHeader_Other}" IsVisible="{Binding AppInfo.IsModded}" ScrollViewer.VerticalScrollBarVisibility="Disabled">
         <UserControl Content="{Binding OtherItemsView}" />
       </TabItem>
-      <TabItem Header="Tools &amp; Options">
+      <TabItem Header="{x:Static res:Strings.SideBarHeader_Options}">
         <UserControl Content="{Binding ToolsView}" />
       </TabItem>
     </TabControl>
     
     <StackPanel Margin="25" VerticalAlignment="Bottom" HorizontalAlignment="Left" Spacing="30">
-      <ToggleSwitch IsChecked="{Binding Config.DisplayLogs}">Display Logs</ToggleSwitch>
+      <ToggleSwitch 
+          IsChecked="{Binding Config.DisplayLogs}" 
+          Content="{x:Static res:Strings.Global_DisplayLogs}"
+          OnContent="{x:Static res:Strings.Generic_On}" 
+          OffContent="{x:Static res:Strings.Generic_Off}"/>
       <StackPanel>
-        <TextBlock Text="{Binding AppInfo.Version, StringFormat=APK Version: {0}}" FontWeight="Light" FontSize="12" />
-        <TextBlock Text="APK is 64 bit" IsVisible="{Binding AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
-        <TextBlock Text="APK is 32 bit" IsVisible="{Binding !AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
-        <TextBlock Text="APK is modded" IsVisible="{Binding AppInfo.IsModded}" FontWeight="Light" FontSize="12" />
-        <TextBlock Text="APK is not modded" IsVisible="{Binding !AppInfo.IsModded}" FontWeight="Light" FontSize="12" />
+        <TextBlock Text="{Binding AppInfo.Version, StringFormat={x:Static res:Strings.LoadedAPKStatus_Version}}" FontWeight="Light" FontSize="12" />
+        <TextBlock Text="{x:Static res:Strings.LoadedAPKStatus_64bit}" IsVisible="{Binding AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
+        <TextBlock Text="{x:Static res:Strings.LoadedAPKStatus_32bit}" IsVisible="{Binding !AppInfo.Is64Bit}" FontWeight="Light" FontSize="12"/>
+        <TextBlock Text="{x:Static res:Strings.LoadedAPKStatus_Modded}" IsVisible="{Binding AppInfo.IsModded}" FontWeight="Light" FontSize="12" />
+        <TextBlock Text="{x:Static res:Strings.LoadedAPKStatus_NotModded}" IsVisible="{Binding !AppInfo.IsModded}" FontWeight="Light" FontSize="12" />
 
-        <TextBlock Text="{Binding Version, StringFormat=QP Version: {0}}" FontWeight="Light" FontSize="12" />
+        <TextBlock Text="{Binding Version, StringFormat={x:Static res:Strings.LoadedQPVersion}}" FontWeight="Light" FontSize="12" />
       </StackPanel>
     </StackPanel>
   </Panel>

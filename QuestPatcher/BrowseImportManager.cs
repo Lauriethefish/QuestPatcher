@@ -11,6 +11,7 @@ using Avalonia.Platform.Storage;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Modding;
 using QuestPatcher.Models;
+using QuestPatcher.Resources;
 using QuestPatcher.Services;
 using Serilog;
 
@@ -169,8 +170,8 @@ namespace QuestPatcher
             {
                 var builder = new DialogBuilder
                 {
-                    Title = "Failed to download file",
-                    Text = $"Downloading the file from {uri} failed, and thus the file could not be imported.",
+                    Title = Strings.BrowseImport_DownloadFailed_Title,
+                    Text = String.Format(Strings.BrowseImport_DownloadFailed_Text, uri),
                     HideCancelButton = true
                 };
                 await builder.OpenDialogue(_mainWindow);
@@ -191,8 +192,8 @@ namespace QuestPatcher
             {
                 var builder = new DialogBuilder
                 {
-                    Title = "Failed to import file from URL",
-                    Text = $"The server at {uri} did not provide a valid file extension, and so QuestPatcher doesn't know how the import the file.",
+                    Title = Strings.BrowseImport_BadUrl_Title,
+                    Text = String.Format(Strings.BrowseImport_BadUrl_Text, uri),
                     HideCancelButton = true
                 };
                 await builder.OpenDialogue(_mainWindow);
@@ -259,16 +260,16 @@ namespace QuestPatcher
 
             bool multiple = failedFiles.Count > 1;
 
-            DialogBuilder builder = new()
+            var builder = new DialogBuilder
             {
-                Title = "Import Failed",
+                Title = Strings.BrowseImport_ImportFailed_Title,
                 HideCancelButton = true
             };
 
             if (multiple)
             {
                 // Show the exceptions for multiple files in the logs to avoid a giagantic dialog
-                builder.Text = "Multiple files failed to install. Check logs for details about each";
+                builder.Text = Strings.BrowseImport_ImportFailed_Multiple_Text;
                 foreach (var pair in failedFiles)
                 {
                     Log.Error("Failed to install {FileName}: {Error}", Path.GetFileName(pair.Key), pair.Value.Message);
@@ -279,20 +280,20 @@ namespace QuestPatcher
             {
                 // Display single files with more detail for the user
                 string filePath = failedFiles.Keys.First();
-                var exception = failedFiles.Values.First();
-
+                var ex = failedFiles.Values.First();
+                string fileName = Path.GetFileName(filePath);
                 // Don't display the full stack trace for InstallationExceptions, since these are thrown by QP and are not bugs/issues
-                if (exception is InstallationException)
+                if (ex is InstallationException)
                 {
-                    builder.Text = $"{Path.GetFileName(filePath)} failed to install: {exception.Message}";
+                    builder.Text = String.Format(Strings.BrowseImport_ImportFailed_Single_Exception_Text, fileName, ex.Message);
                 }
                 else
                 {
-                    builder.Text = $"The file {Path.GetFileName(filePath)} failed to install";
-                    builder.WithException(exception);
+                    builder.Text = String.Format(Strings.BrowseImport_ImportFailed_Single_Text, fileName);
+                    builder.WithException(ex);
                 }
-                Log.Error("Failed to install {FileName}: {Error}", Path.GetFileName(filePath), exception.Message);
-                Log.Debug(exception, "Full Error");
+                Log.Error("Failed to install {FileName}: {Error}", fileName, ex.Message);
+                Log.Debug(ex, "Full Error");
             }
 
             await builder.OpenDialogue(_mainWindow);
@@ -423,10 +424,10 @@ namespace QuestPatcher
         {
             FileCopyType? selectedType = null;
 
-            DialogBuilder builder = new()
+            var builder = new DialogBuilder
             {
-                Title = "Multiple Import Options",
-                Text = $"{Path.GetFileName(path)} can be imported as multiple types of file. Please select what you would like it to be installed as.",
+                Title = Strings.BrowseImport_MultipleImport_Title,
+                Text = String.Format(Strings.BrowseImport_MultipleImport_Text, Path.GetFileName(path)),
                 HideOkButton = true,
                 HideCancelButton = true
             };
@@ -468,14 +469,13 @@ namespace QuestPatcher
 
             if (mod.ModLoader != _installManager.InstalledApp?.ModLoader)
             {
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Wrong Mod Loader",
-                    Text = $"The mod you are trying to install needs the modloader {mod.ModLoader}, however your app has the modloader {_installManager.InstalledApp?.ModLoader} installed."
-                    + "\nWould you like to repatch your app with the required modloader?"
+                    Title = Strings.Mod_WrongModLoader_Title,
+                    Text = String.Format(Strings.Mod_WrongModLoader_Text, mod.ModLoader, _installManager.InstalledApp?.ModLoader)
                 };
-                builder.OkButton.Text = "Repatch";
-                builder.CancelButton.Text = "Not now";
+                builder.OkButton.Text = Strings.Mod_WrongModLoader_Repatch;
+                builder.CancelButton.Text = Strings.Generic_NotNow;
                 if (await builder.OpenDialogue(_mainWindow))
                 {
                     _uiService.OpenRepatchMenu(mod.ModLoader);
@@ -489,13 +489,13 @@ namespace QuestPatcher
             // Prompt the user for outdated mods instead of enabling them automatically
             if (mod.PackageVersion != null && mod.PackageVersion != _installManager.InstalledApp.Version)
             {
-                DialogBuilder builder = new()
+                var builder = new DialogBuilder
                 {
-                    Title = "Outdated Mod",
-                    Text = $"The mod just installed is for version {mod.PackageVersion} of your app, however you have {_installManager.InstalledApp.Version}. Enabling the mod may crash the game, or not work."
+                    Title = Strings.Mod_OutdatedMod_Title,
+                    Text = String.Format(Strings.Mod_OutdatedMod_Text, mod.PackageVersion, _installManager.InstalledApp.Version),
                 };
-                builder.OkButton.Text = "Enable Now";
-                builder.CancelButton.Text = "Cancel";
+                builder.OkButton.Text = Strings.Mod_OutdatedMod_EnableNow;
+                builder.CancelButton.Text = Strings.Generic_Cancel;
 
                 if (!await builder.OpenDialogue(_mainWindow))
                 {

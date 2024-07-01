@@ -5,6 +5,7 @@ using System.Linq;
 using Avalonia.Input;
 using QuestPatcher.Core;
 using QuestPatcher.Core.Models;
+using QuestPatcher.Resources;
 using QuestPatcher.ViewModels.Modding;
 using ReactiveUI;
 using Serilog;
@@ -13,7 +14,7 @@ namespace QuestPatcher.ViewModels
 {
     public class LoadedViewModel : ViewModelBase
     {
-        public string SelectedAppText => $"Modding {Config.AppId}";
+        public string SelectedAppText => string.Format(Strings.Global_CurrentModding, Config.AppId);
 
         public PatchingViewModel PatchingView { get; }
 
@@ -35,7 +36,7 @@ namespace QuestPatcher.ViewModels
             }
         }
 
-        public string WelcomeText => $"Welcome to {AppName} 2";
+        public string WelcomeText => string.Format(Strings.Global_WelcomeMessage, AppName);
 
         public string Version => VersionUtil.QuestPatcherVersion.ToString();
 

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:res="clr-namespace:QuestPatcher.Resources"
              xmlns:viewModels="clr-namespace:QuestPatcher.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" IsVisible="{Binding !Locker.IsFree}"
              x:Class="QuestPatcher.Views.ProgressView">
@@ -13,12 +14,12 @@
   <Panel>
     <!--If we're not extracting a file, we can display the progress bar, and have it show progress only if a file is downloading. Otherwise, we can't know how done the current process is, so we make it indeterminate-->
     <StackPanel VerticalAlignment="Center" Spacing="10" IsVisible="{Binding !FilesDownloader.IsExtracting}">
-      <TextBlock HorizontalAlignment="Center" Text="{Binding FilesDownloader.DownloadingFileName, StringFormat=Downloading {0} . . .}" IsVisible="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <TextBlock HorizontalAlignment="Center" Text="{Binding FilesDownloader.DownloadingFileName, StringFormat={x:Static res:Strings.Progress_Downloading}}" IsVisible="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <ProgressBar MinWidth="300" Value="{Binding FilesDownloader.DownloadProgress}" IsIndeterminate="{Binding !FilesDownloader.DownloadProgressKnown}"/>
     </StackPanel>
     <!--If extracting a file, we show different UI because A: We need to show "Extracting . . ." instead of "Downloading . . .", and B: The progress bar always must be indeterminate-->
     <StackPanel VerticalAlignment="Center" Spacing="10" IsVisible="{Binding FilesDownloader.IsExtracting}">
-      <TextBlock HorizontalAlignment="Center" Text="{Binding FilesDownloader.DownloadingFileName, StringFormat=Extracting {0} . . .}" IsVisible="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
+      <TextBlock HorizontalAlignment="Center" Text="{Binding FilesDownloader.DownloadingFileName, StringFormat={x:Static res:Strings.Progress_Extracting}}" IsVisible="{Binding FilesDownloader.DownloadingFileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
       <ProgressBar MinWidth="300" IsIndeterminate="True"/>
     </StackPanel>
   </Panel>
