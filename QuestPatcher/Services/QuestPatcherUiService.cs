@@ -40,7 +40,7 @@ namespace QuestPatcher.Services
             _appLifetime = appLifetime;
             _themeManager = new ThemeManager(Config, SpecialFolders);
 
-            //deal with language configuration before we load the ui
+            // Deal with language configuration before we load the UI
             try
             {
                 var language = Config.Language.ToCultureInfo();
