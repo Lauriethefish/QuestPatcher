@@ -9,7 +9,7 @@
   <Design.DataContext>
     <viewModels:PatchingViewModel />
   </Design.DataContext>
-  
+
   <Panel>
     <DockPanel IsVisible="{Binding !IsPatchingInProgress}">
         <StackPanel Margin="20" Orientation="Vertical" DockPanel.Dock="Top">
@@ -31,6 +31,9 @@
                           <ComboBoxItem Content="{x:Static res:Strings.PatchingOption_HandTracking_V2}"/>
                       </ComboBox>
                   </StackPanel>
+
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Passthrough}" Content="{x:Static res:Strings.PatchingOption_Passthrough}"/>
+                <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.BodyTracking}" Content="{x:Static res:Strings.PatchingOption_BodyTracking}"/>
               </StackPanel>
           </ScrollViewer>
           <Panel Margin="0 10 0 0" Background="{DynamicResource PatchingOptionsBackground}">
@@ -46,7 +49,7 @@
             </StackPanel>
           </Panel>
         </StackPanel>
-        
+
         <StackPanel HorizontalAlignment="Center" Orientation="Vertical" VerticalAlignment="Center" Spacing="20">
         <StackPanel Orientation="Vertical" Spacing="5">
           <TextBlock TextAlignment="Center" Text="{x:Static res:Strings.Patching_BeforeStartMessage}"/>

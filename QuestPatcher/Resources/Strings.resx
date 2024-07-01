@@ -114,6 +114,12 @@
     <data name="PatchingOption_HandTracking_V2" xml:space="preserve">
         <value>V2</value>
     </data>
+    <data name="PatchingOption_Passthrough" xml:space="preserve">
+      <value>Enable Passthrough</value>
+    </data>
+    <data name="PatchingOption_BodyTracking" xml:space="preserve">
+        <value>Enable body-tracking</value>
+    </data>
     <data name="Patching_SplashScreen" xml:space="preserve">
         <value>Custom Splash Screen:</value>
     </data>
