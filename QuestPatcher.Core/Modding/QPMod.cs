@@ -314,6 +314,11 @@ namespace QuestPatcher.Core.Modding
                     throw new InstallationException($"Dependency with ID {dependency.Id} is already installed but with an incorrect version ({existing.Version} does not intersect {dependency.VersionRange}). Upgrading was not possible as there was no download link provided");
                 }
             }
+            else if (!dependency.Required)
+            {
+                // Dependency is optional so we can stop here since there is no existing install.
+                return;
+            }
             else if (dependency.DownloadUrlString == null)
             {
                 throw new InstallationException($"Dependency {dependency.Id} is not installed, and the mod depending on it does not specify a download path if missing");
