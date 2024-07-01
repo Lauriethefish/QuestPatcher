@@ -850,6 +850,15 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable body-tracking.
+        /// </summary>
+        public static string PatchingOption_BodyTracking {
+            get {
+                return ResourceManager.GetString("PatchingOption_BodyTracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Allow Debugging.
         /// </summary>
         public static string PatchingOption_Debugging {
@@ -936,6 +945,15 @@ namespace QuestPatcher.Resources {
         public static string PatchingOption_OpenXR {
             get {
                 return ResourceManager.GetString("PatchingOption_OpenXR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable Passthrough.
+        /// </summary>
+        public static string PatchingOption_Passthrough {
+            get {
+                return ResourceManager.GetString("PatchingOption_Passthrough", resourceCulture);
             }
         }
         
@@ -1374,15 +1392,6 @@ namespace QuestPatcher.Resources {
         public static string Tools_Option_Language_Title {
             get {
                 return ResourceManager.GetString("Tools_Option_Language_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Restart Now..
-        /// </summary>
-        public static string Tools_Option_Restart_Now {
-            get {
-                return ResourceManager.GetString("Tools_Option_Restart_Now", resourceCulture);
             }
         }
         
