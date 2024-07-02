@@ -602,6 +602,15 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to None.
+        /// </summary>
+        public static string ModLoader_None {
+            get {
+                return ResourceManager.GetString("ModLoader_None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Choose a file type to manage:.
         /// </summary>
         public static string OtherItems_ChooseType {

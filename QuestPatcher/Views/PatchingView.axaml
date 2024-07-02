@@ -59,6 +59,7 @@
           <ComboBox SelectedIndex="{Binding Config.PatchingOptions.ModLoader}">
             <ComboBoxItem Content="{x:Static res:Strings.ModLoader_QuestLoader}"/>
             <ComboBoxItem Content="{x:Static res:Strings.ModLoader_Scotland2}"/>
+            <ComboBoxItem Content="{x:Static res:Strings.ModLoader_None}" />
           </ComboBox>
         </StackPanel>
         <Button Command="{Binding StartPatching}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalContentAlignment="Center" FontSize="15" Padding="12" Content="{x:Static res:Strings.Patching_StartPatching}"/>
