@@ -25,6 +25,7 @@
           <ComboBox SelectedIndex="{Binding Config.PatchingOptions.ModLoader}" HorizontalAlignment="Center">
               <ComboBoxItem Content="{x:Static res:Strings.ModLoader_QuestLoader}"/>
               <ComboBoxItem Content="{x:Static res:Strings.ModLoader_Scotland2}"/>
+              <ComboBoxItem Content="{x:Static res:Strings.ModLoader_None}" />
           </ComboBox>
           <Button Content="{x:Static res:Strings.Repatch_StartRepatching}" Command="{Binding RepatchApp}" HorizontalAlignment="Center"/>
         </StackPanel>

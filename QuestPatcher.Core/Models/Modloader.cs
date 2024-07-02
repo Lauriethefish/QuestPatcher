@@ -14,6 +14,10 @@
         /// </summary>
         Scotland2,
         /// <summary>
+        /// No mod loader. Used if just editing things like permissions.
+        /// </summary>
+        None,
+        /// <summary>
         /// Some other modloader, that QuestPatcher doesn't know about.
         /// In this case, it will give you the option to patch the APK, although doing so may overwrite the existing modloader or not work at all.
         /// </summary>

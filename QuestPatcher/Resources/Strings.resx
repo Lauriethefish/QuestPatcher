@@ -146,6 +146,9 @@ Make sure that your internet does not go offline during patching.</value>
     <data name="ModLoader_Scotland2" xml:space="preserve">
         <value>Scotland2</value>
     </data>
+    <data name="ModLoader_None" xml:space="preserve">
+        <value>None</value>
+    </data>
     <data name="Progress_Downloading" xml:space="preserve">
         <value>Downloading {0} . . .</value>
     </data>
