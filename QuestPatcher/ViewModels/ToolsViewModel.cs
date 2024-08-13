@@ -147,6 +147,7 @@ namespace QuestPatcher.ViewModels
             }
             else
             {
+                await _debugBridge.RunCommand("logcat -c");
                 Log.Information("Starting ADB log");
                 await _debugBridge.StartLogging(Path.Combine(_specialFolders.LogsFolder, "adb.log"));
 
