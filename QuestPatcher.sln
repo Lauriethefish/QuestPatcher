@@ -12,9 +12,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3D2AF47C-D9B2-455A-B3F2-1349C16BB5C6}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.github\workflows\macos-dmg.yml = .github\workflows\macos-dmg.yml
+		.github\workflows\standalone.yml = .github\workflows\standalone.yml
+		.github\workflows\windows-installer.yml = .github\workflows\windows-installer.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestPatcher.Zip", "QuestPatcher.Zip\QuestPatcher.Zip.csproj", "{4DBC888C-7BC8-4A19-B0C7-10FE8A32D10A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuestPatcher.Zip", "QuestPatcher.Zip\QuestPatcher.Zip.csproj", "{4DBC888C-7BC8-4A19-B0C7-10FE8A32D10A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
