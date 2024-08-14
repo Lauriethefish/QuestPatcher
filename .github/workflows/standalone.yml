@@ -17,9 +17,9 @@ jobs:
     name: Build for ${{ matrix.target.runtime }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.402
     - name: Install dependencies
@@ -33,7 +33,7 @@ jobs:
       run: cp LICENSE QuestPatcher/bin/Release/net6.0/${{ matrix.target.runtime }}/publish/LICENSE.txt
     - name: Artifact Upload ${{ matrix.target.runtime }}
       if: ${{ github.event_name != 'release' }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.target.runtime }}
         path: QuestPatcher/bin/Release/net6.0/${{ matrix.target.runtime }}/publish/

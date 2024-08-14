@@ -12,9 +12,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 6.0.402
     - name: Set version
@@ -42,7 +42,7 @@ jobs:
       run: hdiutil convert /tmp/QuestPatcher.dmg -format UDZO -o macos-dmg/QuestPatcher.dmg
     - name: Artifact Upload ${{ matrix.target.runtime }}
       if: ${{ github.event_name != 'release' }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: QuestPatcher.dmg
         path: ./macos-dmg/QuestPatcher.dmg
