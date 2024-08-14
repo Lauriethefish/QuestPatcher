@@ -26,9 +26,6 @@
     <OutputType>WinExe</OutputType>
     <DebugType>embedded</DebugType>
     <SelfContained>true</SelfContained>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>Link</TrimMode>
-    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -43,7 +40,7 @@
     <CFBundleIconFile>iconfile.icns</CFBundleIconFile> 
     <NSPrincipalClass>NSApplication</NSPrincipalClass>
     <NSHighResolutionCapable>true</NSHighResolutionCapable>
-</PropertyGroup>
+  </PropertyGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
