@@ -542,4 +542,10 @@
     <data name="Tools_Option_Language_Text" xml:space="preserve">
         <value>语言已更改。 请重新启动 QuestPatcher 以使更改生效。</value>
     </data>
+    <data name="PatchingOption_BodyTracking" xml:space="preserve">
+        <value>启用身体追踪</value>
+    </data>
+    <data name="PatchingOption_Passthrough" xml:space="preserve">
+        <value>启用透视</value>
+    </data>
 </root>
