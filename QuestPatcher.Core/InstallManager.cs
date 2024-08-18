@@ -277,7 +277,10 @@ namespace QuestPatcher.Core
         /// <returns></returns>
         public async Task UninstallApp()
         {
-            await _debugBridge.UninstallApp(_config.AppId);
+            if(!await _debugBridge.UninstallApp(_config.AppId))
+            {
+                Log.Warning("APK was already uninstalled. QuestPatcher is (was) out of sync.");
+            }
             InstalledApp = null;
             _quit();
         }

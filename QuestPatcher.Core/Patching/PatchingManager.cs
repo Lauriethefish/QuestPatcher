@@ -706,7 +706,10 @@ namespace QuestPatcher.Core.Patching
             PatchingStage = PatchingStage.UninstallingOriginal;
             try
             {
-                await _debugBridge.UninstallApp(_config.AppId);
+                if(!await _debugBridge.UninstallApp(_config.AppId))
+                {
+                    Log.Warning("APK was already uninstalled");
+                }
             }
             catch (AdbException)
             {

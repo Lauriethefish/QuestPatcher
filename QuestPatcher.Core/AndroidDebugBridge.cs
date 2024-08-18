@@ -485,9 +485,32 @@ namespace QuestPatcher.Core
             await DownloadFile(appPath, destination);
         }
 
-        public async Task UninstallApp(string packageId)
+        /// <summary>
+        /// Uninstalls the app with package ID <paramref name="packageId"/>, if an app with this ID exists.
+        /// </summary>
+        /// <param name="packageId">The package ID of the app to uninstall.</param>
+        /// <returns>True if the app existed and was uninstalled, false otherwise.</returns>
+        public async Task<bool> UninstallApp(string packageId)
         {
-            await RunCommand($"uninstall {packageId}");
+            // Allow exit code 1 as this is returned in the case of the app not being installed in the first place.
+            var output = await RunCommand($"uninstall {packageId}", 1);
+            if(output.ExitCode == 1)
+            {
+                // Check if the failure was due to the app being uninstalled already (this causes DELETE_FAILED_INTERNAL_ERROR, which is terrible design)
+                if (output.AllOutput.Contains("[DELETE_FAILED_INTERNAL_ERROR]"))
+                {
+                     return false;
+                }
+                else
+                {
+                    throw new AdbException("Received exit code 1 when uninstalling and was not because app was already uninstalled: "
+                        + output.AllOutput);
+                }
+            }
+            else
+            {
+                return true;
+            }
         }
 
         public async Task<bool> IsPackageInstalled(string packageId)
