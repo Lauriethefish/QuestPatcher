@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,8 +41,17 @@ namespace QuestPatcher.Core
         public string? FullPath { get; set; }
     }
 
-    public static class ProcessUtil
+    /// <summary>
+    /// A utility class for invoking processes and capturing their output.
+    /// Automatically kills all running processes when the instance is disposed.
+    /// This class is thread safe.
+    /// </summary>
+    public class ProcessUtil : IDisposable
     {
+        private readonly HashSet<Process> _runningProcesses = new();
+        private readonly object _processesLock = new object();
+        private bool _disposed = false;
+        
         /// <summary>
         /// Invokes an executable fileName with args and captures its standard and error output.
         /// Waits until the process exits before the task completes.
@@ -48,9 +59,9 @@ namespace QuestPatcher.Core
         /// <param name="fileName">File name of the application to call</param>
         /// <param name="arguments">Arguments to pass</param>
         /// <returns>The standard and error output of the process</returns>
-        public static async Task<ProcessOutput> InvokeAndCaptureOutput(string fileName, string arguments)
+        public async Task<ProcessOutput> InvokeAndCaptureOutput(string fileName, string arguments)
         {
-            Process process = new();
+            using Process process = new();
 
             var startInfo = process.StartInfo;
             startInfo.FileName = fileName;
@@ -78,6 +89,11 @@ namespace QuestPatcher.Core
             };
 
             process.Start();
+            lock (_processesLock)
+            {
+                _runningProcesses.Add(process);
+            }
+
             string? fullPath = null;
             try
             {
@@ -92,6 +108,15 @@ namespace QuestPatcher.Core
             process.BeginErrorReadLine();
 
             await process.WaitForExitAsync();
+            lock (_processesLock)
+            {
+                _runningProcesses.Remove(process);
+            }
+
+            if (_disposed)
+            {
+                throw new OperationCanceledException("QuestPatcher closing, process prematurely ended");
+            }
 
             return new ProcessOutput
             {
@@ -100,6 +125,35 @@ namespace QuestPatcher.Core
                 ExitCode = process.ExitCode,
                 FullPath = fullPath
             };
+        }
+
+        public void Dispose()
+        {
+            if(_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+
+            lock(_processesLock)
+            {
+                if(_runningProcesses.Count > 0)
+                {
+                    Log.Information("Killing {NumActiveProcesses} active processes", _runningProcesses.Count);
+                }
+
+                foreach (var process in _runningProcesses)
+                {
+                    try
+                    {
+                        process.Kill();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to kill process PID {ProcessId} upon exit", process.Id);
+                    }
+                }
+            }
         }
     }
 }

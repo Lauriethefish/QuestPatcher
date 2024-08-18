@@ -97,6 +97,10 @@ namespace QuestPatcher.Core
         {
             Log.Debug("Closing QuestPatcher . . .");
             _configManager.SaveConfig();
+
+            // Kill active ADB processes to ensure that the temp folder can be deleted.
+            DebugBridge.Dispose();
+
             try
             {
                 Directory.Delete(SpecialFolders.TempFolder, true);
@@ -105,6 +109,7 @@ namespace QuestPatcher.Core
             {
                 Log.Warning("Failed to delete temporary directory");
             }
+
             Log.Debug("Goodbye!");
             Log.CloseAndFlush();
         }
