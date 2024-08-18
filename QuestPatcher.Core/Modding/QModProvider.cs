@@ -165,18 +165,27 @@ namespace QuestPatcher.Core.Modding
             Log.Information("Attempting to load {LegacyModsCount} legacy mods", legacyFolders.Count);
             foreach (string legacyFolder in legacyFolders)
             {
-                Log.Debug("Loading legacy mod at {LegacyModPath}", legacyFolder);
-                string modJsonPath = Path.Combine(legacyFolder, "mod.json");
-                using var tmp = new TempFile();
-                await _debugBridge.DownloadFile(modJsonPath, tmp.Path);
+                try
+                {
+                    Log.Debug("Loading legacy mod at {LegacyModPath}", legacyFolder);
+                    string modJsonPath = Path.Combine(legacyFolder, "mod.json");
+                    using var tmp = new TempFile();
+                    await _debugBridge.DownloadFile(modJsonPath, tmp.Path);
 
-                await using var modJsonStream = File.OpenRead(tmp.Path);
-                var manifest = await QModManifest.ParseAsync(modJsonStream);
+                    await using var modJsonStream = File.OpenRead(tmp.Path);
+                    var manifest = await QModManifest.ParseAsync(modJsonStream);
+                    var mod = new QPMod(this, manifest, _debugBridge, _filesDownloader, _modManager);
 
-                var mod = new QPMod(this, manifest, _debugBridge, _filesDownloader, _modManager);
-
-                AddMod(mod);
-                _modManager.ModLoadedCallback(mod);
+                    AddMod(mod);
+                    _modManager.ModLoadedCallback(mod);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Failed to parse legacy mod at {ModPath}. \nThe mod has been skipped and the folder will be deleted to avoid future issues.", legacyFolder);
+                    await _debugBridge.RemoveDirectory(legacyFolder);
+                    
+                    Log.Debug(ex, "Mod load failure stack trace");
+                }
             }
         }
 
