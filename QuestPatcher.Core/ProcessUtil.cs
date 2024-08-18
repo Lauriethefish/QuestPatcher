@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace QuestPatcher.Core
 {
@@ -76,7 +78,16 @@ namespace QuestPatcher.Core
             };
 
             process.Start();
-            string? fullPath = process.MainModule?.FileName;
+            string? fullPath = null;
+            try
+            {
+                fullPath = process.MainModule?.FileName;
+            }
+            catch (Win32Exception ex)
+            {
+                Log.Warning(ex, "Failed to get full path to executing ADB client. Is the AntiVirus preventing this?");
+            }
+
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
