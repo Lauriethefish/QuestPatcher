@@ -101,7 +101,13 @@ namespace QuestPatcher.Core
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Failed to get full path to executing ADB client. Is the AntiVirus preventing this?");
+                if (ex is Win32Exception)
+                {
+                    Log.Warning(ex, "Failed to get full path to running ADB client. AntiVirus might be blocking this.");
+                } else if(ex is InvalidOperationException)
+                {
+                    Log.Debug("ADB process exited too early to get full path");
+                }
             }
 
             process.BeginOutputReadLine();
