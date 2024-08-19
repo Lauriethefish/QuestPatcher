@@ -1,570 +1,672 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-
 <root>
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-        <xsd:element name="root" msdata:IsDataSet="true">
-            
-        </xsd:element>
-    </xsd:schema>
-    <resheader name="resmimetype">
-        <value>text/microsoft-resx</value>
-    </resheader>
-    <resheader name="version">
-        <value>1.3</value>
-    </resheader>
-    <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <data name="Loading_QPLoading" xml:space="preserve">
-        <value>QuestPatcher loading . . .</value>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
     </data>
-    <data name="Global_DisplayLogs" xml:space="preserve">
-        <value>Display Logs</value>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
     </data>
-    <data name="SideBarHeader_Patching" xml:space="preserve">
-        <value>Patching</value>
-    </data>
-    <data name="SideBarHeader_ModManage" xml:space="preserve">
-        <value>Mod Management</value>
-    </data>
-    <data name="SideBarHeader_Other" xml:space="preserve">
-        <value>Cosmetics &amp; other items</value>
-    </data>
-    <data name="SideBarHeader_Options" xml:space="preserve">
-        <value>Tools &amp; Options</value>
-    </data>
-    <data name="LoadedAPKStatus_64bit" xml:space="preserve">
-        <value>APK is 64 bit</value>
-    </data>
-    <data name="LoadedAPKStatus_32bit" xml:space="preserve">
-        <value>APK is 32 bit</value>
-    </data>
-    <data name="LoadedAPKStatus_Modded" xml:space="preserve">
-        <value>APK is modded</value>
-    </data>
-    <data name="LoadedAPKStatus_NotModded" xml:space="preserve">
-        <value>APK is not modded</value>
-    </data>
-    <data name="LoadedAPKStatus_Version" xml:space="preserve">
-        <value>APK Version: {0}</value>
-    </data>
-    <data name="LoadedQPVersion" xml:space="preserve">
-        <value>QP Version: {0}</value>
-    </data>
-    <data name="LoggingDock_Title" xml:space="preserve">
-        <value>Modding Log</value>
-    </data>
-    <data name="OtherItems_ChooseType" xml:space="preserve">
-        <value>Choose a file type to manage:</value>
-    </data>
-    <data name="OtherItems_FailToLoad" xml:space="preserve">
-        <value>Failed to load files</value>
-    </data>
-    <data name="Generic_Browse" xml:space="preserve">
-        <value>Browse</value>
-    </data>
-    <data name="OtherItems_RemoveSelected" xml:space="preserve">
-        <value>Remove Selected</value>
-    </data>
-    <data name="OtherItems_RemoveAll" xml:space="preserve">
-        <value>Remove All</value>
-    </data>
-    <data name="Generic_Delete" xml:space="preserve">
-        <value>Delete</value>
-    </data>
-    <data name="OtherItems_Loading" xml:space="preserve">
-        <value>Please wait . . . </value>
-    </data>
-    <data name="OtherItems_NotAvailable" xml:space="preserve">
-        <value>No file types available for this app</value>
-    </data>
-    <data name="Patching_PatchingOptions" xml:space="preserve">
-        <value>Patching Options</value>
-    </data>
-    <data name="PatchingOption_ExternalFiles" xml:space="preserve">
-        <value>Allow External Files</value>
-    </data>
-    <data name="PatchingOption_Debugging" xml:space="preserve">
-        <value>Allow Debugging</value>
-    </data>
-    <data name="PatchingOption_NoVRRequirement" xml:space="preserve">
-        <value>Disable VR Requirement</value>
-    </data>
-    <data name="PatchingOption_Microphone" xml:space="preserve">
-        <value>Enable Microphone</value>
-    </data>
-    <data name="PatchingOption_OpenXR" xml:space="preserve">
-        <value>Enable OpenXR</value>
-    </data>
-    <data name="PatchingOption_HandTracking" xml:space="preserve">
-        <value>Hand Tracking Type</value>
-    </data>
-    <data name="PatchingOption_HandTracking_None" xml:space="preserve">
-        <value>None</value>
-    </data>
-    <data name="PatchingOption_HandTracking_V1" xml:space="preserve">
-        <value>V1</value>
-    </data>
-    <data name="PatchingOption_HandTracking_V1HighFrequency" xml:space="preserve">
-        <value>V1 High Frequency</value>
-    </data>
-    <data name="PatchingOption_HandTracking_V2" xml:space="preserve">
-        <value>V2</value>
-    </data>
-    <data name="PatchingOption_Passthrough" xml:space="preserve">
-      <value>Enable Passthrough</value>
-    </data>
-    <data name="PatchingOption_BodyTracking" xml:space="preserve">
-        <value>Enable body-tracking</value>
-    </data>
-    <data name="Patching_SplashScreen" xml:space="preserve">
-        <value>Custom Splash Screen:</value>
-    </data>
-    <data name="Patching_SplashScreen_None" xml:space="preserve">
-        <value>None Selected</value>
-    </data>
-    <data name="Patching_BeforeStartMessage" xml:space="preserve">
-        <value>Before you install mods, QuestPatcher must patch your app.
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Loading_QPLoading" xml:space="preserve">
+    <value>QuestPatcher loading . . .</value>
+  </data>
+  <data name="Global_DisplayLogs" xml:space="preserve">
+    <value>Display Logs</value>
+  </data>
+  <data name="SideBarHeader_Patching" xml:space="preserve">
+    <value>Patching</value>
+  </data>
+  <data name="SideBarHeader_ModManage" xml:space="preserve">
+    <value>Mod Management</value>
+  </data>
+  <data name="SideBarHeader_Other" xml:space="preserve">
+    <value>Cosmetics &amp; other items</value>
+  </data>
+  <data name="SideBarHeader_Options" xml:space="preserve">
+    <value>Tools &amp; Options</value>
+  </data>
+  <data name="LoadedAPKStatus_64bit" xml:space="preserve">
+    <value>APK is 64 bit</value>
+  </data>
+  <data name="LoadedAPKStatus_32bit" xml:space="preserve">
+    <value>APK is 32 bit</value>
+  </data>
+  <data name="LoadedAPKStatus_Modded" xml:space="preserve">
+    <value>APK is modded</value>
+  </data>
+  <data name="LoadedAPKStatus_NotModded" xml:space="preserve">
+    <value>APK is not modded</value>
+  </data>
+  <data name="LoadedAPKStatus_Version" xml:space="preserve">
+    <value>APK Version: {0}</value>
+  </data>
+  <data name="LoadedQPVersion" xml:space="preserve">
+    <value>QP Version: {0}</value>
+  </data>
+  <data name="LoggingDock_Title" xml:space="preserve">
+    <value>Modding Log</value>
+  </data>
+  <data name="OtherItems_ChooseType" xml:space="preserve">
+    <value>Choose a file type to manage:</value>
+  </data>
+  <data name="OtherItems_FailToLoad" xml:space="preserve">
+    <value>Failed to load files</value>
+  </data>
+  <data name="Generic_Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="OtherItems_RemoveSelected" xml:space="preserve">
+    <value>Remove Selected</value>
+  </data>
+  <data name="OtherItems_RemoveAll" xml:space="preserve">
+    <value>Remove All</value>
+  </data>
+  <data name="Generic_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="OtherItems_Loading" xml:space="preserve">
+    <value>Please wait . . . </value>
+  </data>
+  <data name="OtherItems_NotAvailable" xml:space="preserve">
+    <value>No file types available for this app</value>
+  </data>
+  <data name="Patching_PatchingOptions" xml:space="preserve">
+    <value>Patching Options</value>
+  </data>
+  <data name="PatchingOption_ExternalFiles" xml:space="preserve">
+    <value>Allow External Files</value>
+  </data>
+  <data name="PatchingOption_Debugging" xml:space="preserve">
+    <value>Allow Debugging</value>
+  </data>
+  <data name="PatchingOption_NoVRRequirement" xml:space="preserve">
+    <value>Disable VR Requirement</value>
+  </data>
+  <data name="PatchingOption_Microphone" xml:space="preserve">
+    <value>Enable Microphone</value>
+  </data>
+  <data name="PatchingOption_OpenXR" xml:space="preserve">
+    <value>Enable OpenXR</value>
+  </data>
+  <data name="PatchingOption_HandTracking" xml:space="preserve">
+    <value>Hand Tracking Type</value>
+  </data>
+  <data name="PatchingOption_HandTracking_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="PatchingOption_HandTracking_V1" xml:space="preserve">
+    <value>V1</value>
+  </data>
+  <data name="PatchingOption_HandTracking_V1HighFrequency" xml:space="preserve">
+    <value>V1 High Frequency</value>
+  </data>
+  <data name="PatchingOption_HandTracking_V2" xml:space="preserve">
+    <value>V2</value>
+  </data>
+  <data name="PatchingOption_Passthrough" xml:space="preserve">
+    <value>Enable Passthrough</value>
+  </data>
+  <data name="PatchingOption_BodyTracking" xml:space="preserve">
+    <value>Enable body-tracking</value>
+  </data>
+  <data name="Patching_SplashScreen" xml:space="preserve">
+    <value>Custom Splash Screen:</value>
+  </data>
+  <data name="Patching_SplashScreen_None" xml:space="preserve">
+    <value>None Selected</value>
+  </data>
+  <data name="Patching_BeforeStartMessage" xml:space="preserve">
+    <value>Before you install mods, QuestPatcher must patch your app.
 This may take several minutes depending on your internet connection.
 Make sure that your internet does not go offline during patching.</value>
-    </data>
-    <data name="Patching_SelectModLoader" xml:space="preserve">
-        <value>Choose the mod loader to patch with: </value>
-    </data>
-    <data name="Patching_StartPatching" xml:space="preserve">
-        <value>Patch my App!</value>
-    </data>
-    <data name="Patching_InProgress" xml:space="preserve">
-        <value>Please wait while patching completes . . .</value>
-    </data>
-    <data name="ModLoader_QuestLoader" xml:space="preserve">
-        <value>QuestLoader</value>
-    </data>
-    <data name="ModLoader_Scotland2" xml:space="preserve">
-        <value>Scotland2</value>
-    </data>
-    <data name="Progress_Downloading" xml:space="preserve">
-        <value>Downloading {0} . . .</value>
-    </data>
-    <data name="Progress_Extracting" xml:space="preserve">
-        <value>Extracting {0} . . .</value>
-    </data>
-    <data name="Repatch_Title" xml:space="preserve">
-        <value>Repatch App</value>
-    </data>
-    <data name="Repatch_StartRepatching" xml:space="preserve">
-        <value>(Re-)Patch my app!</value>
-    </data>
-    <data name="SelectDevice_Title" xml:space="preserve">
-        <value>Select Device</value>
-    </data>
-    <data name="SelectDevice_Message" xml:space="preserve">
-        <value>Multiple Android devices are connected to your computer. Please select the device to use by clicking a row in the grid shown below.</value>
-    </data>
-    <data name="Generic_Select" xml:space="preserve">
-        <value>Select</value>
-    </data>
-    <data name="Generic_OK" xml:space="preserve">
-        <value>OK</value>
-    </data>
-    <data name="Generic_Cancel" xml:space="preserve">
-        <value>Cancel</value>
-    </data>
-    <data name="SelectDevice_WindowTitle" xml:space="preserve">
-        <value>Change Selected Device</value>
-    </data>
-    <data name="SelectApp_Title" xml:space="preserve">
-        <value>Change Selected App</value>
-    </data>
-    <data name="SelectApp_Message" xml:space="preserve">
-        <value>Changing your app will reload QuestPatcher to pull the new APK, which may take a minute or so.</value>
-    </data>
-    <data name="SelectApp_Loading" xml:space="preserve">
-        <value>Loading installed applications . . .</value>
-    </data>
-    <data name="SelectApp_Confirm" xml:space="preserve">
-        <value>Confirm new App</value>
-    </data>
-    <data name="Tools_Section_Tools" xml:space="preserve">
-        <value>Tools</value>
-    </data>
-    <data name="Tools_Section_Tools_Description" xml:space="preserve">
-        <value>Useful for troubleshooting issues and managing your install.</value>
-    </data>
-    <data name="Tools_Tool_UninstallApp" xml:space="preserve">
-        <value>Uninstall App</value>
-    </data>
-    <data name="Tools_Tool_UninstallApp_Description" xml:space="preserve">
-        <value>Uninstalls your selected app.</value>
-    </data>
-    <data name="Tools_Tool_RestartApp" xml:space="preserve">
-        <value>Restart App</value>
-    </data>
-    <data name="Tools_Tool_RestartApp_Description" xml:space="preserve">
-        <value>Closes then reopens the selected app.</value>
-    </data>
-    <data name="Tools_Tool_LogFolder" xml:space="preserve">
-        <value>Open Logs Folder</value>
-    </data>
-    <data name="Tools_Tool_LogFolder_Description" xml:space="preserve">
-        <value>Opens the folder where QP stores logs.</value>
-    </data>
-    <data name="Tools_Tool_CreateDump" xml:space="preserve">
-        <value>Create Dump</value>
-    </data>
-    <data name="Tools_Tool_CreateDump_Description" xml:space="preserve">
-        <value>Creates a dump containing lots of information about QuestPatcher and mod state.</value>
-    </data>
-    <data name="Tools_Tool_QuickFix" xml:space="preserve">
-        <value>Quick Fix</value>
-    </data>
-    <data name="Tools_Tool_QuickFix_Description" xml:space="preserve">
-        <value>Clears cached QuestPatcher data - try this if something isn't working.</value>
-    </data>
-    <data name="Tools_Tool_RepatchApp" xml:space="preserve">
-        <value>Repatch App</value>
-    </data>
-    <data name="Tools_Tool_RepatchApp_Description" xml:space="preserve">
-        <value>Allows you to change the modloader you have installed by re-patching your app.</value>
-    </data>
-    <data name="Tools_Section_Options" xml:space="preserve">
-        <value>Options</value>
-    </data>
-    <data name="Tools_Section_Options_Description" xml:space="preserve">
-        <value>QuestPatcher Settings.</value>
-    </data>
-    <data name="Tools_Option_ChangeApp" xml:space="preserve">
-        <value>Change App</value>
-    </data>
-    <data name="Tools_Option_ChangeApp_Description" xml:space="preserve">
-        <value>Allows you to select a different application to mod</value>
-    </data>
-    <data name="Tools_Option_Theme" xml:space="preserve">
-        <value>Theming</value>
-    </data>
-    <data name="Tools_Option_Theme_Description" xml:space="preserve">
-        <value>Allows UI Customization</value>
-    </data>
-    <data name="Tools_Option_Theme_SelectTheme" xml:space="preserve">
-        <value>Select Theme:</value>
-    </data>
-    <data name="Tools_Option_Theme_OpenThemeFolder" xml:space="preserve">
-        <value>Open Themes Folder</value>
-    </data>
-    <data name="Tools_Tool_ToggleADB_Description" xml:space="preserve">
-        <value>Starts an ADB log - you must keep your quest plugged in while you use this.</value>
-    </data>
-    <data name="Generic_On" xml:space="preserve">
-        <value>On</value>
-    </data>
-    <data name="Generic_Off" xml:space="preserve">
-        <value>Off</value>
-    </data>
-    <data name="Prompt_AppNotInstalled_Title" xml:space="preserve">
-        <value>App Not Installed</value>
-    </data>
-    <data name="Prompt_AppNotInstalled_Text" xml:space="preserve">
-        <value>The selected app - {0} - is not installed</value>
-    </data>
-    <data name="Prompt_AppNotInstalled_ChangeApp" xml:space="preserve">
-        <value>Change App</value>
-    </data>
-    <data name="Generic_Close" xml:space="preserve">
-        <value>Close</value>
-    </data>
-    <data name="Generic_Retry" xml:space="preserve">
-        <value>Try Again</value>
-    </data>
-    <data name="Generic_Continue" xml:space="preserve">
-        <value>Continue</value>
-    </data>
-    <data name="Generic_ContinueAnyway" xml:space="preserve">
-        <value>Continue Anyway</value>
-    </data>
-    <data name="Prompt_AdbDisconnect_NoDevice_Title" xml:space="preserve">
-        <value>Quest Not Connected</value>
-    </data>
-    <data name="Prompt_AdbDisconnect_NoDevice_Text" xml:space="preserve">
-        <value>QuestPatcher could not detect your Quest.
+  </data>
+  <data name="Patching_SelectModLoader" xml:space="preserve">
+    <value>Choose the mod loader to patch with: </value>
+  </data>
+  <data name="Patching_StartPatching" xml:space="preserve">
+    <value>Patch my App!</value>
+  </data>
+  <data name="Patching_InProgress" xml:space="preserve">
+    <value>Please wait while patching completes . . .</value>
+  </data>
+  <data name="ModLoader_QuestLoader" xml:space="preserve">
+    <value>QuestLoader</value>
+  </data>
+  <data name="ModLoader_Scotland2" xml:space="preserve">
+    <value>Scotland2</value>
+  </data>
+  <data name="Progress_Downloading" xml:space="preserve">
+    <value>Downloading {0} . . .</value>
+  </data>
+  <data name="Progress_Extracting" xml:space="preserve">
+    <value>Extracting {0} . . .</value>
+  </data>
+  <data name="Repatch_Title" xml:space="preserve">
+    <value>Repatch App</value>
+  </data>
+  <data name="Repatch_StartRepatching" xml:space="preserve">
+    <value>(Re-)Patch my app!</value>
+  </data>
+  <data name="SelectDevice_Title" xml:space="preserve">
+    <value>Select Device</value>
+  </data>
+  <data name="SelectDevice_Message" xml:space="preserve">
+    <value>Multiple Android devices are connected to your computer. Please select the device to use by clicking a row in the grid shown below.</value>
+  </data>
+  <data name="Generic_Select" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="Generic_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Generic_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SelectDevice_WindowTitle" xml:space="preserve">
+    <value>Change Selected Device</value>
+  </data>
+  <data name="SelectApp_Title" xml:space="preserve">
+    <value>Change Selected App</value>
+  </data>
+  <data name="SelectApp_Message" xml:space="preserve">
+    <value>Changing your app will reload QuestPatcher to pull the new APK, which may take a minute or so.</value>
+  </data>
+  <data name="SelectApp_Loading" xml:space="preserve">
+    <value>Loading installed applications . . .</value>
+  </data>
+  <data name="SelectApp_Confirm" xml:space="preserve">
+    <value>Confirm new App</value>
+  </data>
+  <data name="Tools_Section_Tools" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  <data name="Tools_Section_Tools_Description" xml:space="preserve">
+    <value>Useful for troubleshooting issues and managing your install.</value>
+  </data>
+  <data name="Tools_Tool_UninstallApp" xml:space="preserve">
+    <value>Uninstall App</value>
+  </data>
+  <data name="Tools_Tool_UninstallApp_Description" xml:space="preserve">
+    <value>Uninstalls your selected app.</value>
+  </data>
+  <data name="Tools_Tool_RestartApp" xml:space="preserve">
+    <value>Restart App</value>
+  </data>
+  <data name="Tools_Tool_RestartApp_Description" xml:space="preserve">
+    <value>Closes then reopens the selected app.</value>
+  </data>
+  <data name="Tools_Tool_LogFolder" xml:space="preserve">
+    <value>Open Logs Folder</value>
+  </data>
+  <data name="Tools_Tool_LogFolder_Description" xml:space="preserve">
+    <value>Opens the folder where QP stores logs.</value>
+  </data>
+  <data name="Tools_Tool_CreateDump" xml:space="preserve">
+    <value>Create Dump</value>
+  </data>
+  <data name="Tools_Tool_CreateDump_Description" xml:space="preserve">
+    <value>Creates a dump containing lots of information about QuestPatcher and mod state.</value>
+  </data>
+  <data name="Tools_Tool_QuickFix" xml:space="preserve">
+    <value>Quick Fix</value>
+  </data>
+  <data name="Tools_Tool_QuickFix_Description" xml:space="preserve">
+    <value>Clears cached QuestPatcher data - try this if something isn't working.</value>
+  </data>
+  <data name="Tools_Tool_RepatchApp" xml:space="preserve">
+    <value>Repatch App</value>
+  </data>
+  <data name="Tools_Tool_RepatchApp_Description" xml:space="preserve">
+    <value>Allows you to change the modloader you have installed by re-patching your app.</value>
+  </data>
+  <data name="Tools_Section_Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="Tools_Section_Options_Description" xml:space="preserve">
+    <value>QuestPatcher Settings.</value>
+  </data>
+  <data name="Tools_Option_ChangeApp" xml:space="preserve">
+    <value>Change App</value>
+  </data>
+  <data name="Tools_Option_ChangeApp_Description" xml:space="preserve">
+    <value>Allows you to select a different application to mod</value>
+  </data>
+  <data name="Tools_Option_Theme" xml:space="preserve">
+    <value>Theming</value>
+  </data>
+  <data name="Tools_Option_Theme_Description" xml:space="preserve">
+    <value>Allows UI Customization</value>
+  </data>
+  <data name="Tools_Option_Theme_SelectTheme" xml:space="preserve">
+    <value>Select Theme:</value>
+  </data>
+  <data name="Tools_Option_Theme_OpenThemeFolder" xml:space="preserve">
+    <value>Open Themes Folder</value>
+  </data>
+  <data name="Tools_Tool_ToggleADB_Description" xml:space="preserve">
+    <value>Starts an ADB log - you must keep your quest plugged in while you use this.</value>
+  </data>
+  <data name="Generic_On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Generic_Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Prompt_AppNotInstalled_Title" xml:space="preserve">
+    <value>App Not Installed</value>
+  </data>
+  <data name="Prompt_AppNotInstalled_Text" xml:space="preserve">
+    <value>The selected app - {0} - is not installed</value>
+  </data>
+  <data name="Prompt_AppNotInstalled_ChangeApp" xml:space="preserve">
+    <value>Change App</value>
+  </data>
+  <data name="Generic_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Generic_Retry" xml:space="preserve">
+    <value>Try Again</value>
+  </data>
+  <data name="Generic_Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="Generic_ContinueAnyway" xml:space="preserve">
+    <value>Continue Anyway</value>
+  </data>
+  <data name="Prompt_AdbDisconnect_NoDevice_Title" xml:space="preserve">
+    <value>Quest Not Connected</value>
+  </data>
+  <data name="Prompt_AdbDisconnect_NoDevice_Text" xml:space="preserve">
+    <value>QuestPatcher could not detect your Quest.
 Make sure that your Quest is plugged in, and that you have setup developer mode as per the SideQuest installation instructions.</value>
-    </data>
-    <data name="Prompt_AdbDisconnect_NoDevice_SideQuest" xml:space="preserve">
-        <value>SideQuest Instructions</value>
-    </data>
-    <data name="Prompt_AdbDisconnect_Offline_Title" xml:space="preserve">
-        <value>Device Offline</value>
-    </data>
-    <data name="Prompt_AdbDisconnect_Offline_Text" xml:space="preserve">
-        <value>Your Quest has been detected as offline.
+  </data>
+  <data name="Prompt_AdbDisconnect_NoDevice_SideQuest" xml:space="preserve">
+    <value>SideQuest Instructions</value>
+  </data>
+  <data name="Prompt_AdbDisconnect_Offline_Title" xml:space="preserve">
+    <value>Device Offline</value>
+  </data>
+  <data name="Prompt_AdbDisconnect_Offline_Text" xml:space="preserve">
+    <value>Your Quest has been detected as offline.
 Try restarting your Quest and your PC</value>
-    </data>
-    <data name="Prompt_AdbDisconnect_Unauthorized_Title" xml:space="preserve">
-        <value>Device Unauthorized</value>
-    </data>
-    <data name="Prompt_AdbDisconnect_Unauthorized_Text" xml:space="preserve">
-        <value>Please press allow from this PC within the headset, even if you have done it before for SideQuest.</value>
-    </data>
-    <data name="Prompt_32Bit_Title" xml:space="preserve">
-        <value>32 bit APK</value>
-    </data>
-    <data name="Prompt_32Bit_Text" xml:space="preserve">
-        <value>The app you are attempting to patch is 32 bit (armeabi-v7a). QuestPatcher supports a 32 version of QuestLoader, however most libraries like beatsaber-hook don't, unlesss you use a very old version. This will make modding much more difficult.</value>
-    </data>
-    <data name="Prompt_NoUnstrippedUnity_Title" xml:space="preserve">
-        <value>Missing libunity.so</value>
-    </data>
-    <data name="Prompt_NoUnstrippedUnity_Text" xml:space="preserve">
-        <value>No unstripped libunity.so is available for the app you have selected. This may mean that certain mods will not work correctly until one is added to the index. Proceed with caution - if you're updating from an older version, it is wise to wait for the latest version of your app to be added.</value>
-    </data>
-    <data name="Prompt_UnknownModLoader_Title" xml:space="preserve">
-        <value>Unknown Mod Loader Detected</value>
-    </data>
-    <data name="Prompt_UnknownModLoader_Text" xml:space="preserve">
-        <value>The app you're attempting to patch contains a mod loader that QuestPatcher doesn't recognise. QuestPatcher can attempt to replace this mod loader with the one you have selected, but this may lead to a non-functional APK.</value>
-    </data>
-    <data name="Prompt_UpgradeFromOld_Title" xml:space="preserve">
-        <value>Upgrading from QuestPatcher 1</value>
-    </data>
-    <data name="Prompt_UpgradeFromOld_Text" xml:space="preserve">
-        <value>It looks as though you've previously used QuestPatcher 1.
+  </data>
+  <data name="Prompt_AdbDisconnect_Unauthorized_Title" xml:space="preserve">
+    <value>Device Unauthorized</value>
+  </data>
+  <data name="Prompt_AdbDisconnect_Unauthorized_Text" xml:space="preserve">
+    <value>Please press allow from this PC within the headset, even if you have done it before for SideQuest.</value>
+  </data>
+  <data name="Prompt_32Bit_Title" xml:space="preserve">
+    <value>32 bit APK</value>
+  </data>
+  <data name="Prompt_32Bit_Text" xml:space="preserve">
+    <value>The app you are attempting to patch is 32 bit (armeabi-v7a). QuestPatcher supports a 32 version of QuestLoader, however most libraries like beatsaber-hook don't, unlesss you use a very old version. This will make modding much more difficult.</value>
+  </data>
+  <data name="Prompt_NoUnstrippedUnity_Title" xml:space="preserve">
+    <value>Missing libunity.so</value>
+  </data>
+  <data name="Prompt_NoUnstrippedUnity_Text" xml:space="preserve">
+    <value>No unstripped libunity.so is available for the app you have selected. This may mean that certain mods will not work correctly until one is added to the index. Proceed with caution - if you're updating from an older version, it is wise to wait for the latest version of your app to be added.</value>
+  </data>
+  <data name="Prompt_UnknownModLoader_Title" xml:space="preserve">
+    <value>Unknown Mod Loader Detected</value>
+  </data>
+  <data name="Prompt_UnknownModLoader_Text" xml:space="preserve">
+    <value>The app you're attempting to patch contains a mod loader that QuestPatcher doesn't recognise. QuestPatcher can attempt to replace this mod loader with the one you have selected, but this may lead to a non-functional APK.</value>
+  </data>
+  <data name="Prompt_UpgradeFromOld_Title" xml:space="preserve">
+    <value>Upgrading from QuestPatcher 1</value>
+  </data>
+  <data name="Prompt_UpgradeFromOld_Text" xml:space="preserve">
+    <value>It looks as though you've previously used QuestPatcher 1.
 
 Note that your mods from QuestPatcher 1 will be removed - this is deliberate as QuestPatcher 2 reworks mod installing to allow toggling of mods! To get your mods back, just reinstall them.
 
 NOTE: All save data, custom maps and cosmetics will remain safe!</value>
-    </data>
-    <data name="Loading_CriticalError_Title" xml:space="preserve">
-        <value>Critical Error</value>
-    </data>
-    <data name="Loading_CriticalError_Text" xml:space="preserve">
-        <value>QuestPatcher encountered a critical error during early startup, which was unrecoverable.</value>
-    </data>
-    <data name="Loading_UnhandledError_Text" xml:space="preserve">
-        <value>An error occured while loading</value>
-    </data>
-    <data name="Loading_UnhandledError_Title" xml:space="preserve">
-        <value>Unhandled Load Error</value>
-    </data>
-    <data name="Loading_UnhandledError_ChangeApp" xml:space="preserve">
-        <value>Change App</value>
-    </data>
-    <data name="Prompt_OperationInProgress_Title" xml:space="preserve">
-        <value>Operations still in progress!</value>
-    </data>
-    <data name="Prompt_OperationInProgress_Text" xml:space="preserve">
-        <value>QuestPatcher still has ongoing operations. Closing QuestPatcher before these finish may lead to corruption of your install!</value>
-    </data>
-    <data name="Generic_CloseAnyway" xml:space="preserve">
-        <value>Close Anyway</value>
-    </data>
-    <data name="BrowseImport_DownloadFailed_Title" xml:space="preserve">
-        <value>Failed to download file</value>
-    </data>
-    <data name="BrowseImport_DownloadFailed_Text" xml:space="preserve">
-        <value>Downloading the file from {0} failed, and thus the file could not be imported.</value>
-    </data>
-    <data name="BrowseImport_BadUrl_Title" xml:space="preserve">
-        <value>Failed to import file from URL</value>
-    </data>
-    <data name="BrowseImport_BadUrl_Text" xml:space="preserve">
-        <value>The server at {0} did not provide a valid file extension, and so QuestPatcher doesn't know how the import the file.</value>
-    </data>
-    <data name="BrowseImport_ImportFailed_Title" xml:space="preserve">
-        <value>Import Failed</value>
-    </data>
-    <data name="BrowseImport_ImportFailed_Multiple_Text" xml:space="preserve">
-        <value>Multiple files failed to install. Check logs for details about each</value>
-    </data>
-    <data name="BrowseImport_ImportFailed_Single_Exception_Text" xml:space="preserve">
-        <value>{0} failed to install: {1}</value>
-    </data>
-    <data name="BrowseImport_ImportFailed_Single_Text" xml:space="preserve">
-        <value>The file {0} failed to install</value>
-    </data>
-    <data name="BrowseImport_MultipleImport_Title" xml:space="preserve">
-        <value>Multiple Import Options</value>
-    </data>
-    <data name="BrowseImport_MultipleImport_Text" xml:space="preserve">
-        <value>{0} can be imported as multiple types of file. Please select what you would like it to be installed as.</value>
-    </data>
-    <data name="Mod_WrongModLoader_Title" xml:space="preserve">
-        <value>Wrong Mod Loader</value>
-    </data>
-    <data name="Mod_WrongModLoader_Text" xml:space="preserve">
-        <value>The mod you are trying to install needs the mod loader {0}. However, your app has the mod loader {1} installed.
+  </data>
+  <data name="Loading_CriticalError_Title" xml:space="preserve">
+    <value>Critical Error</value>
+  </data>
+  <data name="Loading_CriticalError_Text" xml:space="preserve">
+    <value>QuestPatcher encountered a critical error during early startup, which was unrecoverable.</value>
+  </data>
+  <data name="Loading_UnhandledError_Text" xml:space="preserve">
+    <value>An error occured while loading</value>
+  </data>
+  <data name="Loading_UnhandledError_Title" xml:space="preserve">
+    <value>Unhandled Load Error</value>
+  </data>
+  <data name="Loading_UnhandledError_ChangeApp" xml:space="preserve">
+    <value>Change App</value>
+  </data>
+  <data name="Prompt_OperationInProgress_Title" xml:space="preserve">
+    <value>Operations still in progress!</value>
+  </data>
+  <data name="Prompt_OperationInProgress_Text" xml:space="preserve">
+    <value>QuestPatcher still has ongoing operations. Closing QuestPatcher before these finish may lead to corruption of your install!</value>
+  </data>
+  <data name="Generic_CloseAnyway" xml:space="preserve">
+    <value>Close Anyway</value>
+  </data>
+  <data name="BrowseImport_DownloadFailed_Title" xml:space="preserve">
+    <value>Failed to download file</value>
+  </data>
+  <data name="BrowseImport_DownloadFailed_Text" xml:space="preserve">
+    <value>Downloading the file from {0} failed, and thus the file could not be imported.</value>
+  </data>
+  <data name="BrowseImport_BadUrl_Title" xml:space="preserve">
+    <value>Failed to import file from URL</value>
+  </data>
+  <data name="BrowseImport_BadUrl_Text" xml:space="preserve">
+    <value>The server at {0} did not provide a valid file extension, and so QuestPatcher doesn't know how the import the file.</value>
+  </data>
+  <data name="BrowseImport_ImportFailed_Title" xml:space="preserve">
+    <value>Import Failed</value>
+  </data>
+  <data name="BrowseImport_ImportFailed_Multiple_Text" xml:space="preserve">
+    <value>Multiple files failed to install. Check logs for details about each</value>
+  </data>
+  <data name="BrowseImport_ImportFailed_Single_Exception_Text" xml:space="preserve">
+    <value>{0} failed to install: {1}</value>
+  </data>
+  <data name="BrowseImport_ImportFailed_Single_Text" xml:space="preserve">
+    <value>The file {0} failed to install</value>
+  </data>
+  <data name="BrowseImport_MultipleImport_Title" xml:space="preserve">
+    <value>Multiple Import Options</value>
+  </data>
+  <data name="BrowseImport_MultipleImport_Text" xml:space="preserve">
+    <value>{0} can be imported as multiple types of file. Please select what you would like it to be installed as.</value>
+  </data>
+  <data name="Mod_WrongModLoader_Title" xml:space="preserve">
+    <value>Wrong Mod Loader</value>
+  </data>
+  <data name="Mod_WrongModLoader_Text" xml:space="preserve">
+    <value>The mod you are trying to install needs the mod loader {0}. However, your app has the mod loader {1} installed.
 Would you like to repatch your app with the required modloader?</value>
-    </data>
-    <data name="Mod_WrongModLoader_Repatch" xml:space="preserve">
-        <value>Repatch</value>
-    </data>
-    <data name="Generic_NotNow" xml:space="preserve">
-        <value>Not now</value>
-    </data>
-    <data name="Mod_OutdatedMod_Title" xml:space="preserve">
-        <value>Outdated Mod</value>
-    </data>
-    <data name="Mod_OutdatedMod_Text" xml:space="preserve">
-        <value>The mod just installed is for version {0} of your app. However, you have {1}. Enabling the mod may crash the game, or not work.</value>
-    </data>
-    <data name="Mod_OutdatedMod_EnableNow" xml:space="preserve">
-        <value>Enable Now</value>
-    </data>
-    <data name="Mod_InstallFailed" xml:space="preserve">
-        <value>Failed to install mod</value>
-    </data>
-    <data name="Mod_UninstallFailed" xml:space="preserve">
-        <value>Failed to uninstall mod</value>
-    </data>
-    <data name="Mod_DeleteFailed" xml:space="preserve">
-        <value>Failed to delete mod</value>
-    </data>
-    <data name="Mod_Author" xml:space="preserve">
-        <value>(By {0})</value>
-    </data>
-    <data name="Mod_AuthorWithPorter" xml:space="preserve">
-        <value>(By {0} - ported by {1})</value>
-    </data>
-    <data name="Generic_Enabled" xml:space="preserve">
-        <value>Enabled</value>
-    </data>
-    <data name="Generic_Disabled" xml:space="preserve">
-        <value>Disabled</value>
-    </data>
-    <data name="Generic_Enable" xml:space="preserve">
-        <value>Enable</value>
-    </data>
-    <data name="Generic_Disable" xml:space="preserve">
-        <value>Disable</value>
-    </data>
-    <data name="Mod_Section_Mods" xml:space="preserve">
-        <value>Mods</value>
-    </data>
-    <data name="Mod_Section_Libraries" xml:space="preserve">
-        <value>Libraries</value>
-    </data>
-    <data name="Global_WelcomeMessage" xml:space="preserve">
-        <value>Welcome to {0} 2</value>
-    </data>
-    <data name="Global_CurrentModding" xml:space="preserve">
-        <value>Modding {0}</value>
-    </data>
-    <data name="OtherItems_LoadFailed_Title" xml:space="preserve">
-        <value>Failed to load files</value>
-    </data>
-    <data name="OtherItems_LoadFailed_Text" xml:space="preserve">
-        <value>Failed to load the list of files in the folder {0}</value>
-    </data>
-    <data name="OtherItems_DeleteFailed_Text" xml:space="preserve">
-        <value>The file {0} failed to delete</value>
-    </data>
-    <data name="OtherItems_DeleteFailed_Title" xml:space="preserve">
-        <value>File Failed to Delete</value>
-    </data>
-    <data name="OtherItems_DeleteAll_Title" xml:space="preserve">
-        <value>Deleting all files</value>
-    </data>
-    <data name="OtherItems_DeleteAll_Text" xml:space="preserve">
-        <value>Are you sure that you want to delete all ({0}) {1}?</value>
-    </data>
-    <data name="Generic_Yes" xml:space="preserve">
-        <value>Yes</value>
-    </data>
-    <data name="Generic_No" xml:space="preserve">
-        <value>No</value>
-    </data>
-    <data name="OtherItems_DeleteFailed_Text_Multiple" xml:space="preserve">
-        <value>{0} out of {1} files failed to delete. Check the log for details about each</value>
-    </data>
-    <data name="OtherItems_DeleteFailed_Title_Multiple" xml:space="preserve">
-        <value>Files Failed to Delete</value>
-    </data>
-    <data name="Patching_FileDownloadFailed_Title" xml:space="preserve">
-        <value>Could not download files</value>
-    </data>
-    <data name="Patching_FileDownloadFailed_Text" xml:space="preserve">
-        <value>QuestPatcher could not download files that it needs to patch the APK. Please check your internet connection, then try again.</value>
-    </data>
-    <data name="Patching_PatchingFailed_Title" xml:space="preserve">
-        <value>Patching Failed</value>
-    </data>
-    <data name="Patching_PatchingFailed_Text" xml:space="preserve">
-        <value>An unhandled error occured while attempting to patch the game</value>
-    </data>
-    <data name="Patching_PatchingSuccess_Title" xml:space="preserve">
-        <value>Patching Complete!</value>
-    </data>
-    <data name="Patching_PatchingSuccess_Text" xml:space="preserve">
-        <value>Your installation is now modded! 
+  </data>
+  <data name="Mod_WrongModLoader_Repatch" xml:space="preserve">
+    <value>Repatch</value>
+  </data>
+  <data name="Generic_NotNow" xml:space="preserve">
+    <value>Not now</value>
+  </data>
+  <data name="Mod_OutdatedMod_Title" xml:space="preserve">
+    <value>Outdated Mod</value>
+  </data>
+  <data name="Mod_OutdatedMod_Text" xml:space="preserve">
+    <value>The mod just installed is for version {0} of your app. However, you have {1}. Enabling the mod may crash the game, or not work.</value>
+  </data>
+  <data name="Mod_OutdatedMod_EnableNow" xml:space="preserve">
+    <value>Enable Now</value>
+  </data>
+  <data name="Mod_InstallFailed" xml:space="preserve">
+    <value>Failed to install mod</value>
+  </data>
+  <data name="Mod_UninstallFailed" xml:space="preserve">
+    <value>Failed to uninstall mod</value>
+  </data>
+  <data name="Mod_DeleteFailed" xml:space="preserve">
+    <value>Failed to delete mod</value>
+  </data>
+  <data name="Mod_Author" xml:space="preserve">
+    <value>(By {0})</value>
+  </data>
+  <data name="Mod_AuthorWithPorter" xml:space="preserve">
+    <value>(By {0} - ported by {1})</value>
+  </data>
+  <data name="Generic_Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Generic_Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Generic_Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Generic_Disable" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="Mod_Section_Mods" xml:space="preserve">
+    <value>Mods</value>
+  </data>
+  <data name="Mod_Section_Libraries" xml:space="preserve">
+    <value>Libraries</value>
+  </data>
+  <data name="Global_WelcomeMessage" xml:space="preserve">
+    <value>Welcome to {0} 2</value>
+  </data>
+  <data name="Global_CurrentModding" xml:space="preserve">
+    <value>Modding {0}</value>
+  </data>
+  <data name="OtherItems_LoadFailed_Title" xml:space="preserve">
+    <value>Failed to load files</value>
+  </data>
+  <data name="OtherItems_LoadFailed_Text" xml:space="preserve">
+    <value>Failed to load the list of files in the folder {0}</value>
+  </data>
+  <data name="OtherItems_DeleteFailed_Text" xml:space="preserve">
+    <value>The file {0} failed to delete</value>
+  </data>
+  <data name="OtherItems_DeleteFailed_Title" xml:space="preserve">
+    <value>File Failed to Delete</value>
+  </data>
+  <data name="OtherItems_DeleteAll_Title" xml:space="preserve">
+    <value>Deleting all files</value>
+  </data>
+  <data name="OtherItems_DeleteAll_Text" xml:space="preserve">
+    <value>Are you sure that you want to delete all ({0}) {1}?</value>
+  </data>
+  <data name="Generic_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Generic_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="OtherItems_DeleteFailed_Text_Multiple" xml:space="preserve">
+    <value>{0} out of {1} files failed to delete. Check the log for details about each</value>
+  </data>
+  <data name="OtherItems_DeleteFailed_Title_Multiple" xml:space="preserve">
+    <value>Files Failed to Delete</value>
+  </data>
+  <data name="Patching_FileDownloadFailed_Title" xml:space="preserve">
+    <value>Could not download files</value>
+  </data>
+  <data name="Patching_FileDownloadFailed_Text" xml:space="preserve">
+    <value>QuestPatcher could not download files that it needs to patch the APK. Please check your internet connection, then try again.</value>
+  </data>
+  <data name="Patching_PatchingFailed_Title" xml:space="preserve">
+    <value>Patching Failed</value>
+  </data>
+  <data name="Patching_PatchingFailed_Text" xml:space="preserve">
+    <value>An unhandled error occured while attempting to patch the game</value>
+  </data>
+  <data name="Patching_PatchingSuccess_Title" xml:space="preserve">
+    <value>Patching Complete!</value>
+  </data>
+  <data name="Patching_PatchingSuccess_Text" xml:space="preserve">
+    <value>Your installation is now modded! 
 You can now access installed mods, cosmetics, etc. 
  
 NOTE: If you see a restore app prompt inside your headset, just press close. The chance of getting banned for modding is virtually zero, so it's nothing to worry about.</value>
-    </data>
-    <data name="PatchingStage_NotStarted" xml:space="preserve">
-        <value>Not Started</value>
-    </data>
-    <data name="PatchingStage_FetchFiles" xml:space="preserve">
-        <value>(1/6) Downloading files needed to mod the APK </value>
-    </data>
-    <data name="PatchingStage_MoveToTemp" xml:space="preserve">
-        <value>(2/6) Moving APK to temporary location</value>
-    </data>
-    <data name="PatchingStage_Patching" xml:space="preserve">
-        <value>(3/6) Modifying APK files to support mods</value>
-    </data>
-    <data name="PatchingStage_Signing" xml:space="preserve">
-        <value>(4/6) Signing APK</value>
-    </data>
-    <data name="PatchingStage_UninstallOriginal" xml:space="preserve">
-        <value>(5/6) Uninstalling original APK to install modded APK</value>
-    </data>
-    <data name="PatchingStage_InstallModded" xml:space="preserve">
-        <value>(6/6) Installing modded APK</value>
-    </data>
-    <data name="Tools_Tool_UninstallApp_Title" xml:space="preserve">
-        <value>Are you sure?</value>
-    </data>
-    <data name="Tools_Tool_UninstallApp_Text" xml:space="preserve">
-        <value>Uninstalling your app will exit QuestPatcher, as it requires your app to be installed. If you ever reinstall your app, reopen QuestPatcher and you can repatch</value>
-    </data>
-    <data name="Tools_Tool_QuickFix_Failed_Title" xml:space="preserve">
-        <value>Failed to clear cache</value>
-    </data>
-    <data name="Tools_Tool_QuickFix_Failed_Text" xml:space="preserve">
-        <value>Running the quick fix failed due to an unhandled error</value>
-    </data>
-    <data name="Tools_Tool_CreateDump_Failed_Title" xml:space="preserve">
-        <value>Failed to create dump</value>
-    </data>
-    <data name="Tools_Tool_CreateDump_Failed_Text" xml:space="preserve">
-        <value>Creating the dump failed due to an unhandled error</value>
-    </data>
-    <data name="Tools_Tool_RestartApp_Failed_Title" xml:space="preserve">
-        <value>Failed to restart app</value>
-    </data>
-    <data name="Tools_Tool_RestartApp_Failed_Text" xml:space="preserve">
-        <value>Restarting the app failed due to an unhandled error</value>
-    </data>
-    <data name="Tools_Tool_ToggleADB_Start" xml:space="preserve">
-        <value>Start ADB Log</value>
-    </data>
-    <data name="Tools_Tool_ToggleADB_Stop" xml:space="preserve">
-        <value>Stop ADB Log</value>
-    </data>
-    <data name="Tools_Tool_UninstallApp_Confirm" xml:space="preserve">
-        <value>Uninstall App</value>
-    </data>
-    <data name="Tools_Option_Language" xml:space="preserve">
-        <value>Language</value>
-    </data>
-    <data name="Tools_Option_Language_Default" xml:space="preserve">
-        <value>Default</value>
-    </data>
-    <data name="Tools_Option_Language_Title" xml:space="preserve">
-        <value>Language Changed</value>
-    </data>
-    <data name="Tools_Option_Language_Text" xml:space="preserve">
-        <value>The language has been changed. Please restart QuestPatcher for the changes to take effect.</value>
-    </data>
+  </data>
+  <data name="PatchingStage_NotStarted" xml:space="preserve">
+    <value>Not Started</value>
+  </data>
+  <data name="PatchingStage_FetchFiles" xml:space="preserve">
+    <value>(1/6) Downloading files needed to mod the APK </value>
+  </data>
+  <data name="PatchingStage_MoveToTemp" xml:space="preserve">
+    <value>(2/6) Moving APK to temporary location</value>
+  </data>
+  <data name="PatchingStage_Patching" xml:space="preserve">
+    <value>(3/6) Modifying APK files to support mods</value>
+  </data>
+  <data name="PatchingStage_Signing" xml:space="preserve">
+    <value>(4/6) Signing APK</value>
+  </data>
+  <data name="PatchingStage_UninstallOriginal" xml:space="preserve">
+    <value>(5/6) Uninstalling original APK to install modded APK</value>
+  </data>
+  <data name="PatchingStage_InstallModded" xml:space="preserve">
+    <value>(6/6) Installing modded APK</value>
+  </data>
+  <data name="Tools_Tool_UninstallApp_Title" xml:space="preserve">
+    <value>Are you sure?</value>
+  </data>
+  <data name="Tools_Tool_UninstallApp_Text" xml:space="preserve">
+    <value>Uninstalling your app will exit QuestPatcher, as it requires your app to be installed. If you ever reinstall your app, reopen QuestPatcher and you can repatch</value>
+  </data>
+  <data name="Tools_Tool_QuickFix_Failed_Title" xml:space="preserve">
+    <value>Failed to clear cache</value>
+  </data>
+  <data name="Tools_Tool_QuickFix_Failed_Text" xml:space="preserve">
+    <value>Running the quick fix failed due to an unhandled error</value>
+  </data>
+  <data name="Tools_Tool_CreateDump_Failed_Title" xml:space="preserve">
+    <value>Failed to create dump</value>
+  </data>
+  <data name="Tools_Tool_CreateDump_Failed_Text" xml:space="preserve">
+    <value>Creating the dump failed due to an unhandled error</value>
+  </data>
+  <data name="Tools_Tool_RestartApp_Failed_Title" xml:space="preserve">
+    <value>Failed to restart app</value>
+  </data>
+  <data name="Tools_Tool_RestartApp_Failed_Text" xml:space="preserve">
+    <value>Restarting the app failed due to an unhandled error</value>
+  </data>
+  <data name="Tools_Tool_ToggleADB_Start" xml:space="preserve">
+    <value>Start ADB Log</value>
+  </data>
+  <data name="Tools_Tool_ToggleADB_Stop" xml:space="preserve">
+    <value>Stop ADB Log</value>
+  </data>
+  <data name="Tools_Tool_UninstallApp_Confirm" xml:space="preserve">
+    <value>Uninstall App</value>
+  </data>
+  <data name="Tools_Option_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Tools_Option_Language_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Tools_Option_Language_Title" xml:space="preserve">
+    <value>Language Changed</value>
+  </data>
+  <data name="Tools_Option_Language_Text" xml:space="preserve">
+    <value>The language has been changed. Please restart QuestPatcher for the changes to take effect.</value>
+  </data>
+  <data name="PatchingOption_MrcWorkaround" xml:space="preserve">
+    <value>Enable MRC workaround</value>
+  </data>
 </root>

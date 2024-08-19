@@ -21,6 +21,8 @@ namespace QuestPatcher.Core.Models
             }
         }
 
+        public bool MrcWorkaround { get; set; }
+
         public bool Microphone { get; set; }
 
         public bool OpenXR { get; set; }

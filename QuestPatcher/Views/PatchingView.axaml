@@ -21,6 +21,7 @@
                   <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.FlatScreenSupport}" Content="{x:Static res:Strings.PatchingOption_NoVRRequirement}"/>
                   <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.Microphone}" Content="{x:Static res:Strings.PatchingOption_Microphone}"/>
                   <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.OpenXR}" Content="{x:Static res:Strings.PatchingOption_OpenXR}"/>
+                  <ToggleSwitch IsChecked="{Binding Config.PatchingOptions.MrcWorkaround}" Content="{x:Static res:Strings.PatchingOption_MrcWorkaround}"/>
 
                   <StackPanel Orientation="Vertical" Spacing="10">
                       <TextBlock Text="{x:Static res:Strings.PatchingOption_HandTracking}"/>

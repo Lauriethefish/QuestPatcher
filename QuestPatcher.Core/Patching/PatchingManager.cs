@@ -287,6 +287,26 @@ namespace QuestPatcher.Core.Patching
                 appElement.Attributes.Add(new AxmlAttribute("requestLegacyExternalStorage", AndroidNamespaceUri, LegacyStorageAttributeResourceId, true));
             }
 
+            if (permissions.MrcWorkaround)
+            {
+                const string MrcLibName = "libOVRMrcLib.oculus.so";
+
+                if(appElement.Children.Any(child => child.Name == "uses-native-library" &&
+                    child.Attributes.Any(attr => attr.Name == "name" && (string) attr.Value == MrcLibName))) {
+                    Log.Information("Not adding MRC workaround as it already exists");
+                }
+                else
+                {
+                    Log.Information("Adding MRC workaround");
+                    AxmlElement nativeLibElement = new("uses-native-library");
+                    AddNameAttribute(nativeLibElement, MrcLibName);
+                    nativeLibElement.Attributes.Add(new AxmlAttribute("required", AndroidNamespaceUri, RequiredAttributeResourceId, false));
+
+                    appElement.Children.Add(nativeLibElement);
+                    manifestModified = true;
+                }
+            }
+
             // TODO: Modify an existing hand tracking element if one exists
             switch (permissions.HandTrackingType)
             {

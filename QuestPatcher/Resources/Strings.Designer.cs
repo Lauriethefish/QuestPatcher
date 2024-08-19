@@ -931,6 +931,15 @@ namespace QuestPatcher.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable MRC workaround.
+        /// </summary>
+        public static string PatchingOption_MrcWorkaround {
+            get {
+                return ResourceManager.GetString("PatchingOption_MrcWorkaround", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Disable VR Requirement.
         /// </summary>
         public static string PatchingOption_NoVRRequirement {
