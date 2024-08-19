@@ -273,7 +273,7 @@ namespace QuestPatcher.Core
 
         private async Task<bool> FindExistingAdbServer()
         {
-            _lastDaemonCheck = DateTime.Now;
+            _lastDaemonCheck = DateTime.UtcNow;
 
             Log.Debug("Checking for existing daemon");
             foreach (string adbPath in FindRunningAdbPath())
