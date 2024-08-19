@@ -273,6 +273,7 @@ namespace QuestPatcher.ViewModels
             };
             builder.OkButton.Text = Strings.Generic_OK;
             builder.CancelButton.Text = Strings.Generic_NotNow;
+            builder.OkButton.CloseDialogue = false;
             builder.OkButton.OnClick = () =>
             {
                 string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
