@@ -99,7 +99,7 @@ namespace QuestPatcher.Core
             {
                 fullPath = process.MainModule?.FileName;
             }
-            catch (Win32Exception ex)
+            catch (Exception ex)
             {
                 Log.Warning(ex, "Failed to get full path to executing ADB client. Is the AntiVirus preventing this?");
             }
