@@ -31,8 +31,21 @@ namespace QuestPatcher.ViewModels
             {
                 if (value != Config.Language)
                 {
+                    // Use ToCultureInfo to check if the new language is actually a different culture
+                    // E.g. This is to account for the fact that a change from English to the system default 
+                    // isn't actually a change in language if the system default IS English
+                    string newCultureName = value.ToCultureInfo().Name;
+                    string oldCultureName = Config.Language.ToCultureInfo().Name;
+
+                    // If the culture name is different AND at least one of the cultures isn't English, make the change
+                    // QuestPatcher doesn't differentiate between US and UK (real) English so we don't want to prompt
+                    // an app reload if both are English.
+                    if (newCultureName != oldCultureName && !(newCultureName.StartsWith("en-") && oldCultureName.StartsWith("en")))
+                    {
+                        ShowLanguageChangeDialog();
+                    }
+
                     Config.Language = value;
-                    ShowLanguageChangeDialog();
                 }
             }
         }
