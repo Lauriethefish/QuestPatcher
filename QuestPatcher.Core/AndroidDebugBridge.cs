@@ -829,6 +829,22 @@ namespace QuestPatcher.Core
             return directoryFiles.Contains(Path.GetFileName(path));
         }
 
+        /// <summary>
+        /// Computes the SHA-256 hash of a file on the device.
+        /// </summary>
+        /// <param name="path">The file to hash</param>
+        /// <returns>The hash as a lowercase hex string, or null if the file does not exist or could not be hashed</returns>
+        public async Task<string?> GetSha256(string path)
+        {
+            // Exit code 1 means the file could not be read, 127 means sha256sum is not available
+            var output = await RunShellCommand($"sha256sum {path.WithForwardSlashes().EscapeBash()}", 1, 127);
+            if (output.ExitCode != 0) return null;
+
+            // The output is "<hash>  <path>"
+            var hash = output.StandardOutput.Split(' ', 2)[0].Trim();
+            return hash.Length == 64 ? hash.ToLowerInvariant() : null;
+        }
+
         public void Dispose()
         {
             _logcatProcess?.Dispose();

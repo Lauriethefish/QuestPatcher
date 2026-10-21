@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace QuestPatcher.Core
@@ -19,6 +21,28 @@ namespace QuestPatcher.Core
             await using var targetStream = File.OpenWrite(to);
 
             await sourceStream.CopyToAsync(targetStream);
+        }
+
+        /// <summary>
+        /// Computes the SHA-256 hash of a file.
+        /// </summary>
+        /// <param name="filePath">The path to the file to hash.</param>
+        /// <returns>The hash as a lowercase hex string.</returns>
+        public static async Task<string> GetSha256Async(string filePath)
+        {
+            await using var stream = File.OpenRead(filePath);
+            return await GetSha256Async(stream);
+        }
+
+        /// <summary>
+        /// Computes the SHA-256 hash of the remaining contents of a stream.
+        /// </summary>
+        /// <param name="stream">The stream to hash.</param>
+        /// <returns>The hash as a lowercase hex string.</returns>
+        public static async Task<string> GetSha256Async(Stream stream)
+        {
+            using var sha256 = SHA256.Create();
+            return Convert.ToHexString(await sha256.ComputeHashAsync(stream)).ToLowerInvariant();
         }
     }
 }

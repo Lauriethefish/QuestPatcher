@@ -567,6 +567,7 @@ namespace QuestPatcher.Core.Patching
 
         /// <summary>
         /// Saves the scotland2 modloader to the appropriate location for the currently installed app.
+        /// Only replaces an existing copy if it differs from the downloaded one, unless <paramref name="replaceIfPresent"/> is true.
         /// </summary>
         public async Task SaveScotland2(bool replaceIfPresent)
         {
@@ -574,7 +575,8 @@ namespace QuestPatcher.Core.Patching
             string sl2SavePath = string.Format(Scotland2LocationTemplate, _config.AppId);
 
             await _debugBridge.CreateDirectory(Path.GetDirectoryName(sl2SavePath)!);
-            if (!await _debugBridge.FileExists(sl2SavePath) || replaceIfPresent)
+            // A missing file has no hash, so it is always uploaded
+            if (replaceIfPresent || await _debugBridge.GetSha256(sl2SavePath) != await FileUtil.GetSha256Async(sl2Path))
             {
                 Log.Information("Uploading scotland2 to the quest");
                 Log.Debug("Saving to {Scotland2Path}", sl2SavePath);

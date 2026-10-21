@@ -55,9 +55,15 @@ namespace QuestPatcher.Core
         /// Finds the current value based on the operating system
         /// </summary>
         [JsonIgnore]
-        public T Value => EvaluateBasedOnOS();
+        public T Value => EvaluateBasedOnOS() ?? throw new UnknownOperatingSystemException();
 
-        private T EvaluateBasedOnOS()
+        /// <summary>
+        /// Finds the current value based on the operating system, or the default if none is configured for it
+        /// </summary>
+        [JsonIgnore]
+        public T? ValueOrDefault => EvaluateBasedOnOS();
+
+        private T? EvaluateBasedOnOS()
         {
             if (Windows != null && OperatingSystem.IsWindows())
             {
@@ -74,13 +80,8 @@ namespace QuestPatcher.Core
                 return Mac;
             }
 
-            if (Any != null)
-            {
-                return Any;
-            }
-
-            // This OS is not supported
-            throw new UnknownOperatingSystemException();
+            // Null if this OS is not supported
+            return Any;
         }
     }
 }

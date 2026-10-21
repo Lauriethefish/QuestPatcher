@@ -1,0 +1,33 @@
+name: Verify Download Hashes
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'QuestPatcher.Core/Resources/file-downloads.json'
+      - '.github/scripts/Verify-DownloadHashes.ps1'
+      - '.github/workflows/verify-download-hashes.yml'
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - 'QuestPatcher.Core/Resources/file-downloads.json'
+      - '.github/scripts/Verify-DownloadHashes.ps1'
+      - '.github/workflows/verify-download-hashes.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Verify file-downloads.json hashes
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Verify hashes
+      run: ./.github/scripts/Verify-DownloadHashes.ps1

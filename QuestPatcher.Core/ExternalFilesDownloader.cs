@@ -85,11 +85,23 @@ namespace QuestPatcher.Core
             }
 
             /// <summary>
-            /// Download links as SystemSpecificValues
+            /// Download links as SystemSpecificValues.
+            /// Keyed by the name of the <see cref="ExternalFileType"/>, so that unknown file types can be ignored.
             /// </summary>
-            public Dictionary<ExternalFileType, SystemSpecificValue<string>> Downloads { get; set; }
+            public Dictionary<string, SystemSpecificValue<string>> Downloads { get; set; }
 #nullable enable
+
+            /// <summary>
+            /// Optional SHA-256 hashes of the downloads, keyed the same way as <see cref="Downloads"/>.
+            /// Files without a hash are not verified.
+            /// </summary>
+            public Dictionary<string, SystemSpecificValue<string>>? Sha256 { get; set; }
         }
+
+        /// <summary>
+        /// A URL to download a file from, and the expected SHA-256 hash of the file if known.
+        /// </summary>
+        private record DownloadSource(string Url, string? Sha256);
 
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
@@ -170,7 +182,7 @@ namespace QuestPatcher.Core
             }
         };
 
-        private Dictionary<ExternalFileType, List<string>>? _downloadUrls;
+        private Dictionary<ExternalFileType, List<DownloadSource>>? _downloadUrls;
 
         /// <summary>
         /// The name of the downloading file, or null if no file is downloading
@@ -233,7 +245,11 @@ namespace QuestPatcher.Core
             {
                 foreach (string fileType in File.ReadAllLines(_fullyDownloadedPath))
                 {
-                    _fullyDownloaded.Add(Enum.Parse<ExternalFileType>(fileType));
+                    // Skip file types that no longer exist
+                    if (Enum.TryParse<ExternalFileType>(fileType, out var type))
+                    {
+                        _fullyDownloaded.Add(type);
+                    }
                 }
             }
             catch (FileNotFoundException)
@@ -258,7 +274,7 @@ namespace QuestPatcher.Core
         /// </summary>
         /// <returns>The pulled or existing download URLs</returns>
         /// <exception cref="Exception">If no download URLs were found for the current QuestPatcher version</exception>
-        private async Task<Dictionary<ExternalFileType, List<string>>> PrepareDownloadUrls()
+        private async Task<Dictionary<ExternalFileType, List<DownloadSource>>> PrepareDownloadUrls()
         {
             // Only pull the download URLs if we haven't already
             if (_downloadUrls != null) { return _downloadUrls; }
@@ -276,7 +292,7 @@ namespace QuestPatcher.Core
                 downloadSets = LoadDownloadSetsFromResources();
             }
 
-            var downloadUrls = new Dictionary<ExternalFileType, List<string>>();
+            var downloadUrls = new Dictionary<ExternalFileType, List<DownloadSource>>();
 
             var qpVersion = VersionUtil.QuestPatcherVersion;
             // filter the compatible sets  
@@ -284,15 +300,31 @@ namespace QuestPatcher.Core
             // Download sets are in order, highest priority comes first
             foreach (var downloadSet in downloadSets)
             {
-                foreach (var (type, specificValue) in downloadSet.Downloads)
+                foreach (var (typeName, specificValue) in downloadSet.Downloads)
                 {
-                    if (downloadUrls.ContainsKey(type))
+                    if (!Enum.TryParse<ExternalFileType>(typeName, out var type))
                     {
-                        downloadUrls[type].Add(specificValue.Value);
+                        Log.Debug("Ignoring unknown file type {Type} in download URLs", typeName);
+                        continue;
                     }
-                    else
+
+                    if (!downloadUrls.TryGetValue(type, out var sources))
                     {
-                        downloadUrls[type] = new List<string> { specificValue.Value };
+                        sources = new List<DownloadSource>();
+                        downloadUrls[type] = sources;
+                    }
+
+                    // Dedupe the list. The same URL is the same file, so a hash from any set can be used for it
+                    var url = specificValue.Value;
+                    var sha256 = downloadSet.Sha256?.GetValueOrDefault(typeName)?.ValueOrDefault;
+                    var existingIndex = sources.FindIndex(source => source.Url == url);
+                    if (existingIndex == -1)
+                    {
+                        sources.Add(new DownloadSource(url, sha256));
+                    }
+                    else if (sources[existingIndex].Sha256 == null)
+                    {
+                        sources[existingIndex] = sources[existingIndex] with { Sha256 = sha256 };
                     }
                 }
             }
@@ -302,12 +334,7 @@ namespace QuestPatcher.Core
                 throw new Exception($"Unable to find download URLs suitable for this QuestPatcher version ({qpVersion})");
             }
 
-            _downloadUrls = downloadUrls.Aggregate(new Dictionary<ExternalFileType, List<string>>(), (dictionary, pair) =>
-            {
-                dictionary[pair.Key] = pair.Value.Distinct().ToList(); // dedupe the list 
-                return dictionary;
-            });
-
+            _downloadUrls = downloadUrls;
             return _downloadUrls;
         }
 
@@ -353,17 +380,17 @@ namespace QuestPatcher.Core
             return result;
         }
 
-        private async Task DownloadFileWithMirrors(ExternalFileType fileType, FileInfo fileInfo, List<string> downloadUrls, string saveLocation)
+        private async Task DownloadFileWithMirrors(ExternalFileType fileType, FileInfo fileInfo, List<DownloadSource> sources, string saveLocation)
         {
-            if (downloadUrls.Count == 0)
+            if (sources.Count == 0)
             {
                 throw new ArgumentException("Download Url is empty");
             }
             Log.Information("Downloading {Name}", fileInfo.Name);
-            Log.Verbose("Urls: {Urls}", downloadUrls);
-            foreach (string url in downloadUrls)
+            Log.Verbose("Urls: {Urls}", sources.Select(source => source.Url));
+            foreach (var source in sources)
             {
-                if (await TryDownloadFile(fileType, fileInfo, url, saveLocation))
+                if (await TryDownloadFile(fileType, fileInfo, source, saveLocation))
                 {
                     return;
                 }
@@ -372,8 +399,9 @@ namespace QuestPatcher.Core
             throw new FileDownloadFailedException($"Failed to download {fileInfo.Name} with all mirrors");
         }
 
-        private async Task<bool> TryDownloadFile(ExternalFileType fileType, FileInfo fileInfo, string downloadUrl, string saveLocation)
+        private async Task<bool> TryDownloadFile(ExternalFileType fileType, FileInfo fileInfo, DownloadSource source, string saveLocation)
         {
+            var downloadUrl = source.Url;
             bool succeeded = false;
             try
             {
@@ -386,6 +414,13 @@ namespace QuestPatcher.Core
                     using var stream = new MemoryStream();
                     await DownloadToStreamWithProgressAsync(downloadUrl, stream);
                     stream.Position = 0;
+
+                    // The hash is of the downloaded archive, so it can only be checked here
+                    if (source.Sha256 != null)
+                    {
+                        VerifySha256(source.Sha256, await FileUtil.GetSha256Async(stream));
+                        stream.Position = 0;
+                    }
 
                     // There is no way to asynchronously ExtractToDirectory (or ExtractContents with TAR archives), so we use Task.Run to avoid blocking
                     Log.Information("Extracting . . .");
@@ -411,9 +446,26 @@ namespace QuestPatcher.Core
                 }
                 else
                 {
-                    // Directly download the file to the tools folder
-                    using var fileStream = File.Open(saveLocation, FileMode.Create);
-                    await DownloadToStreamWithProgressAsync(downloadUrl, fileStream);
+                    // Download to a temporary file first, so that a failed download never replaces an existing file
+                    var tempLocation = saveLocation + ".tmp";
+                    try
+                    {
+                        await using (var fileStream = File.Open(tempLocation, FileMode.Create))
+                        {
+                            await DownloadToStreamWithProgressAsync(downloadUrl, fileStream);
+                        }
+
+                        if (source.Sha256 != null)
+                        {
+                            VerifySha256(source.Sha256, await FileUtil.GetSha256Async(tempLocation));
+                        }
+
+                        File.Move(tempLocation, saveLocation, true);
+                    }
+                    finally
+                    {
+                        File.Delete(tempLocation); // Does nothing if the file was moved
+                    }
                 }
 
                 // chmod to make the downloaded executable actually usable if on mac or linux
@@ -424,12 +476,15 @@ namespace QuestPatcher.Core
 
                 // Write that the file has been fully downloaded
                 // This is used instead of just checking that it exists to avoid exiting part way through causing a corrupted file
-                _fullyDownloaded.Add(fileType);
+                if (!_fullyDownloaded.Contains(fileType))
+                {
+                    _fullyDownloaded.Add(fileType);
+                }
                 await SaveFullyDownloaded();
                 succeeded = true;
                 Log.Information("Downloaded {Name}", fileInfo.Name);
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex) when (ex is HttpRequestException or InvalidDataException)
             {
                 Log.Warning(ex, "Failed to download {Name} from {Source}", fileInfo.Name, downloadUrl);
             }
@@ -452,6 +507,7 @@ namespace QuestPatcher.Core
             const int BufferSize = 4096;
 
             using var resp = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            resp.EnsureSuccessStatusCode(); // Otherwise the error page would be saved as the file
             using var respStream = await resp.Content.ReadAsStreamAsync();
 
             // Attempt to find the content length from the headers
@@ -506,6 +562,41 @@ namespace QuestPatcher.Core
         }
 
         /// <summary>
+        /// Checks that a downloaded file has the expected SHA-256 hash.
+        /// </summary>
+        /// <exception cref="InvalidDataException">If the hash does not match</exception>
+        private static void VerifySha256(string expected, string actual)
+        {
+            if (!string.Equals(expected, actual, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException($"SHA-256 mismatch, expected {expected} but got {actual}");
+            }
+        }
+
+        /// <summary>
+        /// Checks if an existing file has the hash it is expected to have, i.e. that it is up to date and not corrupted.
+        /// Files without a known hash, and files extracted from an archive, are not checked.
+        /// </summary>
+        private async Task<bool> MatchesExpectedHash(ExternalFileType fileType, FileInfo fileInfo, string path)
+        {
+            // Only the hash of the archive is known for extracted files
+            if (fileInfo.ExtractionFolder != null) return true;
+
+            // The highest priority source is the version that should be used
+            var sources = (await PrepareDownloadUrls()).GetValueOrDefault(fileType);
+            var expected = sources?.FirstOrDefault()?.Sha256;
+            if (expected == null) return true;
+
+            if (string.Equals(expected, await FileUtil.GetSha256Async(path), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            Log.Information("{Name} is outdated or corrupted, downloading it again", fileInfo.Name);
+            return false;
+        }
+
+        /// <summary>
         /// Finds the location of the specified file, and downloads/extracts it if it does not exist.
         /// </summary>
         /// <param name="fileType">The type of file to download</param>
@@ -545,7 +636,7 @@ namespace QuestPatcher.Core
                 saveLocation = Path.Combine(extractLocation, fileInfo.SaveName.Value);
             }
 
-            if (!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation))
+            if (!_fullyDownloaded.Contains(fileType) || !File.Exists(saveLocation) || !await MatchesExpectedHash(fileType, fileInfo, saveLocation))
             {
                 await DownloadFileWithMirrors(fileType, fileInfo, (await PrepareDownloadUrls())[fileType], saveLocation);
             }
